@@ -1,0 +1,182 @@
+/*
+* demo.css
+* File include item demo only specific css only
+******************************************************************************/
+
+.menu .app-brand.demo {
+  height: 64px;
+  margin-top: 12px;
+}
+
+.app-brand-logo.demo svg {
+  width: 22px;
+  height: 38px;
+}
+
+.app-brand-text.demo {
+  font-size: 1.75rem;
+  letter-spacing: -0.5px;
+}
+
+/* ! For .layout-navbar-fixed added fix padding top to .layout-page */
+/* Detached navbar */
+.layout-navbar-fixed .layout-wrapper:not(.layout-horizontal):not(.layout-without-menu) .layout-page {
+  padding-top: 74px !important;
+}
+/* Default navbar */
+.layout-navbar-fixed .layout-wrapper:not(.layout-without-menu) .layout-page {
+  padding-top: 64px !important;
+}
+.docs-page .layout-navbar-fixed.layout-wrapper:not(.layout-without-menu) .layout-page,
+.docs-page .layout-menu-fixed.layout-wrapper:not(.layout-without-menu) .layout-page {
+  padding-top: 62px !important;
+}
+
+/* Navbar page z-index issue solution */
+.content-wrapper .navbar {
+  z-index: auto;
+}
+
+/*
+* Content
+******************************************************************************/
+
+.demo-blocks > * {
+  display: block !important;
+}
+
+.demo-inline-spacing > * {
+  margin: 1rem 0.375rem 0 0 !important;
+}
+
+/* ? .demo-vertical-spacing class is used to have vertical margins between elements. To remove margin-top from the first-child, use .demo-only-element class with .demo-vertical-spacing class. For example, we have used this class in forms-input-groups.html file. */
+.demo-vertical-spacing > * {
+  margin-top: 1rem !important;
+  margin-bottom: 0 !important;
+}
+.demo-vertical-spacing.demo-only-element > :first-child {
+  margin-top: 0 !important;
+}
+
+.demo-vertical-spacing-lg > * {
+  margin-top: 1.875rem !important;
+  margin-bottom: 0 !important;
+}
+.demo-vertical-spacing-lg.demo-only-element > :first-child {
+  margin-top: 0 !important;
+}
+
+.demo-vertical-spacing-xl > * {
+  margin-top: 5rem !important;
+  margin-bottom: 0 !important;
+}
+.demo-vertical-spacing-xl.demo-only-element > :first-child {
+  margin-top: 0 !important;
+}
+
+/* Dropdown buttons going out of small screens */
+@media (max-width: 576px) {
+  #dropdown-variation-demo .btn-group .text-truncate {
+    width: 231px;
+    position: relative;
+  }
+  #dropdown-variation-demo .btn-group .text-truncate::after {
+    position: absolute;
+    top: 45%;
+    right: 0.65rem;
+  }
+}
+
+/*
+* Layout demo
+******************************************************************************/
+
+.layout-demo-wrapper {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  margin-top: 1rem;
+}
+.layout-demo-placeholder img {
+  width: 900px;
+}
+.layout-demo-info {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+/*
+* Dark mode
+******************************************************************************/
+:root[data-bs-theme='dark'] {
+  --bs-base-color: #d6d9dc;
+  --bs-base-color-rgb: 214, 217, 220;
+  --bs-paper-bg: #2f3b48;
+  --bs-paper-bg-rgb: 47, 59, 72;
+  --bs-navbar-bg: var(--bs-paper-bg);
+  --bs-navbar-box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.35);
+  --bs-navbar-border-color: var(--bs-paper-bg);
+  --bs-nav-border-color: var(--bs-paper-bg);
+  --bs-menu-bg: var(--bs-paper-bg);
+  --bs-menu-color: #e6e8eb;
+  --bs-menu-hover-bg: #3b4855;
+  --bs-menu-hover-color: #fff;
+  --bs-menu-sub-active-bg: var(--bs-primary);
+  --bs-menu-sub-active-color: var(--bs-primary-contrast);
+  --bs-menu-active-bg: var(--bs-primary);
+  --bs-menu-active-color: var(--bs-primary-contrast);
+  --bs-menu-active-toggle-bg: #34414d;
+  --bs-menu-divider-color: #4e5965;
+  --bs-card-bg: var(--bs-paper-bg);
+  --bs-dropdown-bg: var(--bs-paper-bg);
+  --bs-card-border-color: #4e5965;
+  --bs-border-color: #4e5965;
+}
+
+:root[data-bs-theme='dark'] .menu-vertical .menu-inner > .menu-item.active > .menu-link .menu-icon {
+  color: var(--bs-primary-contrast);
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--bs-border-color);
+  background-color: var(--bs-paper-bg);
+  background-color: color-mix(in sRGB, var(--bs-paper-bg) 88%, var(--bs-body-color) 12%);
+  color: var(--bs-heading-color);
+  -webkit-transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, -webkit-box-shadow 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, -webkit-box-shadow 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, -webkit-box-shadow 0.2s ease;
+}
+.theme-toggle:hover {
+  background-color: var(--bs-paper-bg);
+  background-color: color-mix(in sRGB, var(--bs-paper-bg) 80%, var(--bs-body-color) 20%);
+  -webkit-box-shadow: var(--bs-box-shadow-sm);
+          box-shadow: var(--bs-box-shadow-sm);
+}
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 2px;
+}
+.theme-toggle-icon {
+  font-size: 1.25rem;
+}
+:root[data-bs-theme='dark'] .theme-toggle {
+  background-color: var(--bs-paper-bg);
+  background-color: color-mix(in sRGB, var(--bs-paper-bg) 75%, var(--bs-body-color) 25%);
+  border-color: color-mix(in sRGB, var(--bs-border-color) 90%, transparent);
+  color: var(--bs-body-color);
+}

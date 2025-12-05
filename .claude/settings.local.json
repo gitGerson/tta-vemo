@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan route:list:*)",
+      "Bash(composer run:*)",
+      "Bash(php artisan:*)",
+      "Bash(php:*)",
+      "Bash(rm:*)",
+      "Bash(mkdir:*)",
+      "Bash(sed:*)",
+      "Bash(composer show:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
