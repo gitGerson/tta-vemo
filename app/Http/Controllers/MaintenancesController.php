@@ -25,8 +25,8 @@ class MaintenancesController extends Controller
      */
     public function index(Request $request)
     {
-        $startDate = $request->query('start_date') ?? Carbon::now()->startOfMonth()->toDateString();
-        $endDate = $request->query('end_date') ?? Carbon::now()->endOfMonth()->toDateString();
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
         $status = $request->query('status');
         $searchValue = $request->query('search_value');
 
@@ -34,10 +34,12 @@ class MaintenancesController extends Controller
 
         $query = Maintenances::query();
 
-        if ($request->query('start_date') && $request->query('end_date') && $status) {
-            $query->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->where('status', $status);
-        } else {
-            $query->where('status', 'NEW')->where('get_request', auth()->user()->id);
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('date_in', [$startDate, $endDate]);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $status);
         }
 
         if ($searchValue) {
