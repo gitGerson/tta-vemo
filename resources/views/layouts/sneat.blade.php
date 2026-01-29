@@ -306,6 +306,15 @@
             white-space: nowrap;
         }
 
+        .search-group-label {
+            padding: 0.5rem 1rem 0.25rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--bs-secondary-color);
+            letter-spacing: 0.02em;
+        }
+
         /* Responsive adjustments for search dropdown */
         @media (max-width: 576px) {
             .search-dropdown {
@@ -477,75 +486,10 @@
             const noResults = document.getElementById('no-results');
 
             if (menuSearch && searchResults) {
-                // Define menu items for search
-                const menuItems = [{
-                        title: 'Dashboard',
-                        description: 'Main dashboard overview',
-                        url: '{{ route('home') }}',
-                        icon: 'bx-home-smile',
-                        keywords: ['dashboard', 'home', 'main', 'overview']
-                    },
-                    {
-                        title: 'Users',
-                        description: 'User management and administration',
-                        url: '{{ route('users.index') }}',
-                        icon: 'bx-user',
-                        keywords: ['users', 'user', 'people', 'accounts', 'management'],
-                        permission: 'users.view'
-                    },
-                    {
-                        title: 'Create User',
-                        description: 'Add new user to the system',
-                        url: '{{ route('users.create') }}',
-                        icon: 'bx-user-plus',
-                        keywords: ['create', 'add', 'new', 'user', 'register'],
-                        permission: 'users.create'
-                    },
-                    {
-                        title: 'User Activity Logs',
-                        description: 'View all user activity logs',
-                        url: '{{ route('users.logs') }}',
-                        icon: 'bx-history',
-                        keywords: ['logs', 'activity', 'history', 'audit', 'tracking'],
-                        permission: 'users.logs'
-                    },
-                    {
-                        title: 'User Trash',
-                        description: 'Deleted users (can be restored)',
-                        url: '{{ route('users.trash') }}',
-                        icon: 'bx-trash',
-                        keywords: ['trash', 'deleted', 'removed', 'restore'],
-                        permission: 'users.delete'
-                    },
-                    @if (auth()->user()->hasPermission('roles.view'))
-                        {
-                            title: 'Roles',
-                            description: 'Role and permission management',
-                            url: '{{ route('roles.index') }}',
-                            icon: 'bx-shield',
-                            keywords: ['roles', 'permissions', 'rbac', 'access', 'security'],
-                            permission: 'roles.view'
-                        },
-                    @endif
-                    @if (auth()->user()->hasPermission('roles.create'))
-                        {
-                            title: 'Create Role',
-                            description: 'Create new role with permissions',
-                            url: '{{ route('roles.create') }}',
-                            icon: 'bx-shield-plus',
-                            keywords: ['create', 'add', 'new', 'role', 'permission'],
-                            permission: 'roles.create'
-                        },
-                    @endif {
-                        title: 'Mobile',
-                        description: 'Mobile application features',
-                        url: '{{ route('mobile.index') }}',
-                        icon: 'bx-mobile',
-                        keywords: ['mobile', 'app', 'phone', 'device']
-                    }
-                ].filter(item => !item.permission || true); // Filter based on permissions
-
+                // Build menu items from config (already filtered by permissions server-side)
                 let currentFocusIndex = -1;
+                let activeQuery = '';
+                let searchAbortController = null;
 
                 function showSearchResults() {
                     searchResults.classList.remove('d-none');
@@ -557,16 +501,30 @@
                 }
 
                 function performSearch(query) {
-                    const results = menuItems.filter(item => {
-                        const searchTerms = query.toLowerCase().split(' ');
-                        return searchTerms.every(term =>
-                            item.keywords.some(keyword => keyword.includes(term)) ||
-                            item.title.toLowerCase().includes(term) ||
-                            item.description.toLowerCase().includes(term)
-                        );
-                    });
+                    activeQuery = query;
 
-                    renderResults(results);
+                    if (searchAbortController) {
+                        searchAbortController.abort();
+                    }
+
+                    searchAbortController = new AbortController();
+
+                    fetch(`{{ route('search') }}?query=${encodeURIComponent(query)}`, {
+                        signal: searchAbortController.signal
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (query !== activeQuery) {
+                                return;
+                            }
+                            renderResults(data.items || []);
+                        })
+                        .catch(error => {
+                            if (error.name === 'AbortError') {
+                                return;
+                            }
+                            renderResults([]);
+                        });
                 }
 
                 function renderResults(results) {
@@ -579,26 +537,40 @@
 
                     noResults.classList.add('d-none');
 
-                    results.forEach((item, index) => {
-                        const resultItem = document.createElement('a');
-                        resultItem.href = item.url;
-                        resultItem.className = 'search-result-item';
-                        resultItem.innerHTML = `
-                            <div class="result-icon">
-                                <i class="bx ${item.icon}"></i>
-                            </div>
-                            <div class="result-content">
-                                <div class="result-title">${item.title}</div>
-                                <div class="result-description">${item.description}</div>
-                            </div>
-                        `;
+                    const grouped = results.reduce((acc, item) => {
+                        const group = item.group || 'Results';
+                        acc[group] = acc[group] || [];
+                        acc[group].push(item);
+                        return acc;
+                    }, {});
 
-                        resultItem.addEventListener('click', () => {
-                            hideSearchResults();
-                            menuSearch.value = '';
+                    Object.keys(grouped).forEach(groupName => {
+                        const groupLabel = document.createElement('div');
+                        groupLabel.className = 'search-group-label';
+                        groupLabel.textContent = groupName;
+                        searchResultsContent.appendChild(groupLabel);
+
+                        grouped[groupName].forEach(item => {
+                            const resultItem = document.createElement('a');
+                            resultItem.href = item.url;
+                            resultItem.className = 'search-result-item';
+                            resultItem.innerHTML = `
+                                <div class="result-icon">
+                                    <i class="bx ${item.icon}"></i>
+                                </div>
+                                <div class="result-content">
+                                    <div class="result-title">${item.title}</div>
+                                    <div class="result-description">${item.description}</div>
+                                </div>
+                            `;
+
+                            resultItem.addEventListener('click', () => {
+                                hideSearchResults();
+                                menuSearch.value = '';
+                            });
+
+                            searchResultsContent.appendChild(resultItem);
                         });
-
-                        searchResultsContent.appendChild(resultItem);
                     });
                 }
 

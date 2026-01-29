@@ -6,6 +6,7 @@ use App\Http\Controllers\NoteController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\MobileController;
 use App\Http\Controllers\RecordController;
@@ -31,6 +32,7 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 // Route group middleware for authenticated users
 Route::middleware(['auth'])->group(function () {
+    Route::get('/search', [SearchController::class, 'index'])->name('search');
     // User management routes with permissions
     Route::middleware(['permission:management.users.create'])->group(function () {
         Route::get('/users/create', [UserController::class, 'create'])->name('users.create');

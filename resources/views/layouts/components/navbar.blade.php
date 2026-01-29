@@ -46,7 +46,7 @@
 
                  <!-- Search Results Dropdown -->
                  <div id="search-results" class="dropdown-menu search-dropdown d-none"
-                     style="width: 320px; max-height: 400px; overflow-y: auto;">
+                     style="width: 420px; max-height: 400px; overflow-y: auto;">
                      <div class="dropdown-header d-flex justify-content-between align-items-center">
                          <small class="text-muted fw-semibold">Search Results</small>
                          <small class="text-muted">
