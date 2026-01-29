@@ -6,6 +6,7 @@ use App\Http\Controllers\NoteController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\MobileController;
 use App\Http\Controllers\RecordController;
@@ -31,6 +32,7 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 // Route group middleware for authenticated users
 Route::middleware(['auth'])->group(function () {
+    Route::get('/search', [SearchController::class, 'index'])->name('search');
     // User management routes with permissions
     Route::middleware(['permission:management.users.create'])->group(function () {
         Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
@@ -216,6 +218,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:master.drivers.view'])->group(function () {
         Route::get('/driver', [DriverController::class, 'index'])->name('driver.index');
         Route::get('/driver/data', [DriverController::class, 'getData'])->name('driver.data');
+        Route::get('/driver/emp-info', [DriverController::class, 'getEmpInfo'])->name('driver.empInfo');
     });
     Route::middleware(['permission:master.drivers.create'])->group(function () {
         Route::post('/driver', [DriverController::class, 'store'])->name('driver.store');
@@ -264,6 +267,7 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::middleware(['permission:master.type_maintenances.create'])->group(function () {
         Route::post('/type-maintenance', [TypeMaintenanceController::class, 'store'])->name('type-maintenance.store');
+        Route::post('/type-maintenance/import', [TypeMaintenanceController::class, 'import'])->name('type-maintenance.import');
         Route::post('type_maintenances/post/response', [TypeMaintenanceController::class, 'storeResponse'])->name('type_maintenances.storeResponse');
     });
     Route::middleware(['permission:master.type_maintenances.edit'])->group(function () {
@@ -312,6 +316,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/maintenances/{maintenances}/edit', [MaintenancesController::class, 'edit'])->name('maintenances.edit');
         Route::put('/maintenances/{maintenances}', [MaintenancesController::class, 'update'])->name('maintenances.update');
         Route::patch('/maintenances/{maintenances}', [MaintenancesController::class, 'update']);
+    });
+    Route::middleware(['permission:maintenances.approve'])->group(function () {
+        Route::post('/maintenances/{maintenances}/status', [MaintenancesController::class, 'status'])->name('maintenances.status');
     });
     Route::middleware(['permission:maintenances.delete'])->group(function () {
         Route::delete('/maintenances/{maintenances}', [MaintenancesController::class, 'destroy'])->name('maintenances.destroy');

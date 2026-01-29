@@ -1,0 +1,9 @@
+#loader-wrapper {
+  width: 100%;
+  padding: 1.5rem 0;
+}
+
+#loader-wrapper .spinner-border {
+  width: 2.5rem;
+  height: 2.5rem;
+}

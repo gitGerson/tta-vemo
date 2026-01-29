@@ -36,18 +36,19 @@
                             <div class="form-group">
                                 <label for="status">STATUS</label>
                                 <select class="form-control select2" name="status" style="width: 100%;"
-                                    aria-label="Default select example">
+                                        aria-label="Default select example">
+                                    <option value="" {{ $status == null ? 'selected' : '' }}>SEMUA STATUS</option>
                                     @can('view pemeliharaan')
-                                        <option {{ request()->query('status') == 'NEW' ? 'selected' : 'selected' }} value="NEW">
+                                        <option {{ $status == 'NEW' ? 'selected' : '' }} value="NEW">
                                             BELUM
                                             SELESAI</option>
                                     @endcan
-                                    <option {{ request()->query('status') == 'PENDING' ? 'selected' : '' }} value="PENDING">
+                                    <option {{ $status == 'PENDING' ? 'selected' : '' }} value="PENDING">
                                         PROSES
                                         PERSETUJUAN</option>
-                                    <option {{ request()->query('status') == 'APPROVED' ? 'selected' : '' }} value="APPROVED">
+                                    <option {{ $status == 'APPROVED' ? 'selected' : '' }} value="APPROVED">
                                         SUDAH DISETUJUI</option>
-                                    <option {{ request()->query('status') == 'CANCEL' ? 'selected' : '' }} value="CANCEL">
+                                    <option {{ $status == 'CANCEL' ? 'selected' : '' }} value="CANCEL">
                                         DIBATALKAN</option>
 
                                 </select>

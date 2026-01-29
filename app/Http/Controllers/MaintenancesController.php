@@ -13,7 +13,7 @@ use App\Models\TypeMaintenances;
 use Yajra\DataTables\DataTables;
 use App\Models\MaintenancesDetails;
 use Illuminate\Support\Facades\Log;
-use Intervention\Image\Facades\Image;
+use Intervention\Image\Laravel\Facades\Image;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 
@@ -25,8 +25,8 @@ class MaintenancesController extends Controller
      */
     public function index(Request $request)
     {
-        $startDate = $request->query('start_date') ?? Carbon::now()->startOfMonth()->toDateString();
-        $endDate = $request->query('end_date') ?? Carbon::now()->endOfMonth()->toDateString();
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
         $status = $request->query('status');
         $searchValue = $request->query('search_value');
 
@@ -34,10 +34,12 @@ class MaintenancesController extends Controller
 
         $query = Maintenances::query();
 
-        if ($request->query('start_date') && $request->query('end_date') && $status) {
-            $query->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->where('status', $status);
-        } else {
-            $query->where('status', 'NEW')->where('get_request', auth()->user()->id);
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('date_in', [$startDate, $endDate]);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $status);
         }
 
         if ($searchValue) {
@@ -53,7 +55,9 @@ class MaintenancesController extends Controller
                     ->addColumn('action', function ($row) {
                         $showRoute = route('maintenances.show', $row->code_mt);
 
-                        $btn = '<a href="' . $showRoute . '" class="btn btn-info btn-sm"><i class="fas fa-fw fa-eye"></i></a>';
+                        $btn = '<a href="' . $showRoute . '" class="btn btn-primary btn-sm d-flex align-items-center justify-content-center" title="Lihat">
+                                    <i class="bx bx-show"></i>
+                                </a>';
 
                         return $btn;
                     })
@@ -149,12 +153,9 @@ class MaintenancesController extends Controller
                     $tempPath = $destinationPath . '/' . $filename;
                     $file->move($destinationPath, $filename);
 
-                    $image = Image::make($tempPath);
-                    $image->resize(800, 800, function ($constraint) {
-                        $constraint->aspectRatio();
-                    });
-
-                    $image->save($tempPath);
+                    Image::read($tempPath)
+                        ->scaleDown(800, 800)
+                        ->save($tempPath);
                 } else {
                     $file->move($destinationPath, $filename);
                 }
@@ -239,12 +240,9 @@ class MaintenancesController extends Controller
                     $tempPath = $destinationPath . '/' . $filename;
                     $file->move($destinationPath, $filename);
 
-                    $image = Image::make($tempPath);
-                    $image->resize(800, 800, function ($constraint) {
-                        $constraint->aspectRatio();
-                    });
-
-                    $image->save($tempPath);
+                    Image::read($tempPath)
+                        ->scaleDown(800, 800)
+                        ->save($tempPath);
                 } else {
                     $file->move($destinationPath, $filename);
                 }
