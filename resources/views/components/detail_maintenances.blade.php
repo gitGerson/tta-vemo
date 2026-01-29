@@ -47,12 +47,12 @@
                                         <td>
                                             <button type="button" class="btn btn-info btn-sm edit-detail-mt hidden-approved"
                                                 data-id="{{ $row->id }}">
-                                                <i class="fas fa-pen"></i>
+                                                <i class="bx bx-edit-alt"></i>
                                             </button>
                                             <button type="button" class="btn btn-danger btn-sm hidden-approved"
                                                 data-bs-toggle="modal" data-bs-target="#deleteModal"
                                                 data-href="{{ route('detail_maintenances.destroy', $row->id) }}">
-                                                <i class="fas fa-trash"></i>
+                                                <i class="bx bx-trash"></i>
                                             </button>
                                         </td>
                                     </tr>

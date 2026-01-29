@@ -1,3 +1,24 @@
+ @php
+     $canCreateMaintenance = auth()->user()?->hasPermission('maintenances.create');
+     $canApproveMaintenance = auth()->user()?->hasPermission('maintenances.approve');
+     $serviceCount = 0;
+     $approvalCount = 0;
+     $serviceNotifications = collect();
+     $approvalNotifications = collect();
+
+     if ($canCreateMaintenance) {
+         $serviceQuery = \App\Models\NotificationService::where('read', 0);
+         $serviceCount = (clone $serviceQuery)->count();
+         $serviceNotifications = $serviceQuery->orderByDesc('created_at')->limit(5)->get();
+     }
+
+     if ($canApproveMaintenance) {
+         $approvalQuery = \App\Models\Maintenances::where('status', 'PENDING');
+         $approvalCount = (clone $approvalQuery)->count();
+         $approvalNotifications = $approvalQuery->orderByDesc('date_in')->limit(5)->get();
+     }
+ @endphp
+
  <nav class="layout-navbar container-xxl navbar-detached navbar navbar-expand-xl align-items-center bg-navbar-theme"
      id="layout-navbar">
      <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
@@ -56,6 +77,98 @@
          <!-- /Search -->
 
          <ul class="navbar-nav flex-row align-items-center ms-md-auto">
+             @if ($canCreateMaintenance)
+                 <li class="nav-item dropdown me-2">
+                     <a class="nav-link dropdown-toggle hide-arrow position-relative btn btn-icon rounded-circle bg-light"
+                         href="javascript:void(0);"
+                         data-bs-toggle="dropdown" aria-expanded="false" aria-label="Service notifications">
+                         <i class="icon-base bx bx-wrench icon-md"></i>
+                         @if ($serviceCount > 0)
+                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge">
+                                 {{ $serviceCount }}
+                             </span>
+                         @endif
+                     </a>
+                     <ul class="dropdown-menu dropdown-menu-end p-0" style="min-width: 320px;">
+                         <li class="dropdown-header d-flex align-items-center justify-content-between py-2">
+                             <span class="fw-semibold">Butuh Perbaikan</span>
+                             <span class="badge bg-info-subtle text-info">{{ $serviceCount }}</span>
+                         </li>
+                         <li>
+                             <div class="dropdown-divider my-1"></div>
+                         </li>
+                         @forelse ($serviceNotifications as $item)
+                             <li>
+                                 <a class="dropdown-item d-flex align-items-start gap-2"
+                                     href="{{ route('maintenances.create', ['vehicle' => $item->no_pol]) }}">
+                                     <i class="bx bx-car text-primary mt-1"></i>
+                                     <div>
+                                         <div class="fw-semibold">{{ $item->no_pol }}</div>
+                                         <small class="text-muted">KM {{ $item->from_km }} → {{ $item->to_km }}</small>
+                                     </div>
+                                 </a>
+                             </li>
+                         @empty
+                             <li class="dropdown-item-text text-muted py-3 text-center">
+                                 Tidak ada kendaraan yang butuh perbaikan.
+                             </li>
+                         @endforelse
+                         <li>
+                             <div class="dropdown-divider my-1"></div>
+                         </li>
+                         <li>
+                             <a class="dropdown-item text-center" href="{{ route('home') }}">Lihat semua</a>
+                         </li>
+                     </ul>
+                 </li>
+             @endif
+
+             @if ($canApproveMaintenance)
+                 <li class="nav-item dropdown me-2">
+                     <a class="nav-link dropdown-toggle hide-arrow position-relative btn btn-icon rounded-circle bg-light"
+                         href="javascript:void(0);"
+                         data-bs-toggle="dropdown" aria-expanded="false" aria-label="Approval notifications">
+                         <i class="icon-base bx bx-check-shield icon-md"></i>
+                         @if ($approvalCount > 0)
+                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning notification-badge">
+                                 {{ $approvalCount }}
+                             </span>
+                         @endif
+                     </a>
+                     <ul class="dropdown-menu dropdown-menu-end p-0" style="min-width: 320px;">
+                         <li class="dropdown-header d-flex align-items-center justify-content-between py-2">
+                             <span class="fw-semibold">Butuh Persetujuan</span>
+                             <span class="badge bg-warning-subtle text-warning">{{ $approvalCount }}</span>
+                         </li>
+                         <li>
+                             <div class="dropdown-divider my-1"></div>
+                         </li>
+                         @forelse ($approvalNotifications as $item)
+                             <li>
+                                 <a class="dropdown-item d-flex align-items-start gap-2"
+                                     href="{{ url('/maintenances/' . $item->code_mt) }}">
+                                     <i class="bx bx-clipboard text-warning mt-1"></i>
+                                     <div>
+                                         <div class="fw-semibold">{{ $item->no_pol }}</div>
+                                         <small class="text-muted">Kode: {{ $item->code_mt }}</small>
+                                     </div>
+                                 </a>
+                             </li>
+                         @empty
+                             <li class="dropdown-item-text text-muted py-3 text-center">
+                                 Tidak ada perbaikan menunggu approval.
+                             </li>
+                         @endforelse
+                         <li>
+                             <div class="dropdown-divider my-1"></div>
+                         </li>
+                         <li>
+                             <a class="dropdown-item text-center" href="{{ route('home') }}">Lihat semua</a>
+                         </li>
+                     </ul>
+                 </li>
+             @endif
+
              <li class="nav-item me-3">
                  <button type="button" class="btn theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
                      <i class="theme-toggle-icon bx bx-moon"></i>

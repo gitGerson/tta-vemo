@@ -1,14 +1,18 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Str;
-use App\Models\TypeMaintenances;
 use Illuminate\Http\Request;
+use App\Models\TypeMaintenances;
 use Illuminate\Validation\Rule;
+use Yajra\DataTables\Facades\DataTables;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\TypeMaintenancesImport;
 
 class TypeMaintenanceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         return view('pages.type-maintenance.index');
     }
@@ -19,11 +23,9 @@ class TypeMaintenanceController extends Controller
             'name' => ['required', 'string', Rule::unique('type_maintenances', 'name')],
         ]);
 
-        $created = TypeMaintenances::create($request->only(['name']));
-
-        if (!$created) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat menambahkan tipe maintenance');
-        }
+        TypeMaintenances::create([
+            'name' => Str::upper($request->name),
+        ]);
 
         return redirect()->route('type-maintenance.index')->with('success', 'Tipe maintenance berhasil ditambahkan');
     }
@@ -36,11 +38,9 @@ class TypeMaintenanceController extends Controller
             'name' => ['required', 'string', Rule::unique('type_maintenances', 'name')->ignore($typeMaintenance->id)],
         ]);
 
-        $updated = $typeMaintenance->update($request->only(['name']));
-
-        if (!$updated) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat memperbarui tipe maintenance');
-        }
+        $typeMaintenance->update([
+            'name' => Str::upper($request->name),
+        ]);
 
         return redirect()->route('type-maintenance.index')->with('success', 'Tipe maintenance berhasil diperbarui');
     }
@@ -48,10 +48,7 @@ class TypeMaintenanceController extends Controller
     public function destroy(string $id)
     {
         $typeMaintenance = TypeMaintenances::findOrFail($id);
-
-        if (!$typeMaintenance->delete()) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat menghapus tipe maintenance');
-        }
+        $typeMaintenance->delete();
 
         return redirect()->route('type-maintenance.index')->with('success', 'Tipe maintenance berhasil dihapus');
     }
@@ -60,7 +57,7 @@ class TypeMaintenanceController extends Controller
     {
         $types = TypeMaintenances::select(['id', 'name']);
 
-        return datatables()->of($types)
+        return DataTables::of($types)
             ->addIndexColumn()
             ->addColumn('action', function ($type) {
                 $canEdit = auth()->user()->hasPermission('master.type_maintenances.edit');
@@ -108,5 +105,60 @@ class TypeMaintenanceController extends Controller
         return response()->json([
             'data' => Str::upper($request->name)
         ]);
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'excelFile' => 'required|mimes:xlsx,xls,csv',
+        ]);
+        Excel::import(new TypeMaintenancesImport(), $request->file('excelFile'));
+
+        return redirect()->route('type-maintenance.index')->with('success', 'Tipe maintenance berhasil diimport.');
+    }
+
+    public function type_maintenances_trash(Request $request)
+    {
+        if ($request->ajax()) {
+            $data = TypeMaintenances::onlyTrashed()->select('*');
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('action', function ($row) {
+                    $btn = '';
+
+                    if (auth()->user()->can('activate data nonaktif')){
+                        $btn .= '<button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#restoreDateModal" data-id="' . $row->id . '">Aktifkan</button> ';
+                    }
+                    if (auth()->user()->can('delete data nonaktif')){
+                        $btn .= '<button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-id="' . $row->id . '">Hapus</button>';
+                    }
+
+                    return $btn;
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+
+        $datas = [
+            'pageTitle' => 'Data jenis perbaikan nonaktif',
+        ];
+        return view('pages.type-maintenance.trash', $datas);
+    }
+
+    public function restore(Request $request, $id)
+    {
+        $typeMaintenance = TypeMaintenances::withTrashed()->findOrFail($id);
+        $typeMaintenance->restore();
+        $typeMaintenance->save();
+
+        return redirect()->route('type-maintenance.trash')->with('success', 'Jenis perbaikan berhasil diaktifkan kembali.');
+    }
+
+    public function forceDeleteConfirmed($id)
+    {
+        $typeMaintenance = TypeMaintenances::withTrashed()->findOrFail($id);
+        $typeMaintenance->forceDelete();
+
+        return redirect()->route('type-maintenance.trash')->with('success', 'Jenis perbaikan berhasil dihapus permanent.');
     }
 }

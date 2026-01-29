@@ -28,6 +28,13 @@
                             data-bs-target="#typeMaintenanceModal">
                             <i class="bx bx-plus me-1"></i> Tambah Tipe
                         </button>
+                        <form id="import-form" action="{{ route('type-maintenance.import') }}" method="POST" enctype="multipart/form-data" class="d-inline-block ms-2">
+                            @csrf
+                            <label class="btn btn-outline-secondary mb-0">
+                                <i class="bx bx-upload me-1"></i> Import Excel
+                                <input type="file" name="excelFile" accept=".xlsx,.xls,.csv" class="d-none" onchange="document.getElementById('import-form').submit();">
+                            </label>
+                        </form>
                     @endif
                 </div>
             </div>

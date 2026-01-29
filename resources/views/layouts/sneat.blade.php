@@ -164,6 +164,14 @@
             border-radius: 0.375rem;
         }
 
+        /* Smaller notification badges in navbar */
+        .layout-navbar .notification-badge {
+            font-size: 0.7rem;
+            padding: 0.25em 0.45em;
+            min-width: 1.3rem;
+            line-height: 1;
+        }
+
         /* Active state for toggle button when sidebar is hidden */
         .sidebar-hidden #sidebar-toggle-btn {
             background-color: rgba(var(--bs-primary-rgb), 0.1);

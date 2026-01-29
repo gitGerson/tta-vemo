@@ -1,4 +1,4 @@
-<div class="container-fluid">
+<div class="container-xxl">
     <div class="row mb-4">
         <!-- Kartu Pertama -->
         <div class="col-md-5 mb-3 mb-md-0">
