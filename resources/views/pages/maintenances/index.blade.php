@@ -36,19 +36,17 @@
                             <div class="form-group">
                                 <label for="status">STATUS</label>
                                 <select class="form-control select2" name="status" style="width: 100%;"
-                                        aria-label="Default select example">
+                                    aria-label="Default select example">
                                     <option value="" {{ $status == null ? 'selected' : '' }}>SEMUA STATUS</option>
                                     @can('view pemeliharaan')
-                                        <option {{ $status == 'NEW' ? 'selected' : '' }} value="NEW">
-                                            BELUM
-                                            SELESAI</option>
+                                        <option {{ $status == 'DRAFT' ? 'selected' : '' }} value="DRAFT">
+                                            DRAFT</option>
                                     @endcan
-                                    <option {{ $status == 'PENDING' ? 'selected' : '' }} value="PENDING">
-                                        PROSES
-                                        PERSETUJUAN</option>
-                                    <option {{ $status == 'APPROVED' ? 'selected' : '' }} value="APPROVED">
-                                        SUDAH DISETUJUI</option>
-                                    <option {{ $status == 'CANCEL' ? 'selected' : '' }} value="CANCEL">
+                                    <option {{ $status == 'IN_PROGRESS' ? 'selected' : '' }} value="IN_PROGRESS">
+                                        SEDANG DIKERJAKAN</option>
+                                    <option {{ $status == 'COMPLETED' ? 'selected' : '' }} value="COMPLETED">
+                                        SELESAI</option>
+                                    <option {{ $status == 'CANCELLED' ? 'selected' : '' }} value="CANCELLED">
                                         DIBATALKAN</option>
 
                                 </select>
@@ -136,14 +134,14 @@
                     { data: 'status', name: 'status' },
                     { data: 'description', name: 'description' },
                     @if(auth()->user()->hasPermission('maintenances.view'))
-                        {
+                                {
                             data: 'action',
                             name: 'action',
                             orderable: false,
                             searchable: false
                         },
                     @endif
-                ],
+                    ],
                 searching: false,
                 dom: 'Bfrtip',
                 buttons: [],
