@@ -147,15 +147,14 @@ class RecordController extends Controller
 
         $maintenances = Maintenances::where('no_pol', $vehicle->plat_new)
             ->orwhere('no_pol', $vehicle->plat_old)
-            ->where('isServiceRoutine', '0')
+            ->where('isServiceRoutine', '1')
             ->orderBy('created_at', 'desc')
             ->first();
 
         // Check for service reminder notification (event-based)
         if ($maintenances && $maintenances->status == 'COMPLETED') {
             $currentMileage = $request->finish_km;
-            // All vehicles are BBM - use 10,000 km interval
-            $estimatedMileage = 10000;
+            $estimatedMileage = 10000; // interval 10.000km
             $mileageDifference = $currentMileage - $maintenances->mileage;
 
             if ($mileageDifference >= $estimatedMileage) {
@@ -181,6 +180,10 @@ class RecordController extends Controller
                         ],
                         200,
                     );
+                }
+
+                if ((int) $notification->to_km < (int) $currentMileage) {
+                    $notification->update(['to_km' => $currentMileage]);
                 }
             }
         }

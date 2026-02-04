@@ -103,7 +103,7 @@
                         @forelse ($serviceNotifications as $item)
                             <li>
                                 <a class="dropdown-item d-flex align-items-start gap-2"
-                                    href="{{ route('maintenances.create', ['vehicle' => $item->no_pol]) }}">
+                                    href="{{ route('maintenances.notifications.read', $item) }}">
                                     <i class="bx bx-info-circle text-info mt-1"></i>
                                     <div>
                                         <div class="fw-semibold">{{ $item->no_pol }}</div>

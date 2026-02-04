@@ -6,6 +6,7 @@ use App\Models\Driver;
 use App\Models\Maintenances;
 use App\Models\NotificationService;
 use App\Models\Vehicle;
+use Illuminate\Http\RedirectResponse;
 
 class HomeController extends Controller
 {
@@ -35,5 +36,14 @@ class HomeController extends Controller
         ];
 
         return view('home', $data);
+    }
+
+    public function markServiceNotificationRead(NotificationService $notification): RedirectResponse
+    {
+        if (! $notification->read) {
+            $notification->update(['read' => 1]);
+        }
+
+        return redirect()->route('maintenances.create', ['vehicle' => $notification->no_pol]);
     }
 }

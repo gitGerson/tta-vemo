@@ -5,6 +5,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DestinationController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\FileUploadController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\MaintenancesController;
 use App\Http\Controllers\MaintenancesDetailsController;
@@ -316,6 +317,8 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::middleware(['permission:maintenances.create'])->group(function () {
         Route::get('/maintenances/create', [MaintenancesController::class, 'create'])->name('maintenances.create');
+        Route::get('/maintenances/notifications/{notification}/read', [HomeController::class, 'markServiceNotificationRead'])
+            ->name('maintenances.notifications.read');
         Route::post('/maintenances', [MaintenancesController::class, 'store'])->name('maintenances.store');
     });
     Route::middleware(['permission:maintenances.edit'])->group(function () {

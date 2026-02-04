@@ -84,10 +84,61 @@ $(document).ready(function() {
         $('#isServiceRoutineValue').val($(this).is(':checked') ? '0' : '1');
     });
 
-    // Agree Checkbox enables submit button
+    // Agree Checkbox enables submit buttons
     $('#agreeCheckbox').on('change', function() {
-        $('#submitButton').prop('disabled', !$(this).is(':checked'));
+        updateSubmitState();
     });
+
+    function isFieldFilled(field) {
+        if (field.disabled) {
+            return true;
+        }
+
+        if (field.type === 'checkbox' || field.type === 'radio') {
+            return field.checked;
+        }
+
+        return field.value.trim() !== '';
+    }
+
+    function updateSubmitState() {
+        const form = document.getElementById('mainForm');
+        if (!form) {
+            return;
+        }
+
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+
+        requiredFields.forEach((field) => {
+            if (field.id === 'date_out') {
+                return;
+            }
+
+            if (!isFieldFilled(field)) {
+                isValid = false;
+            }
+        });
+
+        const agreeCheckbox = document.getElementById('agreeCheckbox');
+        if (agreeCheckbox && !agreeCheckbox.checked) {
+            isValid = false;
+        }
+
+        const $submitButton = $('#submitButton');
+        const $saveButton = $('button[form=\"mainForm\"][type=\"submit\"]');
+        const $draftButton = $('button[name=\"save_as_draft\"]');
+
+        if ($submitButton.length) {
+            $submitButton.prop('disabled', !isValid);
+        }
+        if ($saveButton.length) {
+            $saveButton.prop('disabled', !isValid);
+        }
+        if ($draftButton.length) {
+            $draftButton.prop('disabled', !isValid);
+        }
+    }
 
     // Auto-fill mileage from selected vehicle
     $('select[name="no_pol"]').on('change', function() {
@@ -258,5 +309,14 @@ $(document).ready(function() {
         });
     });
 
+    $(document).on('input change', '#mainForm input, #mainForm select, #mainForm textarea', function() {
+        updateSubmitState();
+    });
+
+    $(document).on('change', '.select2', function() {
+        updateSubmitState();
+    });
+
+    updateSubmitState();
     updateTotalDisplay();
 });
