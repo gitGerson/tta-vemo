@@ -48,6 +48,12 @@
                 <a href="{{ route('maintenances.index') }}" class="btn btn-outline-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali
                 </a>
+                @if (isset($maintenances) && in_array($maintenances->status, ['DRAFT', 'COMPLETED'], true) && ! $maintenances->is_confirmed)
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
+                        data-bs-target="#confirmCancelModal" data-id="{{ $maintenances->id }}">
+                        <i class="bx bx-x me-1"></i> Batalkan
+                    </button>
+                @endif
                 @if (!$isReadOnly && $canEditOrCreateMaintenance)
                     <button type="submit" form="mainForm" class="btn btn-success">
                         <i class="bx bx-save me-1"></i> Simpan
@@ -168,9 +174,9 @@
                                 <h6 class="mb-0"><i class="bx bx-list-ul text-warning me-2"></i>Detail Perbaikan</h6>
                                 @if (!$isReadOnly)
                                     <div class="d-flex flex-wrap gap-2">
-                                        <button type="button" class="btn btn-sm btn-outline-primary">
+                                        <!-- <button type="button" class="btn btn-sm btn-outline-primary">
                                             <i class="bx bx-scan me-1"></i> Scan Nota (OCR)
-                                        </button>
+                                        </button> -->
                                         <button type="button" class="btn btn-sm btn-outline-success" id="addRepeaterItem">
                                             <i class="bx bx-plus me-1"></i> Tambah Item
                                         </button>
@@ -327,7 +333,7 @@
                                                     <i class="bx bx-file me-1"></i> {{ $note->image }}
                                                 </a>
                                                 @if (!$isReadOnly)
-                                                    <button type="button" class="btn btn-sm btn-icon btn-outline-danger" data-id="{{ $note->id }}">
+                                                    <button type="button" class="btn btn-sm btn-icon btn-outline-danger" data-note-id="{{ $note->id }}">
                                                         <i class="bx bx-trash"></i>
                                                     </button>
                                                 @endif
@@ -361,11 +367,9 @@
                                         <button type="submit" id="submitButton" class="btn btn-success btn-lg" disabled>
                                             <i class="bx bx-check me-1"></i> Simpan Data Pemeliharaan
                                         </button>
-                                        @if (!isset($maintenances))
-                                            <button type="submit" name="save_as_draft" value="1" class="btn btn-link text-muted">
-                                                Simpan sebagai Draf
-                                            </button>
-                                        @endif
+                                        <button type="submit" name="save_as_draft" value="1" class="btn btn-link text-muted">
+                                            Simpan sebagai Draf
+                                        </button>
                                     </div>
                                 @endif
                             </div>
@@ -422,7 +426,9 @@
     <div id="maintenancesPageConfig" class="d-none"
         data-uploads-process="{{ route('uploads.process') }}"
         data-uploads-revert="{{ route('uploads.revert') }}"
-        data-uploads-load="{{ route('uploads.load') }}?source=">
+        data-uploads-load="{{ route('uploads.load') }}?source="
+        data-require-upload="1"
+        data-existing-upload-count="{{ isset($notes) ? $notes->count() : 0 }}">
     </div>
 
     {{-- Modals --}}
