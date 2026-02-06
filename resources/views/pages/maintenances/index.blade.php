@@ -42,8 +42,6 @@
                                         <option {{ $status == 'DRAFT' ? 'selected' : '' }} value="DRAFT">
                                             DRAFT</option>
                                     @endcan
-                                    <option {{ $status == 'IN_PROGRESS' ? 'selected' : '' }} value="IN_PROGRESS">
-                                        SEDANG DIKERJAKAN</option>
                                     <option {{ $status == 'COMPLETED' ? 'selected' : '' }} value="COMPLETED">
                                         SELESAI</option>
                                     <option {{ $status == 'CANCELLED' ? 'selected' : '' }} value="CANCELLED">

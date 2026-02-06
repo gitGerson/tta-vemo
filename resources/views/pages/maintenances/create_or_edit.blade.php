@@ -67,8 +67,6 @@
             <div class="mb-3">
                 @if ($maintenances->status == 'DRAFT')
                     <span class="badge bg-secondary fs-6">📋 DRAFT</span>
-                @elseif($maintenances->status == 'IN_PROGRESS')
-                    <span class="badge bg-warning fs-6">🔧 BELUM DIKONFIRMASI</span>
                 @elseif($maintenances->status == 'COMPLETED')
                     <span class="badge bg-success fs-6">✅ SELESAI</span>
                     @if ($maintenances->is_confirmed)
@@ -383,7 +381,6 @@
                             </div>
                             <div class="card-body">
                                 @if (! $maintenances->is_confirmed && $canApproveMaintenance)
-                                    <p class="text-muted small mb-3">Pemeliharaan ini belum dikonfirmasi. Klik tombol untuk mengonfirmasi.</p>
                                     <div class="mb-3">
                                         <label for="confirmation_notes" class="form-label detail-servis-label">Catatan Konfirmasi</label>
                                         <textarea name="confirmation_notes" id="confirmation_notes" rows="3"
