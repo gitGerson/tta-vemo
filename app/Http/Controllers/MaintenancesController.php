@@ -2,31 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Maintenances;
+use App\Models\MaintenancesDetails;
 use App\Models\Note;
 use App\Models\Record;
+use App\Models\TypeMaintenances;
 use App\Models\Vehicle;
-use Illuminate\Support\Str;
-use App\Models\Maintenances;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use App\Models\TypeMaintenances;
-use Yajra\DataTables\DataTables;
-use App\Models\MaintenancesDetails;
-use Illuminate\Support\Facades\Log;
-use Intervention\Image\Facades\Image;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Yajra\DataTables\DataTables;
 
 class MaintenancesController extends Controller
 {
-
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $startDate = $request->query('start_date') ?? Carbon::now()->startOfMonth()->toDateString();
-        $endDate = $request->query('end_date') ?? Carbon::now()->endOfMonth()->toDateString();
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
         $status = $request->query('status');
         $searchValue = $request->query('search_value');
 
@@ -34,15 +32,17 @@ class MaintenancesController extends Controller
 
         $query = Maintenances::query();
 
-        if ($request->query('start_date') && $request->query('end_date') && $status) {
-            $query->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->where('status', $status);
-        } else {
-            $query->where('status', 'NEW')->where('get_request', auth()->user()->id);
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('date_in', [$startDate, $endDate]);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $status);
         }
 
         if ($searchValue) {
             $query->where(function ($q) use ($searchValue) {
-                $q->where('no_pol', 'like', '%' . $searchValue . '%');
+                $q->where('no_pol', 'like', '%'.$searchValue.'%');
             });
         }
 
@@ -53,20 +53,24 @@ class MaintenancesController extends Controller
                     ->addColumn('action', function ($row) {
                         $showRoute = route('maintenances.show', $row->code_mt);
 
-                        $btn = '<a href="' . $showRoute . '" class="btn btn-info btn-sm"><i class="fas fa-fw fa-eye"></i></a>';
+                        $btn = '<a href="'.$showRoute.'" class="btn btn-primary btn-sm d-flex align-items-center justify-content-center" title="Lihat">
+                                    <i class="bx bx-show"></i>
+                                </a>';
 
                         return $btn;
                     })
                     ->addColumn('status', function ($row) {
                         switch ($row->status) {
-                            case 'NEW':
-                                return '<span class="badge bg-secondary">BELUM SELESAI</span>';
-                            case 'PENDING':
-                                return '<span class="badge bg-warning">BELUM DISETUJUI</span>';
-                            case 'APPROVED':
+                            case 'DRAFT':
+                                return '<span class="badge bg-secondary">DRAFT</span>';
+                            case 'IN_PROGRESS':
+                                return '<span class="badge bg-warning">SEDANG DIKERJAKAN</span>';
+                            case 'COMPLETED':
                                 return '<span class="badge bg-success">SELESAI</span>';
+                            case 'CANCELLED':
+                                return '<span class="badge bg-danger">DIBATALKAN</span>';
                             default:
-                                return '<span class="badge bg-danger">BATAL</span>';
+                                return '<span class="badge bg-secondary">UNKNOWN</span>';
                         }
                     })
                     ->editColumn('date_in', function ($row) {
@@ -78,7 +82,8 @@ class MaintenancesController extends Controller
                     ->rawColumns(['action', 'status'])
                     ->make(true);
             } catch (\Exception $e) {
-                Log::error('DataTables error: ' . $e->getMessage());
+                Log::error('DataTables error: '.$e->getMessage());
+
                 return response()->json(['error' => 'An error occurred while processing your request.'], 500);
             }
         }
@@ -103,6 +108,7 @@ class MaintenancesController extends Controller
             'pageTitle' => 'Tambah Data Perbaikan',
             'type' => TypeMaintenances::all(),
         ];
+
         return view('pages.maintenances.create_or_edit', $data);
     }
 
@@ -111,14 +117,25 @@ class MaintenancesController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        // Check if saving as draft
+        $saveAsDraft = $request->has('save_as_draft');
+
+        // Validation rules differ for draft vs full save
+        // With FilePond, fields[] contains temp file paths (strings), not file uploads
+        $rules = [
             'no_pol' => 'required',
             'date_in' => 'required',
             'mileage' => 'required',
             'total_amount' => 'nullable',
             'isServiceRoutine' => 'required',
             'desc' => 'nullable',
-            'fields.*' => 'nullable',
+            'fields' => $saveAsDraft ? 'nullable|array' : 'required|array|min:1',
+            'fields.*' => 'nullable|string', // FilePond sends temp file paths as strings
+        ];
+
+        $request->validate($rules, [
+            'fields.required' => 'Bukti/nota perbaikan wajib diupload',
+            'fields.min' => 'Minimal 1 bukti harus diupload',
         ]);
 
         $maintenances = Maintenances::create([
@@ -128,48 +145,88 @@ class MaintenancesController extends Controller
             'date_out' => $request->date_out,
             'mileage' => $request->mileage,
             'description' => $request->desc,
-            'total_amount' => $request->total_amount ?? '0',
+            'total_amount' => 0,
             'isServiceRoutine' => $request->isServiceRoutine,
-            'status' => 'NEW',
+            'status' => $saveAsDraft ? 'DRAFT' : 'COMPLETED',
             'get_request' => auth()->user()->id,
             'requested_by_name' => auth()->user()->name,
         ]);
 
-        if ($request->hasFile('fields')) {
-            $files = $request->file('fields');
-            foreach ($files as $file) {
-                $filename = $maintenances->code_mt . '-' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-                $destinationPath = public_path('notes');
-
-                if (!File::exists($destinationPath)) {
-                    File::makeDirectory($destinationPath, 0755, true);
+        // Handle FilePond temp files - move from local temp to S3
+        if ($request->has('fields') && is_array($request->fields)) {
+            foreach ($request->fields as $tempPath) {
+                // Skip empty values
+                if (empty($tempPath)) {
+                    continue;
                 }
 
-                if (in_array($file->getClientOriginalExtension(), ['jpeg', 'jpg', 'png', 'gif'])) {
-                    $tempPath = $destinationPath . '/' . $filename;
-                    $file->move($destinationPath, $filename);
-
-                    $image = Image::make($tempPath);
-                    $image->resize(800, 800, function ($constraint) {
-                        $constraint->aspectRatio();
-                    });
-
-                    $image->save($tempPath);
-                } else {
-                    $file->move($destinationPath, $filename);
+                // Validate that the temp path exists
+                if (! Storage::disk('local')->exists($tempPath)) {
+                    continue;
                 }
 
-                $finalFilename = 'notes/' . $filename;
-                $fileUrl = url($finalFilename);
+                // Get the file extension from the temp path
+                $extension = pathinfo($tempPath, PATHINFO_EXTENSION);
+                $filename = 'maintenances/'.$maintenances->code_mt.'-'.Str::random(10).'.'.$extension;
 
+                // Get the file content from local storage
+                $fileContent = Storage::disk('local')->get($tempPath);
+
+                // Upload to S3 (already compressed by FileUploadController)
+                Storage::disk('s3')->put($filename, $fileContent);
+
+                // Get the URL from S3
+                $fileUrl = Storage::disk('s3')->url($filename);
+
+                // Create the note record
                 Note::create([
                     'maintenances_id' => $maintenances->id,
                     'image' => $filename,
                     'url' => $fileUrl,
                 ]);
+
+                // Delete the temp file from local storage
+                Storage::disk('local')->delete($tempPath);
+
+                // Try to delete the temp directory if empty
+                $dir = dirname($tempPath);
+                if (Storage::disk('local')->exists($dir)) {
+                    $files = Storage::disk('local')->files($dir);
+                    if (empty($files)) {
+                        Storage::disk('local')->deleteDirectory($dir);
+                    }
+                }
             }
         }
-        return redirect('/maintenances/' . $maintenances->code_mt)->with('success', 'Berhasil disimpan');
+
+        // Handle repeater items - create MaintenancesDetails records
+        if ($request->has('items') && is_array($request->items)) {
+            foreach ($request->items as $item) {
+                // Skip empty items
+                if (empty($item['maintenance_name'])) {
+                    continue;
+                }
+
+                $price = (int) ($item['price'] ?? 0);
+                $qty = (int) ($item['qty'] ?? 1);
+
+                MaintenancesDetails::create([
+                    'maintenance_id' => $maintenances->id,
+                    'maintenance_name' => $item['maintenance_name'],
+                    'price' => $price,
+                    'qty' => $qty,
+                    'subtotal' => $price * $qty,
+                    'material' => $item['material'] ?? null,
+                ]);
+            }
+
+            // Recalculate total
+            $maintenances->recalculateTotal();
+        }
+
+        $message = $saveAsDraft ? 'Berhasil disimpan sebagai draft' : 'Berhasil disimpan';
+
+        return redirect('/maintenances/'.$maintenances->code_mt)->with('success', $message);
     }
 
     /**
@@ -178,18 +235,29 @@ class MaintenancesController extends Controller
     public function show($id)
     {
         $maintenances = Maintenances::where('code_mt', $id)->first();
-        if (!$maintenances) {
+        if (! $maintenances) {
             abort(404);
+        }
+        if (
+            $maintenances->status === 'COMPLETED'
+            && ! $maintenances->is_confirmed
+            && $maintenances->viewed_at === null
+        ) {
+            $maintenances->update([
+                'viewed_at' => now(),
+                'viewed_by' => auth()->id(),
+            ]);
         }
         $data = [
             'maintenances' => $maintenances,
             'notes' => Note::where('maintenances_id', $maintenances->id)->get(),
             'detail_maintenances' => MaintenancesDetails::where('maintenance_id', $maintenances?->id)->get(),
-            'sum_detail_maintenances' => MaintenancesDetails::where('maintenance_id', $maintenances?->id)->sum('price'),
+            'sum_detail_maintenances' => MaintenancesDetails::where('maintenance_id', $maintenances?->id)->sum('subtotal'),
             'vehicle' => Vehicle::where('status', 'ACTIVE')->get(),
             'pageTitle' => 'Tambah Data Perbaikan',
             'type' => TypeMaintenances::all(),
         ];
+
         return view('pages.maintenances.create_or_edit', $data);
     }
 
@@ -206,9 +274,8 @@ class MaintenancesController extends Controller
             'total_amount' => 'nullable',
             'isServiceRoutine' => 'required',
             'desc' => 'nullable',
-            'fields.*' => 'nullable|max:3048',
-        ], [
-             'fields.max' => 'Bukti tidak boleh melebihi 3 MB'
+            'fields' => 'nullable|array',
+            'fields.*' => 'nullable|string', // FilePond sends temp file paths as strings
         ]);
 
         $maintenances = Maintenances::find($id);
@@ -225,97 +292,144 @@ class MaintenancesController extends Controller
             'requested_by_name' => auth()->user()->name,
         ]);
 
-        if ($request->hasFile('fields')) {
-            $files = $request->file('fields');
-            foreach ($files as $file) {
-                $filename = $maintenances->code_mt . '-' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-                $destinationPath = public_path('notes');
-
-                if (!File::exists($destinationPath)) {
-                    File::makeDirectory($destinationPath, 0755, true);
+        // Handle FilePond temp files - move from local temp to S3
+        if ($request->has('fields') && is_array($request->fields)) {
+            foreach ($request->fields as $tempPath) {
+                // Skip empty values
+                if (empty($tempPath)) {
+                    continue;
                 }
 
-                if (in_array($file->getClientOriginalExtension(), ['jpeg', 'jpg', 'png', 'gif'])) {
-                    $tempPath = $destinationPath . '/' . $filename;
-                    $file->move($destinationPath, $filename);
-
-                    $image = Image::make($tempPath);
-                    $image->resize(800, 800, function ($constraint) {
-                        $constraint->aspectRatio();
-                    });
-
-                    $image->save($tempPath);
-                } else {
-                    $file->move($destinationPath, $filename);
+                // Validate that the temp path exists
+                if (! Storage::disk('local')->exists($tempPath)) {
+                    continue;
                 }
 
-                $finalFilename = 'notes/' . $filename;
-                $fileUrl = url($finalFilename);
+                // Get the file extension from the temp path
+                $extension = pathinfo($tempPath, PATHINFO_EXTENSION);
+                $filename = 'maintenances/'.$maintenances->code_mt.'-'.Str::random(10).'.'.$extension;
 
+                // Get the file content from local storage
+                $fileContent = Storage::disk('local')->get($tempPath);
+
+                // Upload to S3 (already compressed by FileUploadController)
+                Storage::disk('s3')->put($filename, $fileContent);
+
+                // Get the URL from S3
+                $fileUrl = Storage::disk('s3')->url($filename);
+
+                // Create the note record
                 Note::create([
                     'maintenances_id' => $maintenances->id,
                     'image' => $filename,
                     'url' => $fileUrl,
                 ]);
+
+                // Delete the temp file from local storage
+                Storage::disk('local')->delete($tempPath);
+
+                // Try to delete the temp directory if empty
+                $dir = dirname($tempPath);
+                if (Storage::disk('local')->exists($dir)) {
+                    $files = Storage::disk('local')->files($dir);
+                    if (empty($files)) {
+                        Storage::disk('local')->deleteDirectory($dir);
+                    }
+                }
             }
         }
+
+        // Handle repeater items - create MaintenancesDetails records
+        if ($request->has('items') && is_array($request->items)) {
+            foreach ($request->items as $item) {
+                // Skip empty items
+                if (empty($item['maintenance_name'])) {
+                    continue;
+                }
+
+                $price = (int) ($item['price'] ?? 0);
+                $qty = (int) ($item['qty'] ?? 1);
+
+                MaintenancesDetails::create([
+                    'maintenance_id' => $maintenances->id,
+                    'maintenance_name' => $item['maintenance_name'],
+                    'price' => $price,
+                    'qty' => $qty,
+                    'subtotal' => $price * $qty,
+                    'material' => $item['material'] ?? null,
+                ]);
+            }
+
+            // Recalculate total
+            $maintenances->recalculateTotal();
+        }
+
         return redirect()->back()->with('success', 'Berhasil diperbarui');
     }
 
-    // panding
+    // Status change method - simplified workflow
     public function status(Request $request, $id)
     {
         $maintenances = Maintenances::find($id);
         $detailMaintenances = MaintenancesDetails::where('maintenance_id', $id)->get();
         $vehicle = Vehicle::getByNoPol($maintenances->no_pol);
 
-        if ($request->status == 'NEW') {
-            $vehicle->update([
-                'mtc' => 'NO',
-            ]);
-            $status = 'BELUM SELESAI';
-        } elseif ($request->status == 'PENDING') {
-
-            if ($maintenances->total_amount == 0) {
-                return redirect()->back()->with('error', 'Total Harga tidak boleh kosong.');
-            } elseif ($maintenances->date_out == null) {
-                return redirect()->back()->with('error', 'Tanggal Keluar tidak boleh kosong.');
-            }
-
+        if ($request->status == 'DRAFT') {
+            $vehicle->update(['mtc' => 'NO']);
+            $status = 'DRAFT';
+        } elseif ($request->status == 'IN_PROGRESS') {
+            $vehicle->update(['mtc' => 'YES']);
+            $status = 'SEDANG DIKERJAKAN';
+        } elseif ($request->status == 'COMPLETED') {
+            // Validation: check if details exist
             if ($detailMaintenances->count() == 0) {
-                return redirect()->back()->with('error', 'Detail perbaikan belum dimasukan.');
+                return redirect()->back()->with('error', 'Detail perbaikan belum dimasukkan.');
             }
 
-            $vehicle->update([
-                'mtc' => 'YES',
+            // Mark as viewed
+            $maintenances->update([
+                'viewed_at' => now(),
+                'viewed_by' => auth()->user()->id,
             ]);
-            $status = 'PROSES PERSETUJUAN';
-        } elseif ($request->status == 'APPROVED') {
-            $vehicle->update([
-                'mtc' => 'NO',
-            ]);
-            $status = 'SUDAH DISETUJUI';
-        } else {
-            $vehicle->update([
-                'mtc' => 'NO',
-            ]);
+
+            $vehicle->update(['mtc' => 'NO']);
+            $status = 'SELESAI';
+        } else { // CANCELLED
+            $vehicle->update(['mtc' => 'NO']);
             $status = 'DIBATALKAN';
         }
 
-        if ($request->status == 'APPROVED') {
-            $maintenances->update([
-                'status' => $request->status,
-                'get_approval' => auth()->user()->id,
-                'approved_by_name' => auth()->user()->name,
-            ]);
-        }
+        $maintenances->update(['status' => $request->status]);
 
-        $maintenances->update([
-            'status' => $request->status,
-        ]);
         return redirect()
             ->route('maintenances.index')
-            ->with('success', 'Status Berhasil Diubah Ke ' . Str::title($status));
+            ->with('success', 'Status berhasil diubah ke '.$status);
+    }
+
+    /**
+     * Confirm a completed maintenance record
+     */
+    public function confirm(Request $request, $id)
+    {
+        $maintenance = Maintenances::findOrFail($id);
+
+        // Only allow confirmation for completed maintenance
+        if ($maintenance->status !== 'COMPLETED') {
+            return redirect()->back()->with('error', 'Hanya pemeliharaan yang selesai yang dapat dikonfirmasi.');
+        }
+
+        $validated = $request->validate([
+            'confirmation_notes' => 'nullable|string|max:1000',
+        ]);
+
+        $maintenance->update([
+            'is_confirmed' => true,
+            'confirmed_at' => now(),
+            'confirmed_by' => auth()->user()->id,
+            'confirmation_notes' => $maintenance->confirmation_notes ?? ($validated['confirmation_notes'] ?? null),
+        ]);
+
+        return redirect()->back()->with('success', 'Pemeliharaan berhasil dikonfirmasi.');
     }
 
     /**
@@ -328,6 +442,6 @@ class MaintenancesController extends Controller
 
     private function generateCodeMt(): string
     {
-        return 'MT-' . now()->timestamp;
+        return 'MT-'.now()->timestamp;
     }
 }

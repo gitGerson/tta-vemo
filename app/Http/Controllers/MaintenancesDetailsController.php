@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\TypeMaintenances;
-use Illuminate\Support\Str;
 use App\Models\Maintenances;
-use Illuminate\Http\Request;
 use App\Models\MaintenancesDetails;
+use App\Models\TypeMaintenances;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class MaintenancesDetailsController extends Controller
 {
@@ -34,10 +34,13 @@ class MaintenancesDetailsController extends Controller
         $request->validate([
             'maintenance_id' => 'required',
             'maintenance_name' => 'required',
-            'price' => 'required',
-            'qty' => 'required',
+            'price' => 'required|numeric',
+            'qty' => 'required|numeric|min:1',
             'material' => 'nullable',
         ]);
+
+        // Calculate subtotal
+        $subtotal = $request->price * $request->qty;
 
         MaintenancesDetails::create([
             'maintenance_id' => $request->maintenance_id,
@@ -45,7 +48,14 @@ class MaintenancesDetailsController extends Controller
             'price' => $request->price,
             'qty' => $request->qty,
             'material' => $request->material,
+            'subtotal' => $subtotal,
         ]);
+
+        // Recalculate parent maintenance total
+        $maintenance = Maintenances::find($request->maintenance_id);
+        if ($maintenance) {
+            $maintenance->recalculateTotal();
+        }
 
         return redirect()->back()->with('success', 'Detail perbaikan berhasil disimpan');
     }
@@ -53,9 +63,7 @@ class MaintenancesDetailsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request)
-    {
-    }
+    public function show(Request $request) {}
 
     /**
      * Show the form for editing the specified resource.
@@ -79,17 +87,30 @@ class MaintenancesDetailsController extends Controller
     {
         $request->validate([
             'maintenance_name' => 'required',
-            'price' => 'required',
-            'qty' => 'required',
+            'price' => 'required|numeric',
+            'qty' => 'required|numeric|min:1',
             'material' => 'nullable',
         ]);
 
-        MaintenancesDetails::find($id)->update([
+        // Calculate subtotal
+        $subtotal = $request->price * $request->qty;
+
+        $detail = MaintenancesDetails::find($id);
+        $maintenanceId = $detail->maintenance_id;
+
+        $detail->update([
             'maintenance_name' => Str::upper($request->maintenance_name),
             'price' => $request->price,
             'qty' => $request->qty,
             'material' => $request->material,
+            'subtotal' => $subtotal,
         ]);
+
+        // Recalculate parent maintenance total
+        $maintenance = Maintenances::find($maintenanceId);
+        if ($maintenance) {
+            $maintenance->recalculateTotal();
+        }
 
         return redirect()->back()->with('success', 'Detail perbaikan berhasil diupdate');
     }
@@ -100,7 +121,16 @@ class MaintenancesDetailsController extends Controller
     public function destroy($id)
     {
         $detail = MaintenancesDetails::find($id);
+        $maintenanceId = $detail->maintenance_id;
+
         $detail->delete();
+
+        // Recalculate parent maintenance total after deletion
+        $maintenance = Maintenances::find($maintenanceId);
+        if ($maintenance) {
+            $maintenance->recalculateTotal();
+        }
+
         return redirect()->back()->with('success', 'Detail perbaikan berhasil dihapus');
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
 use App\Models\Permission;
+use App\Models\Role;
 use App\Models\UserLog;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -18,6 +18,7 @@ class RoleController extends Controller
     public function create()
     {
         $permissions = Permission::all()->groupBy('module');
+
         return view('roles.create', compact('permissions'));
     }
 
@@ -28,14 +29,14 @@ class RoleController extends Controller
             'display_name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'permissions' => 'array',
-            'permissions.*' => 'exists:permissions,id'
+            'permissions.*' => 'exists:permissions,id',
         ]);
 
         $role = Role::create([
             'name' => $request->name,
             'display_name' => $request->display_name,
             'description' => $request->description,
-            'guard_name' => 'web'
+            'guard_name' => 'web',
         ]);
 
         if ($request->has('permissions')) {
@@ -56,6 +57,7 @@ class RoleController extends Controller
     public function show(Role $role)
     {
         $role->load('permissions');
+
         return view('roles.show', compact('role'));
     }
 
@@ -64,6 +66,7 @@ class RoleController extends Controller
         $role->load('permissions');
         $permissions = Permission::all()->groupBy('module');
         $rolePermissions = $role->permissions->pluck('id')->toArray();
+
         return view('roles.edit', compact('role', 'permissions', 'rolePermissions'));
     }
 
@@ -74,7 +77,7 @@ class RoleController extends Controller
             'display_name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'permissions' => 'array',
-            'permissions.*' => 'exists:permissions,id'
+            'permissions.*' => 'exists:permissions,id',
         ]);
 
         $oldValues = $role->only(['name', 'display_name', 'description']);
@@ -109,7 +112,7 @@ class RoleController extends Controller
 
         $roleName = $role->display_name;
         $roleCode = $role->name;
-        
+
         UserLog::log(
             'DELETE_ROLE',
             "Deleted role: {$roleName} ({$roleCode})",
@@ -142,24 +145,24 @@ class RoleController extends Controller
                     <div class="dropdown-menu">';
 
                 // View action
-                if (auth()->user()->hasPermission('roles.view')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('roles.show', $role->id) . '">
+                if (auth()->user()->hasPermission('management.roles.view')) {
+                    $actions .= '<a class="dropdown-item" href="'.route('roles.show', $role->id).'">
                         <i class="bx bx-show me-1"></i> Lihat
                     </a>';
                 }
 
                 // Edit action
-                if (auth()->user()->hasPermission('roles.edit')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('roles.edit', $role->id) . '">
+                if (auth()->user()->hasPermission('management.roles.edit')) {
+                    $actions .= '<a class="dropdown-item" href="'.route('roles.edit', $role->id).'">
                         <i class="bx bx-edit-alt me-1"></i> Edit
                     </a>';
                 }
 
                 // Delete action (only if role is not in use)
-                if (auth()->user()->hasPermission('roles.delete') && $role->users_count == 0) {
-                    $actions .= '<form action="' . route('roles.destroy', $role->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        ' . method_field('DELETE') . '
+                if (auth()->user()->hasPermission('management.roles.delete') && $role->users_count == 0) {
+                    $actions .= '<form action="'.route('roles.destroy', $role->id).'" method="POST" style="display: inline;">
+                        '.csrf_field().'
+                        '.method_field('DELETE').'
                         <button type="submit" class="dropdown-item" onclick="return confirm(\'Yakin ingin menghapus role ini?\')">
                             <i class="bx bx-trash me-1"></i> Hapus
                         </button>
@@ -171,7 +174,7 @@ class RoleController extends Controller
                 }
 
                 $actions .= '</div></div>';
-                
+
                 return $actions;
             })
             ->rawColumns(['action'])

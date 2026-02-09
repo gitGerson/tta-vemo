@@ -1,4 +1,4 @@
-<div class="container-fluid">
+<div>
     <div class="row mb-4">
         <div class="col-md-5 mb-3 mb-md-0">
             <div class="card shadow mb-4">

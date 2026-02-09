@@ -16,22 +16,8 @@ class RolePermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        // Clear existing data
-        $this->command->info('Clearing existing roles, permissions, and user assignments...');
-
-        // Disable foreign key checks temporarily
-        \DB::statement('SET FOREIGN_KEY_CHECKS=0');
-
-        \DB::table('user_role')->delete();
-        \DB::table('role_permission')->delete();
-        Role::truncate();
-        Permission::truncate();
-
-        // Re-enable foreign key checks
-        \DB::statement('SET FOREIGN_KEY_CHECKS=1');
-
-        // Create permissions following menu hierarchy structure
-        $this->command->info('Creating permissions...');
+        // Create or update permissions without deleting existing data
+        $this->command->info('Creating/updating permissions...');
         $permissions = [
 
             // === MANAGEMENT (Header) ===
@@ -125,9 +111,10 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'maintenances.view', 'display_name' => 'Maintenances - View', 'description' => 'Can view maintenances', 'module' => 'maintenances', 'parent' => 'maintenances.access', 'sort_order' => 1],
             ['name' => 'maintenances.create', 'display_name' => 'Maintenances - Create', 'description' => 'Can create maintenances', 'module' => 'maintenances', 'parent' => 'maintenances.access', 'sort_order' => 2],
             ['name' => 'maintenances.edit', 'display_name' => 'Maintenances - Edit', 'description' => 'Can edit maintenances', 'module' => 'maintenances', 'parent' => 'maintenances.access', 'sort_order' => 3],
-            ['name' => 'maintenances.delete', 'display_name' => 'Maintenances - Delete', 'description' => 'Can delete maintenances', 'module' => 'maintenances', 'parent' => 'maintenances.access', 'sort_order' => 4],
-            ['name' => 'maintenances.restore', 'display_name' => 'Maintenances - Restore', 'description' => 'Can restore maintenances', 'module' => 'maintenances', 'parent' => 'maintenances.access', 'sort_order' => 5],
-            ['name' => 'maintenances.force_delete', 'display_name' => 'Maintenances - Force Delete', 'description' => 'Can permanently delete maintenances', 'module' => 'maintenances', 'parent' => 'maintenances.access', 'sort_order' => 6],
+            ['name' => 'maintenances.approve', 'display_name' => 'Maintenances - Approve', 'description' => 'Can approve maintenances', 'module' => 'maintenances', 'parent' => 'maintenances.access', 'sort_order' => 4],
+            ['name' => 'maintenances.delete', 'display_name' => 'Maintenances - Delete', 'description' => 'Can delete maintenances', 'module' => 'maintenances', 'parent' => 'maintenances.access', 'sort_order' => 5],
+            ['name' => 'maintenances.restore', 'display_name' => 'Maintenances - Restore', 'description' => 'Can restore maintenances', 'module' => 'maintenances', 'parent' => 'maintenances.access', 'sort_order' => 6],
+            ['name' => 'maintenances.force_delete', 'display_name' => 'Maintenances - Force Delete', 'description' => 'Can permanently delete maintenances', 'module' => 'maintenances', 'parent' => 'maintenances.access', 'sort_order' => 7],
 
             // === REPORTS ===
             ['name' => 'reports.access', 'display_name' => 'Reports', 'description' => 'Can access Reports section', 'module' => 'reports', 'parent' => null, 'sort_order' => 7],
@@ -143,7 +130,10 @@ class RolePermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create($permission);
+            Permission::updateOrCreate(
+                ['name' => $permission['name']],
+                $permission
+            );
         }
 
         // Create role templates for user creation
@@ -152,13 +142,13 @@ class RolePermissionSeeder extends Seeder
             [
                 'name' => 'super_admin_template',
                 'display_name' => 'Super Administrator Template',
-                'description' => 'Template with full system access - all permissions',
+                'description' => 'Superadmin - full access',
                 'permissions' => Permission::all()->pluck('name')->toArray()
             ],
             [
                 'name' => 'admin_template',
                 'display_name' => 'Administrator Template',
-                'description' => 'Template with management access and most features',
+                'description' => 'Admin - full CRUD, no approval',
                 'permissions' => [
                     'dashboard.view',
                     'management.access',
@@ -234,23 +224,9 @@ class RolePermissionSeeder extends Seeder
                 ]
             ],
             [
-                'name' => 'user_manager_template',
-                'display_name' => 'User Manager Template',
-                'description' => 'Template for user management focus',
-                'permissions' => [
-                    'dashboard.view',
-                    'management.access',
-                    'management.users.view',
-                    'management.users.create',
-                    'management.users.edit',
-                    'management.users.logs',
-                    'management.roles.view',
-                ]
-            ],
-            [
-                'name' => 'viewer_template',
-                'display_name' => 'Viewer Template',
-                'description' => 'Template for read-only access',
+                'name' => 'approval_template',
+                'display_name' => 'Approval Template',
+                'description' => 'Approval - view all with approval',
                 'permissions' => [
                     'dashboard.view',
                     'management.access',
@@ -267,6 +243,40 @@ class RolePermissionSeeder extends Seeder
                     'record.view',
                     'maintenances.access',
                     'maintenances.view',
+                    'maintenances.approve',
+                    'reports.access',
+                    'reports.daily.view',
+                    'reports.daily.export',
+                    'reports.monthly.view',
+                    'reports.monthly.export',
+                    'reports.maintenances.daily.view',
+                    'reports.maintenances.daily.export',
+                    'reports.maintenances.year.view',
+                    'reports.maintenances.year.export',
+                ]
+            ],
+            [
+                'name' => 'user_template',
+                'display_name' => 'User Template',
+                'description' => 'User - view all, add record, add maintenance, no delete, no approval',
+                'permissions' => [
+                    'dashboard.view',
+                    'management.access',
+                    'management.users.view',
+                    'master.access',
+                    'master.categories.view',
+                    'master.products.view',
+                    'master.companies.view',
+                    'master.drivers.view',
+                    'master.vehicles.view',
+                    'master.destinations.view',
+                    'master.type_maintenances.view',
+                    'record.access',
+                    'record.view',
+                    'record.create',
+                    'maintenances.access',
+                    'maintenances.view',
+                    'maintenances.create',
                     'reports.access',
                     'reports.daily.view',
                     'reports.daily.export',
@@ -281,13 +291,15 @@ class RolePermissionSeeder extends Seeder
         ];
 
         foreach ($roles as $roleData) {
-            $role = Role::create([
-                'name' => $roleData['name'],
-                'display_name' => $roleData['display_name'],
-                'description' => $roleData['description']
-            ]);
+            $role = Role::updateOrCreate(
+                ['name' => $roleData['name']],
+                [
+                    'display_name' => $roleData['display_name'],
+                    'description' => $roleData['description']
+                ]
+            );
 
-            // Assign permissions to role
+            // Ensure role has listed permissions (no removals)
             foreach ($roleData['permissions'] as $permissionName) {
                 $permission = Permission::where('name', $permissionName)->first();
                 if ($permission && !$role->hasPermission($permission)) {
@@ -296,33 +308,49 @@ class RolePermissionSeeder extends Seeder
             }
         }
 
-        // Create fresh stagingpurpose superadmin user
-        $this->command->info('Creating fresh stagingpurpose superadmin user...');
+        // Remove legacy templates not requested (only if unused)
+        $legacyTemplates = ['user_manager_template', 'viewer_template'];
+        foreach ($legacyTemplates as $legacyName) {
+            $legacyRole = Role::where('name', $legacyName)->first();
+            if (!$legacyRole) {
+                continue;
+            }
 
-        // Delete existing stagingpurpose user if exists
-        User::where('username', 'stagingpurpose')->forceDelete();
+            if ($legacyRole->users()->exists()) {
+                $this->command->info("Skipping deletion of {$legacyName}; role still assigned to users.");
+                continue;
+            }
 
-        // Create new stagingpurpose user
-        $superAdminUser = User::create([
-            'name' => 'STAGING PURPOSE',
-            'username' => 'stagingpurpose',
-            'email' => 'staging@tongtji.com',
-            'password' => Hash::make('P@ssw0rd1938'),
-            'email_verified_at' => now(),
-            'created_by' => null, // No creator for initial superadmin
-            'updated_by' => null,
-        ]);
+            $legacyRole->permissions()->detach();
+            $legacyRole->delete();
+            $this->command->info("Deleted unused role template: {$legacyName}");
+        }
 
-        // Assign super_admin_template role to stagingpurpose user
+        // Ensure super_admin_template always has all permissions
         $superAdminRole = Role::where('name', 'super_admin_template')->first();
+        if ($superAdminRole) {
+            foreach (Permission::all() as $permission) {
+                if (!$superAdminRole->hasPermission($permission)) {
+                    $superAdminRole->assignPermission($permission);
+                }
+            }
+        }
+
+        // Ensure stagingpurpose user exists and has super_admin_template
+        $superAdminUser = User::firstOrCreate(
+            ['username' => 'stagingpurpose'],
+            [
+                'name' => 'STAGING PURPOSE',
+                'email' => 'staging@tongtji.com',
+                'password' => Hash::make('P@ssw0rd1938'),
+                'email_verified_at' => now(),
+                'created_by' => null,
+                'updated_by' => null,
+            ]
+        );
+
         if ($superAdminRole) {
             $superAdminUser->assignRole($superAdminRole);
         }
-
-        $this->command->info('Fresh roles, permissions, and stagingpurpose superadmin created successfully!');
-        $this->command->info('Superadmin credentials:');
-        $this->command->info('Username: stagingpurpose');
-        $this->command->info('Password: P@ssw0rd1938');
-        $this->command->info('PIN: 123456');
     }
 }

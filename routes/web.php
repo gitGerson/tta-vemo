@@ -1,24 +1,27 @@
 <?php
 
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\NoteController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\ImageController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\DestinationController;
 use App\Http\Controllers\DriverController;
+use App\Http\Controllers\FileUploadController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ImageController;
+use App\Http\Controllers\MaintenancesController;
+use App\Http\Controllers\MaintenancesDetailsController;
 use App\Http\Controllers\MobileController;
+use App\Http\Controllers\NoteController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RecordController;
 use App\Http\Controllers\ReportController;
-use App\Http\Controllers\CompanyController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\VehicleController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\UserRoleController;
-use App\Http\Controllers\DestinationController;
-use App\Http\Controllers\MaintenancesController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TypeMaintenanceController;
-use App\Http\Controllers\MaintenancesDetailsController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserRoleController;
+use App\Http\Controllers\VehicleController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     // return to login
@@ -31,6 +34,13 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 // Route group middleware for authenticated users
 Route::middleware(['auth'])->group(function () {
+    Route::get('/search', [SearchController::class, 'index'])->name('search');
+
+    // FilePond file upload routes
+    Route::post('/uploads/process', [FileUploadController::class, 'process'])->name('uploads.process');
+    Route::delete('/uploads/revert', [FileUploadController::class, 'revert'])->name('uploads.revert');
+    Route::get('/uploads/load', [FileUploadController::class, 'load'])->name('uploads.load');
+
     // User management routes with permissions
     Route::middleware(['permission:management.users.create'])->group(function () {
         Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
@@ -196,7 +206,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/products/{id}/restore', [ProductController::class, 'restore'])->name('products.restore');
     });
 
-
     // Company
     Route::middleware(['permission:master.companies.view'])->group(function () {
         Route::get('/company', [CompanyController::class, 'index'])->name('company.index');
@@ -216,6 +225,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:master.drivers.view'])->group(function () {
         Route::get('/driver', [DriverController::class, 'index'])->name('driver.index');
         Route::get('/driver/data', [DriverController::class, 'getData'])->name('driver.data');
+        Route::get('/driver/emp-info', [DriverController::class, 'getEmpInfo'])->name('driver.empInfo');
     });
     Route::middleware(['permission:master.drivers.create'])->group(function () {
         Route::post('/driver', [DriverController::class, 'store'])->name('driver.store');
@@ -264,6 +274,7 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::middleware(['permission:master.type_maintenances.create'])->group(function () {
         Route::post('/type-maintenance', [TypeMaintenanceController::class, 'store'])->name('type-maintenance.store');
+        Route::post('/type-maintenance/import', [TypeMaintenanceController::class, 'import'])->name('type-maintenance.import');
         Route::post('type_maintenances/post/response', [TypeMaintenanceController::class, 'storeResponse'])->name('type_maintenances.storeResponse');
     });
     Route::middleware(['permission:master.type_maintenances.edit'])->group(function () {
@@ -306,12 +317,18 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::middleware(['permission:maintenances.create'])->group(function () {
         Route::get('/maintenances/create', [MaintenancesController::class, 'create'])->name('maintenances.create');
+        Route::get('/maintenances/notifications/{notification}/read', [HomeController::class, 'markServiceNotificationRead'])
+            ->name('maintenances.notifications.read');
         Route::post('/maintenances', [MaintenancesController::class, 'store'])->name('maintenances.store');
     });
     Route::middleware(['permission:maintenances.edit'])->group(function () {
         Route::get('/maintenances/{maintenances}/edit', [MaintenancesController::class, 'edit'])->name('maintenances.edit');
         Route::put('/maintenances/{maintenances}', [MaintenancesController::class, 'update'])->name('maintenances.update');
         Route::patch('/maintenances/{maintenances}', [MaintenancesController::class, 'update']);
+    });
+    Route::middleware(['permission:maintenances.approve'])->group(function () {
+        Route::post('/maintenances/{maintenances}/status', [MaintenancesController::class, 'status'])->name('maintenances.status');
+        Route::post('/maintenances/{maintenances}/confirm', [MaintenancesController::class, 'confirm'])->name('maintenances.confirm');
     });
     Route::middleware(['permission:maintenances.delete'])->group(function () {
         Route::delete('/maintenances/{maintenances}', [MaintenancesController::class, 'destroy'])->name('maintenances.destroy');

@@ -66,13 +66,15 @@
                 <div class="card-body">
                     <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
                         <div>
-                            <span class="badge bg-info-subtle text-info fw-semibold text-uppercase">Butuh Perbaikan</span>
-                            <h5 class="mt-2 mb-1">Daftar kendaraan yang membutuhkan perbaikan</h5>
-                            <p class="text-muted mb-0 small">Prioritaskan unit yang belum ditangani agar operasional tetap lancar.</p>
+                            <span class="badge bg-info-subtle text-info fw-semibold text-uppercase">ℹ️ Pengingat
+                                Servis</span>
+                            <h5 class="mt-2 mb-1">Kendaraan yang sudah lama tidak servis</h5>
+                            <p class="text-muted mb-0 small">Pengingat untuk kendaraan yang sudah menempuh jarak cukup jauh
+                                sejak servis terakhir.</p>
                         </div>
                         <div class="text-end">
-                            <span class="badge bg-warning-subtle text-warning fw-semibold">{{ $service->count() }} Unit</span>
-                            <div class="text-muted small">Menunggu dibuatkan perbaikan</div>
+                            <span class="badge bg-info-subtle text-info fw-semibold">{{ $service->count() }} Unit</span>
+                            <div class="text-muted small">Perlu dipertimbangkan untuk servis</div>
                         </div>
                     </div>
 
@@ -84,7 +86,7 @@
                                     <th>Unit Kendaraan</th>
                                     <th>Tahun</th>
                                     <th>Terakhir Diservis</th>
-                                    <th>Kilometer</th>
+                                    <th>Jarak Tempuh</th>
                                     <th class="text-end">Aksi</th>
                                 </tr>
                             </thead>
@@ -96,6 +98,7 @@
                                         $lastService = $maintenances?->date_out
                                             ? \Carbon\Carbon::parse($maintenances->date_out)->translatedFormat('d M Y')
                                             : 'Belum ada riwayat';
+                                        $distance = $row->to_km - $row->from_km;
                                     @endphp
                                     <tr>
                                         <th scope="row">{{ $loop->iteration }}</th>
@@ -109,13 +112,15 @@
                                             <div class="text-muted small">Riwayat terakhir</div>
                                         </td>
                                         <td>
-                                            <div class="d-flex flex-wrap gap-2">
-                                                <span class="badge text-bg-light">Dari: {{ $row->from_km }}</span>
-                                                <span class="badge text-bg-secondary">Ke: {{ $row->to_km }}</span>
+                                            <div class="d-flex flex-column gap-1">
+                                                <span class="badge bg-info-subtle text-info">{{ number_format($distance) }} km
+                                                    sejak servis</span>
+                                                <small class="text-muted">KM {{ number_format($row->from_km) }} →
+                                                    {{ number_format($row->to_km) }}</small>
                                             </div>
                                         </td>
                                         <td class="text-end">
-                                            <a class="btn btn-sm btn-primary"
+                                            <a class="btn btn-sm btn-outline-info"
                                                 href="/maintenances/create?vehicle={{ $row->no_pol }}">
                                                 Buat Perbaikan
                                             </a>
@@ -129,82 +134,84 @@
             </div>
         </section>
 
-        <section>
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
-                        <div>
-                            <span class="badge bg-primary-subtle text-primary fw-semibold text-uppercase">Menunggu Persetujuan</span>
-                            <h5 class="mt-2 mb-1">Servisan kendaraan yang belum disetujui</h5>
-                            <p class="text-muted mb-0 small">Tinjau detail servis sebelum mengirimkan persetujuan.</p>
+        @if (auth()->user()?->hasPermission('maintenances.approve'))
+            <section>
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
+                            <div>
+                                <span class="badge bg-warning-subtle text-warning fw-semibold text-uppercase">🔧 Sedang
+                                    Dikerjakan</span>
+                                <h5 class="mt-2 mb-1">Perbaikan kendaraan yang sedang dalam proses</h5>
+                                <p class="text-muted mb-0 small">Pantau progres perbaikan dan selesaikan jika sudah selesai.</p>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-warning-subtle text-warning fw-semibold">{{ $mtc->count() }} Servis</span>
+                                <div class="text-muted small">Dalam proses perbaikan</div>
+                            </div>
                         </div>
-                        <div class="text-end">
-                            <span class="badge bg-info-subtle text-info fw-semibold">{{ $mtc->count() }} Servis</span>
-                            <div class="text-muted small">Menunggu approval</div>
-                        </div>
-                    </div>
 
-                    <div class="table-responsive">
-                        <table id="approval-table" class="table table-striped table-hover align-middle w-100">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Unit Kendaraan</th>
-                                    <th>Tanggal Masuk</th>
-                                    <th>Tanggal Keluar</th>
-                                    <th>Oleh</th>
-                                    <th class="text-end">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($mtc as $list)
-                                    @php
-                                        $vehicleData = App\Models\Vehicle::getByNoPol($list?->no_pol);
-                                        $dateIn = $list->date_in
-                                            ? \Carbon\Carbon::parse($list->date_in)->translatedFormat('d M Y')
-                                            : '-';
-                                        $dateOut = $list->date_out
-                                            ? \Carbon\Carbon::parse($list->date_out)->translatedFormat('d M Y')
-                                            : '-';
-                                    @endphp
+                        <div class="table-responsive">
+                            <table id="approval-table" class="table table-striped table-hover align-middle w-100">
+                                <thead>
                                     <tr>
-                                        <th scope="row">{{ $loop->iteration }}</th>
-                                        <td>
-                                            <div class="fw-semibold">
-                                                @if ($vehicleData)
-                                                    {{ $vehicleData?->type }} ({{ $list->no_pol }})
-                                                @else
-                                                    Data kendaraan tidak ditemukan
-                                                @endif
-                                            </div>
-                                            <div class="text-muted small">Kode: {{ $list->code_mt }}</div>
-                                        </td>
-                                        <td>
-                                            <div class="fw-semibold">{{ $dateIn }}</div>
-                                            <span class="badge bg-warning-subtle text-warning">Menunggu</span>
-                                        </td>
-                                        <td>
-                                            <div class="fw-semibold">{{ $dateOut }}</div>
-                                            <div class="text-muted small">Estimasi keluar</div>
-                                        </td>
-                                        <td>
-                                            <div class="fw-semibold">{{ $list->request->name }}</div>
-                                            <div class="text-muted small">Pengaju</div>
-                                        </td>
-                                        <td class="text-end">
-                                            <a class="btn btn-sm btn-outline-primary"
-                                                href="/maintenances/{{ $list->code_mt }}">
-                                                Lihat Detail
-                                            </a>
-                                        </td>
+                                        <th>#</th>
+                                        <th>Unit Kendaraan</th>
+                                        <th>Tanggal Masuk</th>
+                                        <th>Tanggal Keluar</th>
+                                        <th>Oleh</th>
+                                        <th class="text-end">Aksi</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @foreach ($mtc as $list)
+                                        @php
+                                            $vehicleData = App\Models\Vehicle::getByNoPol($list?->no_pol);
+                                            $dateIn = $list->date_in
+                                                ? \Carbon\Carbon::parse($list->date_in)->translatedFormat('d M Y')
+                                                : '-';
+                                            $dateOut = $list->date_out
+                                                ? \Carbon\Carbon::parse($list->date_out)->translatedFormat('d M Y')
+                                                : '-';
+                                        @endphp
+                                        <tr>
+                                            <th scope="row">{{ $loop->iteration }}</th>
+                                            <td>
+                                                <div class="fw-semibold">
+                                                    @if ($vehicleData)
+                                                        {{ $vehicleData?->type }} ({{ $list->no_pol }})
+                                                    @else
+                                                        Data kendaraan tidak ditemukan
+                                                    @endif
+                                                </div>
+                                                <div class="text-muted small">Kode: {{ $list->code_mt }}</div>
+                                            </td>
+                                            <td>
+                                                <div class="fw-semibold">{{ $dateIn }}</div>
+                                                <span class="badge bg-warning-subtle text-warning">Dalam Proses</span>
+                                            </td>
+                                            <td>
+                                                <div class="fw-semibold">{{ $dateOut }}</div>
+                                                <div class="text-muted small">Estimasi keluar</div>
+                                            </td>
+                                            <td>
+                                                <div class="fw-semibold">{{ $list->request->name }}</div>
+                                                <div class="text-muted small">Pengaju</div>
+                                            </td>
+                                            <td class="text-end">
+                                                <a class="btn btn-sm btn-outline-primary" href="/maintenances/{{ $list->code_mt }}">
+                                                    Lihat Detail
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        @endif
     </div>
 @endsection
 
@@ -216,7 +223,7 @@
                 lengthMenu: [5, 10, 25, 50],
                 order: [],
                 autoWidth: false,
-                paginate: false,
+                paginate: true,
                 searching: false,
                 language: {
                     search: "Cari:",
@@ -228,7 +235,7 @@
                     infoFiltered: "(disaring dari _MAX_ total)",
                     paginate: { previous: "Sebelumnya", next: "Berikutnya" }
                 },
-                dom: '<"row align-items-center mb-3"<"col-md-6"l><"col-md-6 text-md-end"f>>t<"row align-items-center mt-3"<"col-md-6"i><"col-md-6"p>>'
+                dom: '<"row align-items-center mb-3"<"col-md-6"l><"col-md-6 text-md-end"f>>t<"row align-items-center mt-3"<"col-md-12"i>><"row mt-2"<"col-md-12 d-flex justify-content-end"p>>'
             };
 
             $('#service-table').DataTable(Object.assign({}, baseOptions, {
@@ -245,4 +252,45 @@
             }));
         });
     </script>
+@endpush
+
+@push('styles')
+    <style>
+        .dataTables_wrapper .dataTables_paginate,
+        .dataTables_wrapper .dt-paging {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .dataTables_wrapper .dataTables_paginate nav,
+        .dataTables_wrapper .dt-paging nav {
+            display: flex;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .pagination,
+        .dataTables_wrapper .dt-paging .pagination {
+            display: inline-flex;
+            flex-wrap: nowrap;
+            gap: 0.25rem;
+            margin: 0;
+            padding-left: 0;
+            list-style: none;
+            width: auto;
+            max-width: 100%;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .pagination .page-item,
+        .dataTables_wrapper .dt-paging .pagination .page-item {
+            display: inline-flex;
+            flex: 0 0 auto;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .pagination .page-link,
+        .dataTables_wrapper .dt-paging .pagination .page-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+    </style>
 @endpush

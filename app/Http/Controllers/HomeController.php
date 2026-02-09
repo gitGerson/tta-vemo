@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Driver;
-use App\Models\Vehicle;
-use App\Models\NotificationService;
 use App\Models\Maintenances;
+use App\Models\NotificationService;
+use App\Models\Vehicle;
+use Illuminate\Http\RedirectResponse;
 
 class HomeController extends Controller
 {
@@ -31,8 +32,18 @@ class HomeController extends Controller
             'vehicle' => Vehicle::where('status', 'ACTIVE')->get(),
             'pageTitle' => 'Beranda',
             'service' => NotificationService::where('read', 0)->get(),
-            'mtc' => Maintenances::where('status', 'PENDING')->get()
+            'mtc' => Maintenances::where('status', 'IN_PROGRESS')->get(),
         ];
-        return view('home' , $data);
+
+        return view('home', $data);
+    }
+
+    public function markServiceNotificationRead(NotificationService $notification): RedirectResponse
+    {
+        if (! $notification->read) {
+            $notification->update(['read' => 1]);
+        }
+
+        return redirect()->route('maintenances.create', ['vehicle' => $notification->no_pol]);
     }
 }
