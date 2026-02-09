@@ -32,7 +32,7 @@ class HomeController extends Controller
             'vehicle' => Vehicle::where('status', 'ACTIVE')->get(),
             'pageTitle' => 'Beranda',
             'service' => NotificationService::where('read', 0)->get(),
-            'mtc' => Maintenances::where('status', 'IN_PROGRESS')->get(),
+            'mtc' => Maintenances::where('status', 'DRAFT')->get(),
         ];
 
         return view('home', $data);

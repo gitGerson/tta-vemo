@@ -63,8 +63,6 @@ class MaintenancesController extends Controller
                         switch ($row->status) {
                             case 'DRAFT':
                                 return '<span class="badge bg-secondary">DRAFT</span>';
-                            case 'IN_PROGRESS':
-                                return '<span class="badge bg-warning">SEDANG DIKERJAKAN</span>';
                             case 'COMPLETED':
                                 return '<span class="badge bg-success">SELESAI</span>';
                             case 'CANCELLED':
@@ -377,9 +375,6 @@ class MaintenancesController extends Controller
         if ($request->status == 'DRAFT') {
             $vehicle->update(['mtc' => 'NO']);
             $status = 'DRAFT';
-        } elseif ($request->status == 'IN_PROGRESS') {
-            $vehicle->update(['mtc' => 'YES']);
-            $status = 'SEDANG DIKERJAKAN';
         } elseif ($request->status == 'COMPLETED') {
             // Validation: check if details exist
             if ($detailMaintenances->count() == 0) {

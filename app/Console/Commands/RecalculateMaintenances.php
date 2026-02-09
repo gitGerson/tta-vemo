@@ -66,8 +66,9 @@ class RecalculateMaintenances extends Command
 
         // Map old statuses to new ones
         $statusMap = [
-            'PENDING' => 'IN_PROGRESS',
-            'PROCESS' => 'IN_PROGRESS',
+            'PENDING' => 'DRAFT',
+            'IN_PROGRESS' => 'DRAFT',
+            'PROCESS' => 'DRAFT',
             'APPROVED' => 'COMPLETED',
             'DONE' => 'COMPLETED',
             'CANCEL' => 'CANCELLED',

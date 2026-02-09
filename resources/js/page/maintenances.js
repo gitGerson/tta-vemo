@@ -5,6 +5,9 @@ $(document).ready(function() {
     const uploadsProcessUrl = pageConfig?.dataset.uploadsProcess || '';
     const uploadsRevertUrl = pageConfig?.dataset.uploadsRevert || '';
     const uploadsLoadUrl = pageConfig?.dataset.uploadsLoad || '';
+    const requireUpload = pageConfig?.dataset.requireUpload === '1';
+    let existingUploadCount = parseInt(pageConfig?.dataset.existingUploadCount || '0', 10) || 0;
+    let pond = null;
 
     // Initialize Select2
     $('.select2').select2({
@@ -63,13 +66,15 @@ $(document).ready(function() {
                 };
             }
 
-            const pond = FilePond.create(inputElement, pondOptions);
+            pond = FilePond.create(inputElement, pondOptions);
 
             pond.on('addfile', function() {
                 updateFileStatus();
+                updateSubmitState();
             });
             pond.on('removefile', function() {
                 updateFileStatus();
+                updateSubmitState();
             });
 
             function updateFileStatus() {
@@ -111,10 +116,6 @@ $(document).ready(function() {
         let isValid = true;
 
         requiredFields.forEach((field) => {
-            if (field.id === 'date_out') {
-                return;
-            }
-
             if (!isFieldFilled(field)) {
                 isValid = false;
             }
@@ -123,6 +124,13 @@ $(document).ready(function() {
         const agreeCheckbox = document.getElementById('agreeCheckbox');
         if (agreeCheckbox && !agreeCheckbox.checked) {
             isValid = false;
+        }
+
+        if (requireUpload) {
+            const fileCount = pond ? pond.getFiles().length : 0;
+            if (fileCount + existingUploadCount === 0) {
+                isValid = false;
+            }
         }
 
         const $submitButton = $('#submitButton');
@@ -136,7 +144,7 @@ $(document).ready(function() {
             $saveButton.prop('disabled', !isValid);
         }
         if ($draftButton.length) {
-            $draftButton.prop('disabled', !isValid);
+            $draftButton.prop('disabled', false);
         }
     }
 
@@ -151,8 +159,8 @@ $(document).ready(function() {
     });
 
     // Delete note file
-    $('button[data-id]').on('click', function() {
-        const noteId = $(this).data('id');
+    $('button[data-note-id]').on('click', function() {
+        const noteId = $(this).data('note-id');
         const row = $(this).closest('.d-flex');
 
         Swal.fire({
@@ -174,6 +182,8 @@ $(document).ready(function() {
                     },
                     success: function() {
                         row.remove();
+                        existingUploadCount = Math.max(0, existingUploadCount - 1);
+                        updateSubmitState();
                         Swal.fire('Terhapus!', 'File berhasil dihapus.', 'success');
                     },
                     error: function() {
