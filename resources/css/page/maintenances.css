@@ -101,7 +101,7 @@
         padding: 0.75rem 0.9rem;
     }
 
-    .detail-perbaikan-item .row > [class*='col-md-'] {
+    .detail-perbaikan-item .row>[class*='col-md-'] {
         width: 100%;
     }
 
@@ -173,6 +173,7 @@
 .detail-servis-textarea {
     min-height: 120px;
 }
+
 .detail-servis-textarea#confirmation_notes {
     min-height: 90px;
 }
@@ -263,4 +264,19 @@
 
 .filepond--drip-blob {
     background-color: #696cff;
+}
+
+.filepond--image-preview-wrapper {
+    cursor: pointer;
+}
+
+.filepond-preview-image {
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+.swal2-container {
+    z-index: 9999 !important;
 }

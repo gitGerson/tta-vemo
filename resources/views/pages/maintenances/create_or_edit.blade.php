@@ -326,10 +326,20 @@
                                     {{-- Existing Files --}}
                                     @if (isset($maintenances) && isset($notes))
                                         @foreach ($notes as $note)
+                                            @php
+                                                $ext = strtolower(pathinfo($note->image, PATHINFO_EXTENSION));
+                                                $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'svg']);
+                                            @endphp
                                             <div class="d-flex align-items-center justify-content-between p-2 bg-light rounded mb-2">
-                                                <a href="{{ $note->url }}" target="_blank" class="text-decoration-none text-truncate" style="max-width: 200px;">
-                                                    <i class="bx bx-file me-1"></i> {{ $note->image }}
-                                                </a>
+                                                @if ($isImage)
+                                                    <a href="javascript:void(0)" class="text-decoration-none text-truncate preview-existing-image" data-url="{{ $note->url }}" style="max-width: 200px; cursor: pointer;">
+                                                        <i class="bx bx-image me-1"></i> {{ $note->image }}
+                                                    </a>
+                                                @else
+                                                    <a href="{{ $note->url }}" target="_blank" class="text-decoration-none text-truncate" style="max-width: 200px;">
+                                                        <i class="bx bx-file me-1"></i> {{ $note->image }}
+                                                    </a>
+                                                @endif
                                                 @if (!$isReadOnly)
                                                     <button type="button" class="btn btn-sm btn-icon btn-outline-danger" data-note-id="{{ $note->id }}">
                                                         <i class="bx bx-trash"></i>

@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(document).ready(function () {
     const $ = window.$;
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const pageConfig = document.getElementById('maintenancesPageConfig');
@@ -68,13 +68,58 @@ $(document).ready(function() {
 
             pond = FilePond.create(inputElement, pondOptions);
 
-            pond.on('addfile', function() {
+            pond.on('addfile', function () {
                 updateFileStatus();
                 updateSubmitState();
             });
-            pond.on('removefile', function() {
+            pond.on('removefile', function () {
                 updateFileStatus();
                 updateSubmitState();
+            });
+
+            // Click-to-preview: open full-size image in SweetAlert2 popup
+            document.addEventListener('click', function (e) {
+                const previewWrapper = e.target.closest('.filepond--image-preview-wrapper');
+                if (!previewWrapper || !pond) return;
+
+                const itemEl = previewWrapper.closest('.filepond--item');
+                if (!itemEl) return;
+
+                // Find the index by comparing DOM position
+                const allItems = Array.from(document.querySelectorAll('.filepond--item'));
+                const index = allItems.indexOf(itemEl);
+                const files = pond.getFiles();
+                if (index < 0 || index >= files.length) return;
+
+                const fileItem = files[index];
+
+                // Only handle image files
+                if (!fileItem.fileType || !fileItem.fileType.startsWith('image/')) return;
+
+                let imageUrl = '';
+                if (fileItem.file instanceof File || fileItem.file instanceof Blob) {
+                    imageUrl = URL.createObjectURL(fileItem.file);
+                } else if (fileItem.serverId && uploadsLoadUrl) {
+                    imageUrl = uploadsLoadUrl + encodeURIComponent(fileItem.serverId);
+                }
+
+                if (!imageUrl) return;
+
+                Swal.fire({
+                    imageUrl: imageUrl,
+                    imageAlt: fileItem.filename || 'Preview',
+                    showConfirmButton: false,
+                    showCloseButton: true,
+                    width: 'auto',
+                    customClass: {
+                        image: 'filepond-preview-image'
+                    },
+                    didClose: function () {
+                        if (fileItem.file instanceof File || fileItem.file instanceof Blob) {
+                            URL.revokeObjectURL(imageUrl);
+                        }
+                    }
+                });
             });
 
             function updateFileStatus() {
@@ -85,12 +130,12 @@ $(document).ready(function() {
     }
 
     // Service Routine Toggle
-    $('#isServiceRoutineToggle').on('change', function() {
+    $('#isServiceRoutineToggle').on('change', function () {
         $('#isServiceRoutineValue').val($(this).is(':checked') ? '0' : '1');
     });
 
     // Agree Checkbox enables submit buttons
-    $('#agreeCheckbox').on('change', function() {
+    $('#agreeCheckbox').on('change', function () {
         updateSubmitState();
     });
 
@@ -148,8 +193,26 @@ $(document).ready(function() {
         }
     }
 
+    // Click-to-preview for existing uploaded images
+    $(document).on('click', '.preview-existing-image', function (e) {
+        e.preventDefault();
+        const imageUrl = $(this).data('url');
+        if (!imageUrl) return;
+
+        Swal.fire({
+            imageUrl: imageUrl,
+            imageAlt: $(this).text().trim() || 'Preview',
+            showConfirmButton: false,
+            showCloseButton: true,
+            width: 'auto',
+            customClass: {
+                image: 'filepond-preview-image'
+            }
+        });
+    });
+
     // Auto-fill mileage from selected vehicle
-    $('select[name="no_pol"]').on('change', function() {
+    $('select[name="no_pol"]').on('change', function () {
         const selectedOption = $(this).find('option:selected');
         const mileage = selectedOption.data('mileage');
         if (mileage) {
@@ -159,7 +222,7 @@ $(document).ready(function() {
     });
 
     // Delete note file
-    $('button[data-note-id]').on('click', function() {
+    $('button[data-note-id]').on('click', function () {
         const noteId = $(this).data('note-id');
         const row = $(this).closest('.d-flex');
 
@@ -180,13 +243,13 @@ $(document).ready(function() {
                     data: {
                         _token: csrfToken
                     },
-                    success: function() {
+                    success: function () {
                         row.remove();
                         existingUploadCount = Math.max(0, existingUploadCount - 1);
                         updateSubmitState();
                         Swal.fire('Terhapus!', 'File berhasil dihapus.', 'success');
                     },
-                    error: function() {
+                    error: function () {
                         Swal.fire('Error!', 'Gagal menghapus file.', 'error');
                     }
                 });
@@ -195,7 +258,7 @@ $(document).ready(function() {
     });
 
     // Cancel maintenance confirmation
-    $('.confrmCancel').on('click', function() {
+    $('.confrmCancel').on('click', function () {
         const maintenanceId = $(this).data('id');
 
         Swal.fire({
@@ -224,7 +287,7 @@ $(document).ready(function() {
     let repeaterIndex = 0;
 
     // Add new repeater item
-    $('#addRepeaterItem').on('click', function() {
+    $('#addRepeaterItem').on('click', function () {
         const template = $('#repeaterTemplate').html();
         const newItem = template.replace(/__INDEX__/g, repeaterIndex).trim();
         const $newItem = $(newItem);
@@ -237,13 +300,13 @@ $(document).ready(function() {
     });
 
     // Remove repeater item
-    $(document).on('click', '.remove-repeater-item', function() {
+    $(document).on('click', '.remove-repeater-item', function () {
         $(this).closest('.repeater-item').remove();
         updateTotalDisplay();
     });
 
     // Calculate subtotal when price or qty changes
-    $(document).on('input', '.repeater-price, .repeater-qty', function() {
+    $(document).on('input', '.repeater-price, .repeater-qty', function () {
         const item = $(this).closest('.repeater-item');
         const price = parseInt(item.find('.repeater-price').val().replace(/[^0-9]/g, ''), 10) || 0;
         const qty = parseInt(item.find('.repeater-qty').val(), 10) || 1;
@@ -260,7 +323,7 @@ $(document).ready(function() {
     // Update total display (sum of new items)
     function updateTotalDisplay() {
         let total = 0;
-        $('.repeater-item').each(function() {
+        $('.repeater-item').each(function () {
             const item = $(this);
             const subtotalData = item.data('subtotal');
             if (subtotalData !== undefined) {
@@ -277,12 +340,12 @@ $(document).ready(function() {
     }
 
     // Number only input for repeater price fields
-    $(document).on('input', '.repeater-price', function() {
+    $(document).on('input', '.repeater-price', function () {
         this.value = this.value.replace(/[^0-9]/g, '');
     });
 
     // Delete existing item
-    $(document).on('click', '.delete-existing-item', function() {
+    $(document).on('click', '.delete-existing-item', function () {
         const btn = $(this);
         const itemDiv = btn.closest('.repeater-item');
         const href = btn.data('href');
@@ -304,14 +367,14 @@ $(document).ready(function() {
                     data: {
                         _token: csrfToken
                     },
-                    success: function() {
-                        itemDiv.fadeOut(300, function() {
+                    success: function () {
+                        itemDiv.fadeOut(300, function () {
                             $(this).remove();
                             updateTotalDisplay();
                         });
                         Swal.fire('Terhapus!', 'Item berhasil dihapus.', 'success');
                     },
-                    error: function() {
+                    error: function () {
                         Swal.fire('Error!', 'Gagal menghapus item.', 'error');
                     }
                 });
@@ -319,11 +382,11 @@ $(document).ready(function() {
         });
     });
 
-    $(document).on('input change', '#mainForm input, #mainForm select, #mainForm textarea', function() {
+    $(document).on('input change', '#mainForm input, #mainForm select, #mainForm textarea', function () {
         updateSubmitState();
     });
 
-    $(document).on('change', '.select2', function() {
+    $(document).on('change', '.select2', function () {
         updateSubmitState();
     });
 
