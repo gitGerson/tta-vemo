@@ -28,7 +28,7 @@ $(document).ready(function () {
                 allowMultiple: true,
                 allowReorder: true,
                 maxFileSize: '3MB',
-                labelIdle: '<span class="filepond--label-action">Klik untuk upload</span> atau tarik file ke sini<br><small>PNG, JPG, GIF, SVG, PDF (Maks. 3MB)</small>',
+                labelIdle: '<span class="filepond--label-action">Klik untuk upload</span> atau tarik file ke sini',
                 labelFileProcessing: 'Mengupload...',
                 labelFileProcessingComplete: 'Upload selesai',
                 labelFileProcessingAborted: 'Upload dibatalkan',
