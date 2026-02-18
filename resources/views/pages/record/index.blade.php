@@ -78,7 +78,7 @@
                 <br>
 
                 <form method="get" class="d-flex align-items-center ms-6 mb-2" style="gap: 10px;">
-                    <label for="per_page">Show</label>
+                    <!-- <label for="per_page">Show</label>
                     <select name="per_page" id="per_page" class="form-control" style="width: auto; min-width: 30px;"
                         onchange="this.form.submit()">
                         @foreach ([10, 25, 50, 100, 200] as $limit)
@@ -87,7 +87,7 @@
                             </option>
                         @endforeach
                     </select>
-                    <span>entries</span>
+                    <span>entries</span> -->
 
                     @if(request('start_date'))
                         <input type="hidden" name="start_date" value="{{ request('start_date') }}">

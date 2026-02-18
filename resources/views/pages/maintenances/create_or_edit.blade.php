@@ -1,651 +1,452 @@
 @extends('layouts.sneat')
 
 @section('content')
-    <div class="row mb-3">
-        <div class="col-12">
-            <div id="loader-wrapper" class="text-center" style="display: none;">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
     @php
-        $isApproved = isset($maintenances) && $maintenances->status == 'APPROVED';
+        $isCompleted = isset($maintenances) && $maintenances->status == 'COMPLETED';
+        $isCancelled = isset($maintenances) && $maintenances->status == 'CANCELLED';
+        $canCreateMaintenance = auth()->user()?->hasPermission('maintenances.create');
+        $canEditMaintenance = auth()->user()?->hasPermission('maintenances.edit');
+        $canApproveMaintenance = auth()->user()?->hasPermission('maintenances.approve');
+        $canEditOrCreateMaintenance = (!isset($maintenances) && $canCreateMaintenance) || (isset($maintenances) && $canEditMaintenance);
+        $isReadOnly = $isCompleted || $isCancelled;
     @endphp
-    <div class="container-xxl flex-grow-1 container-p-y">
-        @php
-            $canCreateMaintenance = auth()->user()?->hasPermission('maintenances.create');
-            $canEditMaintenance = auth()->user()?->hasPermission('maintenances.edit');
-            $canEditOrCreateMaintenance = (!isset($maintenances) && $canCreateMaintenance)
-                || (isset($maintenances) && $canEditMaintenance);
-        @endphp
 
+    <div class="container-xxl flex-grow-1 container-p-y">
+        {{-- Alert Messages --}}
         @if (session('error'))
-            <div class="alert alert-danger" role="alert">
+            <div class="alert alert-danger alert-dismissible" role="alert">
                 {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
 
         @if (session('success'))
-            <div class="alert alert-success" role="alert">
+            <div class="alert alert-success alert-dismissible" role="alert">
                 {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
 
         @if ($errors->any())
-            <div class="alert alert-danger" role="alert">
+            <div class="alert alert-danger alert-dismissible" role="alert">
                 <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
                 </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
 
-        @if ($isApproved)
-            @isset($maintenances)
-                <div class="row show-approved">
-                    @include('components.show_approved')
-                </div>
-            @endisset
-        @else
+        {{-- Page Header --}}
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="mb-1">{{ isset($maintenances) ? 'Detail Pemeliharaan' : 'Input Data Pemeliharaan' }}</h4>
+                <p class="text-muted mb-0">{{ isset($maintenances) ? 'Kode: ' . $maintenances->code_mt : 'Rekam data servis kendaraan baru dan kelola item perbaikan.' }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ route('maintenances.index') }}" class="btn btn-outline-secondary">
+                    <i class="bx bx-arrow-back me-1"></i> Kembali
+                </a>
+                @if (isset($maintenances) && in_array($maintenances->status, ['DRAFT', 'COMPLETED'], true) && ! $maintenances->is_confirmed)
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
+                        data-bs-target="#confirmCancelModal" data-id="{{ $maintenances->id }}">
+                        <i class="bx bx-x me-1"></i> Batalkan
+                    </button>
+                @endif
+                @if (!$isReadOnly && $canEditOrCreateMaintenance)
+                    <button type="submit" form="mainForm" class="btn btn-success">
+                        <i class="bx bx-save me-1"></i> Simpan
+                    </button>
+                @endif
+            </div>
+        </div>
 
-                @isset($maintenances)
-                    @if ($maintenances->status == 'PENDING' && auth()->user()?->hasPermission('maintenances.approve'))
-                        <div class="row">
-                            <div class="col-12">
-                                @include('components.process_approved')
+        {{-- Status Badge for Existing Records --}}
+        @isset($maintenances)
+            <div class="mb-3">
+                @if ($maintenances->status == 'DRAFT')
+                    <span class="badge bg-secondary fs-6">📋 DRAFT</span>
+                @elseif($maintenances->status == 'COMPLETED')
+                    <span class="badge bg-success fs-6">✅ SELESAI</span>
+                    @if ($maintenances->is_confirmed)
+                        <span class="badge bg-info fs-6">✓ DIKONFIRMASI</span>
+                    @endif
+                @elseif($maintenances->status == 'CANCELLED')
+                    <span class="badge bg-danger fs-6">❌ DIBATALKAN</span>
+                @endif
+            </div>
+        @endisset
+
+        {{-- Main Form Layout --}}
+        <form id="mainForm" method="POST"
+            action="{{ isset($maintenances) ? route('maintenances.update', $maintenances->id) : route('maintenances.store') }}"
+            enctype="multipart/form-data">
+            @csrf
+            @if (isset($maintenances))
+                @method('PUT')
+            @endif
+
+            <div class="row">
+                {{-- LEFT COLUMN --}}
+                <div class="col-lg-8">
+                        {{-- Card 1: Informasi Kendaraan --}}
+                        <div class="card mb-4 info-kendaraan-card">
+                            <div class="card-header card-header-compact">
+                                <h6 class="mb-0 info-kendaraan-title"><i class="bx bx-car text-success me-2"></i>Informasi Kendaraan</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="no_pol" class="form-label info-kendaraan-label">Plat Nomor <small class="text-danger">*</small></label>
+                                        <select class="form-select form-select-sm select2" name="no_pol" id="no_pol" required {{ $isReadOnly ? 'disabled' : '' }}>
+                                            <option value="" disabled selected>- Pilih Kendaraan -</option>
+                                            @foreach ($vehicle as $row)
+                                                <option {{ old('no_pol', isset($maintenances) ? $maintenances->no_pol : request()->query('vehicle')) == $row->plat_new ? 'selected' : '' }}
+                                                    value="{{ $row->plat_new }}" data-mileage="{{ $row->mileage }}">
+                                                    {{ $row->plat_new }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="mileage" class="form-label info-kendaraan-label">Km Sekarang <small class="text-danger">*</small></label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" inputmode="numeric" id="mileage" placeholder="Cth. 50000"
+                                                name="mileage" class="form-control validate-number"
+                                                value="{{ old('mileage', isset($maintenances) ? $maintenances->mileage : '') }}"
+                                                {{ $isReadOnly ? 'readonly' : '' }}>
+                                            <span class="input-group-text">km</span>
+                                        </div>
+                                        <small class="text-info" id="mileage-info"></small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="date_in" class="form-label info-kendaraan-label">Tanggal Masuk <small class="text-danger">*</small></label>
+                                        <input type="date" id="date_in" name="date_in" class="form-control form-control-sm"
+                                            value="{{ old('date_in', isset($maintenances) ? $maintenances->date_in : Carbon\Carbon::now()->format('Y-m-d')) }}"
+                                            required {{ $isReadOnly ? 'readonly' : '' }}>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="date_out" class="form-label info-kendaraan-label">Tanggal Keluar <small class="text-danger">*</small></label>
+                                        <input type="date" id="date_out" name="date_out" class="form-control form-control-sm"
+                                            value="{{ old('date_out', isset($maintenances) ? $maintenances->date_out : '') }}"
+                                            required {{ $isReadOnly ? 'readonly' : '' }}>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Card 2: Detail Servis --}}
+                        <div class="card mb-4">
+                            <div class="card-header card-header-compact">
+                                <h6 class="mb-0"><i class="bx bx-wrench text-success me-2"></i>Detail Servis</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="detail-servis-panel mb-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-semibold">Servis Rutin?</div>
+                                            <div class="text-muted small">Apakah ini bagian dari jadwal Pemeliharaan rutin?</div>
+                                        </div>
+                                        <div class="form-check form-switch m-0">
+                                            <input class="form-check-input" type="checkbox" id="isServiceRoutineToggle"
+                                                {{ old('isServiceRoutine', isset($maintenances) ? $maintenances->isServiceRoutine : '') == '0' ? 'checked' : '' }}
+                                                {{ $isReadOnly ? 'disabled' : '' }}>
+                                            <input type="hidden" name="isServiceRoutine" id="isServiceRoutineValue"
+                                                value="{{ old('isServiceRoutine', isset($maintenances) ? $maintenances->isServiceRoutine : '1') }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-0">
+                                    <label for="desc" class="form-label detail-servis-label">Catatan</label>
+                                    <textarea name="desc" id="desc" rows="4" class="form-control detail-servis-textarea"
+                                        placeholder="Jelaskan masalah yang dilaporkan atau pekerjaan yang diperlukan..."
+                                        {{ $isReadOnly ? 'readonly' : '' }}>{{ old('desc', isset($maintenances) ? $maintenances->description : '') }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Card 3: Detail Perbaikan (Repeater) --}}
+                        <div class="card mb-4">
+                            <div class="card-header card-header-compact d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                <h6 class="mb-0"><i class="bx bx-list-ul text-warning me-2"></i>Detail Perbaikan</h6>
+                                @if (!$isReadOnly)
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <!-- <button type="button" class="btn btn-sm btn-outline-primary">
+                                            <i class="bx bx-scan me-1"></i> Scan Nota (OCR)
+                                        </button> -->
+                                        <button type="button" class="btn btn-sm btn-outline-success" id="addRepeaterItem">
+                                            <i class="bx bx-plus me-1"></i> Tambah Item
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="card-body">
+                                <!-- @if (!$isReadOnly)
+                                    <div class="detail-perbaikan-ocr mb-3">
+                                        <div class="d-flex align-items-start gap-2">
+                                            <i class="bx bx-file text-primary mt-1"></i>
+                                            <div>
+                                                <div class="fw-semibold">Auto-fill dari Nota</div>
+                                                <div class="text-muted small">Tarik foto nota fisik ke sini atau klik tombol scan untuk mengisi tabel secara otomatis.</div>
+                                            </div>
+                                        </div>
+                                        <div class="detail-perbaikan-dropzone mt-2">
+                                            <i class="bx bx-image-alt me-1"></i> Zona Scan Nota
+                                        </div>
+                                    </div>
+                                @endif -->
+                                <div id="repeaterContainer">
+                                    <div class="detail-perbaikan-table">
+                                        <div class="detail-perbaikan-header">
+                                            <div class="row g-2 align-items-center">
+                                                <div class="col-md-4 text-center">Nama Barang/Jasa</div>
+                                                <div class="col-md-3 text-center">Harga Satuan</div>
+                                                <div class="col-md-1 text-center">Jumlah</div>
+                                                <div class="col-md-3 text-center">Total</div>
+                                                <div class="col-md-1 text-center">Aksi</div>
+                                            </div>
+                                        </div>
+                                        <div id="repeaterItems">
+                                            @if (isset($detail_maintenances) && $detail_maintenances->isNotEmpty())
+                                                @foreach ($detail_maintenances as $detailIndex => $row)
+                                                    <div class="repeater-item detail-perbaikan-item" data-existing="true"
+                                                        data-subtotal="{{ $row->subtotal ?? ($row->price * $row->qty) }}">
+                                                        <div class="row g-2 align-items-center">
+                                                            <div class="col-md-4">
+                                                                <select class="form-select form-select-sm select2 repeater-name w-100"
+                                                                    name="items[{{ $detailIndex }}][maintenance_name]" data-width="100%" disabled>
+                                                                    <option value="" disabled>- Pilih jenis -</option>
+                                                                    @foreach ($type ?? [] as $typeRow)
+                                                                        <option value="{{ $typeRow->name }}" {{ $typeRow->name === $row->maintenance_name ? 'selected' : '' }}>
+                                                                            {{ $typeRow->name }}
+                                                                        </option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-3 pe-0">
+                                                                <div class="input-group input-group-sm">
+                                                                    <span class="input-group-text">Rp</span>
+                                                                    <input type="text" class="form-control form-control-sm repeater-price"
+                                                                        value="{{ $row->price }}" readonly>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-1 pe-0 text-center">
+                                                                <input type="number" class="form-control form-control-sm text-center repeater-qty"
+                                                                    value="{{ $row->qty }}" readonly>
+                                                            </div>
+                                                            <div class="col-md-3 text-center pe-0">
+                                                                <span class="fw-semibold text-success repeater-subtotal">Rp {{ number_format($row->subtotal ?? ($row->price * $row->qty), 0, ',', '.') }}</span>
+                                                            </div>
+                                                            <div class="col-md-1 text-end ps-0">
+                                                                @if (!$isReadOnly)
+                                                                    <button type="button" class="btn btn-sm btn-outline-danger delete-existing-item"
+                                                                        data-id="{{ $row->id }}" data-href="{{ route('detail_maintenances.destroy', $row->id) }}">
+                                                                        <i class="bx bx-trash"></i>
+                                                                    </button>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if (!$isReadOnly)
+                                    {{-- Hidden Template --}}
+                                    <template id="repeaterTemplate">
+                                        <div class="repeater-item detail-perbaikan-item">
+                                            <div class="row g-2 align-items-center">
+                                                <div class="col-md-4">
+                                                    <select class="form-select form-select-sm select2 repeater-name w-100" name="items[__INDEX__][maintenance_name]" data-width="100%" required>
+                                                        <option value="" disabled selected>- Pilih jenis -</option>
+                                                        @foreach ($type ?? [] as $row)
+                                                            <option value="{{ $row->name }}">{{ $row->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-3 pe-0">
+                                                    <div class="input-group input-group-sm">
+                                                        <span class="input-group-text">Rp</span>
+                                                        <input type="text" inputmode="numeric" class="form-control form-control-sm repeater-price" name="items[__INDEX__][price]" placeholder="0" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-1 pe-0 text-center">
+                                                    <input type="number" class="form-control form-control-sm text-center repeater-qty" name="items[__INDEX__][qty]" value="1" min="1" required>
+                                                </div>
+                                                <div class="col-md-3 text-center pe-0">
+                                                    <span class="fw-semibold text-success repeater-subtotal">Rp 0</span>
+                                                </div>
+                                                <div class="col-md-1 text-end ps-0">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger remove-repeater-item">
+                                                        <i class="bx bx-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                @else
+                                    @if (!isset($detail_maintenances) || $detail_maintenances->isEmpty())
+                                        <div class="text-center text-muted py-4">
+                                            <i class="bx bx-info-circle me-1"></i> Belum ada item perbaikan
+                                        </div>
+                                    @endif
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- RIGHT COLUMN --}}
+                    <div class="col-lg-4">
+                        {{-- Card: Ringkasan & Bukti --}}
+                        <div class="card mb-4">
+                            <div class="card-header card-header-compact">
+                                <h6 class="mb-0"><i class="bx bx-receipt text-info me-2"></i>Ringkasan & Bukti</h6>
+                            </div>
+                            <div class="card-body">
+                                {{-- Total Estimasi --}}
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <span class="text-muted">Total Estimasi Biaya</span>
+                                    <span class="fs-4 fw-bold text-success">Rp <span id="totalDisplay">{{ isset($maintenances) ? number_format($maintenances->total_amount ?? 0, 0, ',', '.') : '0' }}</span></span>
+                                </div>
+
+                                {{-- Hidden input for total --}}
+                                <input type="hidden" name="total_amount" id="total_amount" value="{{ old('total_amount', isset($maintenances) ? $maintenances->total_amount : '') }}">
+
+                                {{-- Upload Section --}}
+                                <div class="mb-4">
+                                    <label class="form-label">UNGGAH BUKTI PEMBAYARAN
+                                        @if (!isset($maintenances))
+                                            <small class="text-danger">* (Wajib)</small>
+                                        @endif
+                                    </label>
+
+                                    {{-- Existing Files --}}
+                                    @if (isset($maintenances) && isset($notes))
+                                        @foreach ($notes as $note)
+                                            <div class="d-flex align-items-center justify-content-between p-2 bg-light rounded mb-2">
+                                                <a href="{{ $note->url }}" target="_blank" class="text-decoration-none text-truncate" style="max-width: 200px;">
+                                                    <i class="bx bx-file me-1"></i> {{ $note->image }}
+                                                </a>
+                                                @if (!$isReadOnly)
+                                                    <button type="button" class="btn btn-sm btn-icon btn-outline-danger" data-note-id="{{ $note->id }}">
+                                                        <i class="bx bx-trash"></i>
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    @endif
+
+                                    {{-- Upload Area with FilePond --}}
+                                    @if (!$isReadOnly)
+                                        <input type="file" 
+                                            class="filepond" 
+                                            name="fields[]" 
+                                            multiple 
+                                            data-allow-reorder="true"
+                                            data-max-file-size="3MB"
+                                            accept="image/png, image/jpeg, image/gif, image/svg+xml, application/pdf">
+                                    @endif
+                                </div>
+
+                                {{-- Confirmation Checkbox --}}
+                                @if (!$isReadOnly)
+                                    <div class="form-check mb-4">
+                                        <input class="form-check-input" type="checkbox" id="agreeCheckbox">
+                                        <label class="form-check-label" for="agreeCheckbox">
+                                            Saya menyatakan bahwa data yang dimasukkan benar dan bukti valid.
+                                        </label>
+                                    </div>
+
+                                    {{-- Action Buttons --}}
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" id="submitButton" class="btn btn-success btn-lg" disabled>
+                                            <i class="bx bx-check me-1"></i> Simpan Data Pemeliharaan
+                                        </button>
+                                        <button type="submit" name="save_as_draft" value="1" class="btn btn-link text-muted">
+                                            Simpan sebagai Draf
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                    {{-- Card: Confirm Actions (for completed records) --}}
+                    @if (isset($maintenances) && $maintenances->status === 'COMPLETED')
+                        <div class="card mb-4 border-success">
+                            <div class="card-header bg-success-subtle card-header-compact mb-3">
+                                <h6 class="mb-0"><i class="bx bx-check-shield me-2"></i>Konfirmasi Pemeliharaan</h6>
+                            </div>
+                            <div class="card-body">
+                                @if (! $maintenances->is_confirmed && $canApproveMaintenance)
+                                    <div class="mb-3">
+                                        <label for="confirmation_notes" class="form-label detail-servis-label">Catatan Konfirmasi</label>
+                                        <textarea name="confirmation_notes" id="confirmation_notes" rows="3"
+                                            class="form-control detail-servis-textarea"
+                                            form="confirmForm"
+                                            placeholder="Tambahkan catatan konfirmasi (opsional)..."
+                                            {{ $maintenances->confirmation_notes ? 'readonly' : '' }}>{{ $maintenances->confirmation_notes }}</textarea>
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" form="confirmForm" class="btn btn-success">
+                                            <i class="bx bx-check me-1"></i> Konfirmasi
+                                        </button>
+                                    </div>
+                                @elseif ($maintenances->is_confirmed)
+                                    <div class="alert alert-success d-flex align-items-center mb-0">
+                                        <i class="bx bx-check-circle fs-4 me-2"></i>
+                                        <div>
+                                            <strong>Dikonfirmasi</strong> oleh {{ $maintenances->confirmer?->name ?? 'N/A' }}
+                                            pada {{ $maintenances->confirmed_at?->format('d M Y H:i') ?? '-' }}
+                                            @if ($maintenances->confirmation_notes)
+                                                <div class="text-muted small mt-2">Catatan: {{ $maintenances->confirmation_notes }}</div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     @endif
-                @endisset
-
-                @if ($canEditOrCreateMaintenance)
-                    <div class="row hidden-approved">
-                        <div class="col-xl-6">
-                            <div class="card mb-6">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0">
-                                        {{ isset($maintenances) ? 'Kode : ' . $maintenances->code_mt : 'Tambah Perbaikan' }}
-                                    </h5>
-                                    @isset($maintenances)
-                                        <div>
-                                            @if ($maintenances->status == 'NEW')
-                                                <span class="badge bg-secondary">BELUM SELESAI</span>
-                                            @elseif($maintenances->status == 'PENDING')
-                                                <span class="badge bg-warning">PROSES PERSETUJUAN</span>
-                                            @elseif($maintenances->status == 'APPROVED')
-                                                <span class="badge bg-success">SUDAH DISETUJUI</span>
-                                            @elseif($maintenances->status == 'CANCEL')
-                                                <span class="badge bg-danger">DIBATALKAN</span>
-                                            @endif
-                                        </div>
-                                    @endisset
-                                </div>
-                                <div class="card-body mt-3">
-                                    <form id="addForm" method="POST"
-                                        action="{{ isset($maintenances) ? route('maintenances.update', $maintenances->id) : route('maintenances.store') }}"
-                                        enctype="multipart/form-data">
-                                        @csrf
-                                        @if (isset($maintenances))
-                                            @method('PUT')
-                                        @endif
-
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label for="no_pol" class="form-label">NO POLISI <small
-                                                        class="text-danger">*</small></label>
-                                                <select class="form-select select2" name="no_pol" required>
-                                                    <option selected disabled>- pilih kendaraan -</option>
-                                                    @foreach ($vehicle as $row)
-                                                        <option {{ old('no_pol', isset($maintenances) ? $maintenances->no_pol : request()->query('vehicle')) == $row->plat_new ? 'selected' : '' }}
-                                                            value="{{ $row->plat_new }}" data-mileage="{{ $row->mileage }}">
-                                                            {{ $row->plat_new }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                            <div class="col-md-6 mb-3">
-                                                <label for="mileage" class="form-label">KM <small class="text-danger">*</small></label>
-                                                <input type="text" inputmode="numeric" id="mileage" placeholder="Masukan KM "
-                                                    name="mileage" class="form-control validate-number"
-                                                    value="{{ old('mileage', isset($maintenances) ? $maintenances->mileage : '') }}">
-                                                <small class="text-info" id="mileage-info"></small>
-                                            </div>
-                                        </div>
-
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label for="date_in" class="form-label">TANGGAL MASUK <small
-                                                        class="text-danger">*</small></label>
-                                                <input type="date" id="date_in" placeholder="Masukan Tanggal Masuk" name="date_in"
-                                                    class="form-control validate-number"
-                                                    value="{{ old('date_in', isset($maintenances) ? $maintenances->date_in : Carbon\Carbon::now()->format('Y-m-d')) }}"
-                                                    required>
-                                            </div>
-                                            <div class="col-md-6 mb-3">
-                                                <label for="date_out" class="form-label">
-                                                    TANGGAL KELUAR
-                                                    @if (isset($maintenances))
-                                                        <small class="text-danger">*</small>
-                                                    @endif
-                                                </label>
-                                                <input type="date" id="date_out" placeholder="Masukan Tanggal Keluar" name="date_out"
-                                                    class="form-control validate-number"
-                                                    value="{{ old('date_out', isset($maintenances) ? $maintenances->date_out : '') }}">
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label class="form-label">APAKAH TERMASUK SERVIS RUTIN ? <small
-                                                    class="text-danger">*</small></label>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="isServiceRoutine"
-                                                    id="isServiceRoutinetrue" value="0" {{ old('isServiceRoutine', isset($maintenances) ? $maintenances->isServiceRoutine : '') == '0' ? 'checked' : '' }}>
-                                                <label class="form-check-label" for="isServiceRoutinetrue">
-                                                    YA
-                                                </label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="isServiceRoutine"
-                                                    id="isServiceRoutinefalse" value="1" {{ old('isServiceRoutine', isset($maintenances) ? $maintenances->isServiceRoutine : '') == '1' ? 'checked' : '' }}>
-                                                <label class="form-check-label" for="isServiceRoutinefalse">
-                                                    TIDAK
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label for="desc" class="form-label">KETERANGAN</label>
-                                            <textarea name="desc" id="desc" rows="5"
-                                                class="form-control">{{ old('desc', isset($maintenances) ? $maintenances->description : '') }}</textarea>
-                                        </div>
-                                </div>
-                            </div>
-
-                            <div class="card mb-6">
-                                <div class="card-header">
-                                    <h5 class="mb-0">Harga dan Bukti Perbaikan</h5>
-                                </div>
-                                <div class="card-body mt-3">
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="total_amount" class="form-label">Total Pengeluaran Perbaikan</label>
-                                            <input type="text" inputmode="numeric" id="total_amount" placeholder="Masukan sesuai NOTA"
-                                                name="total_amount" class="form-control validate-number"
-                                                value="{{ old('total_amount', isset($maintenances) ? $maintenances->total_amount : '') }}">
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label for="kalkulasi" class="form-label">Kalkulasi Detail Harga</label>
-                                            <input type="text" inputmode="numeric" id="kalkulasi" readonly placeholder="0"
-                                                name="kalkulasi" class="form-control validate-number"
-                                                value="{{ isset($maintenances) ? $sum_detail_maintenances : '' }}">
-                                        </div>
-                                    </div>
-
-                                    @if (isset($maintenances))
-                                        <div class="mb-3">
-                                            <label class="form-label">File Bukti Perbaikan</label>
-                                            <div class="control-group" id="fields">
-                                                <div class="controls">
-                                                    @foreach ($notes as $note)
-                                                        <div class="d-flex mt-2 align-items-center">
-                                                            <a target="blank" href="{{ $note->url }}" class="btn btn-sm btn-success me-2">
-                                                                {{ $note->image }}
-                                                            </a>
-                                                            <div class="hidden-approved">
-                                                                <button type="button" class="btn btn-sm btn-outline-danger"
-                                                                    data-id="{{ $note->id }}">
-                                                                    <i class="bx bx-trash"></i>
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    @endforeach
-                                                    <div class="controls hidden-approved">
-                                                        <div class="entry input-group mt-2">
-                                                            <input class="form-control" name="fields[]" type="file"
-                                                                accept=".jpg,.jpeg,.png,.gif,.pdf">
-                                                            <button class="btn btn-success btn-add" type="button">
-                                                                <i class="bx bx-plus"></i>
-                                                            </button>
-                                                            <button class="btn btn-danger btn-remove" type="button">
-                                                                <i class="bx bx-trash"></i>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @else
-                                        <div class="mb-3">
-                                            <label class="form-label">Upload Bukti Perbaikan</label>
-                                            <div class="control-group" id="fields">
-                                                <div class="controls">
-                                                    <div class="entry input-group mt-2">
-                                                        <input class="form-control" name="fields[]" type="file"
-                                                            accept=".jpg,.jpeg,.png,.gif,.pdf">
-                                                        <button class="btn btn-success btn-add" type="button">
-                                                            <i class="bx bx-plus"></i>
-                                                        </button>
-                                                        <button class="btn btn-danger btn-remove" type="button">
-                                                            <i class="bx bx-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                    <small class="text-danger" style="display: none;" id="confrm_entry">
-                                                        Kolom input hanya terdapat 1 (satu) tidak bisa dihapus.
-                                                    </small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
-
-                                    <div class="mb-3 hidden-approved">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="agreeCheckbox">
-                                            <label class="form-check-label" for="agreeCheckbox">
-                                                Apakah data sudah benar ?
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <div class="d-flex justify-content-end">
-                                        @isset($maintenances)
-                                            <button type="button" class="btn btn-danger me-2 confrmCancel hidden-approved"
-                                                data-id="{{ $maintenances->id }}">Batalkan</button>
-                                        @endisset
-                                        @if(!isset($maintenances))
-                                            <button type="submit" id="submitButton" class="btn btn-primary hidden-approved">
-                                                Simpan
-                                            </button>
-                                        @endif
-
-                                        @if(isset($maintenances))
-                                            <button type="submit" id="submitButton" class="btn btn-primary hidden-approved">
-                                                Perbarui
-                                            </button>
-                                        @endif
-
-                                    </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        @include('components.detail_maintenances')
-                    </div>
-                @endif
-            </div>
-        @endif
-
-    <!-- Modal Konfirmasi Hapus -->
-    <div class="modal fade hidden-approved" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="confirmDeleteModalLabel">Konfirmasi Penghapusan</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Apakah Anda yakin ingin menghapus data ini?
-                    <form id="deleteForm" method="POST" action="">
-                        @csrf
-                        @method('DELETE')
-                        <input type="hidden" name="id" id="deleteId">
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-danger" id="confirmDeleteButton">Hapus</button>
                 </div>
             </div>
-        </div>
+        </form>
     </div>
 
-    <!-- Modal Konfirmasi cancel -->
-    <div class="modal fade hidden-approved" id="confirmCancelModal" tabindex="-1" aria-labelledby="confirmCancelModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="confirmCancelModalLabel">Konfirmasi Pembatalan</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Apakah Anda yakin membatalkan perbaikan ini?
-                    <form id="cancelStatus" method="POST" action="">
-                        <input type="hidden" name="status" value="CANCEL">
-                        @csrf
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-danger" id="confirmCancelButton">Hapus</button>
-                </div>
-            </div>
-        </div>
+    @if (isset($maintenances))
+        <form method="POST" action="{{ route('maintenances.confirm', $maintenances->id) }}" id="confirmForm" class="d-none">
+            @csrf
+        </form>
+    @endif
+
+    <div id="maintenancesPageConfig" class="d-none"
+        data-uploads-process="{{ route('uploads.process') }}"
+        data-uploads-revert="{{ route('uploads.revert') }}"
+        data-uploads-load="{{ route('uploads.load') }}?source="
+        data-require-upload="1"
+        data-existing-upload-count="{{ isset($notes) ? $notes->count() : 0 }}">
     </div>
 
+    {{-- Modals --}}
+    @include('pages.maintenances._modals')
 @endsection
 
 @push('addon-style')
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="{{ asset('custom/loading.css') }}">
-    <style>
-        .select2-container--default .select2-selection--single {
-            height: 40px;
-            display: flex;
-            align-items: center;
-        }
-
-        .custom-file-input~.custom-file-label::after {
-            content: "Browse";
-        }
-
-        .custom-file-label::after {
-            content: "";
-        }
-
-        .custom-file-label {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding-right: 70px;
-        }
-
-        .file-chosen {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .file-chosen span {
-            display: inline-block;
-            margin-right: 10px;
-        }
-
-        .file-chosen svg {
-            color: green;
-        }
-
-        .table-responsive {
-            overflow-x: auto;
-        }
-
-        .table th,
-        .table td {
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            overflow: hidden;
-        }
-
-        .card {
-            border: 1px solid #dee2e6;
-            border-radius: 0.25rem;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, .075);
-        }
-
-        .card-header {
-            padding: 0.75rem 1.25rem;
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        .card-body {
-            padding: 1.25rem;
-        }
-
-        .table-responsive {
-            overflow-x: auto;
-        }
-
-        @media (max-width: 768px) {
-            .text-truncate {
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            .card {
-                font-size: 10px !important;
-            }
-
-            .font-weight-bold {
-
-                font-size: 10px !important;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .btn {
-                font-size: 14px;
-            }
-        }
-    </style>
+    {{-- FilePond CSS --}}
+    <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet" />
+    <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet" />
+    @vite(['resources/css/page/maintenances.css'])
 @endpush
 
 @push('addon-script')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $('.select2').select2();
-
-            $('select[name="no_pol"]').on('change', function () {
-                var selectedOption = $(this).find('option:selected');
-                var mileage = selectedOption.data('mileage');
-                var hasMileage = mileage !== undefined && mileage !== null && mileage !== '';
-                $('#mileage-info').html(hasMileage ? `
-                            <span class="mileage-info ml-1 text-sm text-info" style="font-size: 14px;">
-                                - Tercatat Saat ini: ${mileage} KM
-                            </span>
-                        ` : '');
-                $('#mileage').val(hasMileage ? mileage : '');
-            });
-
-            var defaultValue = '{{ request()->query('vehicle') }}';
-            if (defaultValue) {
-
-                $('select[name="no_pol"]').val(defaultValue).trigger('change');
-            }
-
-
-            $('#staticBackdrop').on('shown.bs.modal', function () {
-                $('.select2', this).select2({
-                    dropdownParent: $(this)
-                });
-            });
-
-            $('#staticBackdrop').on('hidden.bs.modal', function () {
-                $('.select2', this).select2('destroy');
-            });
-
-
-            // Validasi angka
-            $('.validate-number').on('keypress', function (event) {
-                if (event.which < 48 || event.which > 57) {
-                    event.preventDefault();
-                }
-            });
-
-            $('#agreeCheckbox').on('change', function () {
-                $('#submitButton').prop('disabled', !this.checked);
-                $('#submitButton').toggleClass('disabled', !this.checked);
-            });
-
-            $('#shareApproved').on('change', function () {
-                $('#submitApproved').prop('disabled', !this.checked);
-                $('#submitApproved').toggleClass('disabled', !this.checked);
-            });
-
-
-            $(document).on('click', '.edit-detail-mt', function (e) {
-                var id_data = $(this).data('id');
-                $('.select2').select2({
-                    dropdownParent: $('#editModal')
-                });
-                $('#loader-wrapper').show();
-                $.ajax({
-                    url: '{{ url('detail_maintenances') }}/' + id_data + '/edit',
-                    method: 'GET',
-                    success: function (response) {
-
-                        var maintenancesName = document.getElementById('edit-maintenance-name');
-                        maintenancesName.innerHTML =
-                            '<option value="">- pilih jenis perbaikan</option>';
-
-                        response.jenisMtc.forEach(function (jenisMtc) {
-                            const selected = jenisMtc.name == response.data
-                                .maintenance_name ? 'selected' : '';
-                            maintenancesName.innerHTML +=
-                                `<option value="${jenisMtc.name}" ${selected}>${jenisMtc.name}</option>`;
-                        });
-
-                        $('#edit-maintenance-name').trigger('change');
-
-                        $('#edit-price').val(response.data.price);
-                        $('#edit-qty').val(response.data.qty);
-                        $('#edit-material').html(response.data.material);
-
-                        $('#editModal form').attr('action',
-                            '{{ url('detail_maintenances') }}/' + id_data);
-                        $('#loader-wrapper').hide();
-                        $('#editModal').modal('show');
-                    }
-                });
-            });
-
-            // handle entry
-            $(document).on('click', '.btn-add', function (e) {
-                e.preventDefault();
-
-                var controlForm = $('.controls:first'),
-                    currentEntry = $(this).parents('.entry:first'),
-                    newEntry = $(currentEntry.clone()).appendTo(controlForm);
-
-                newEntry.find('input').val('');
-                newEntry.find('.custom-file-label').html('Choose file');
-            }).on('click', '.btn-remove', function (e) {
-                e.preventDefault();
-
-                var $entry = $(this).parents('.entry:first');
-                if ($('.entry').length > 1) {
-                    $entry.remove();
-                } else {
-
-                    $entry.find('input').val('');
-                    $entry.find('.custom-file-label').html('deleting files ....');
-                    $('#confrm_entry').show();
-
-                    setTimeout(function () {
-                        $entry.find('.custom-file-label').html('Choose file');
-                        $('#confrm_entry').hide();
-                    }, 1000);
-                }
-
-                return false;
-            });
-
-
-            $(document).on('change', '.custom-file-input', function (e) {
-                var fileName = e.target.files[0].name;
-                var label = $(this).next('.custom-file-label');
-                label.html(`
-                                <div class="file-chosen">
-                                    <span class="font-italic font-weight-bold text-success">${fileName} &#x2713; </span>
-                                </div>
-                            `);
-            });
-
-
-            // handle deleted attachment files
-
-            let deleteId = null;
-
-            $('a[data-id]').on('click', function (e) {
-                e.preventDefault();
-                deleteId = $(this).data('id');
-                $('#deleteId').val(deleteId);
-                $('#deleteForm').attr('action', `/note/${deleteId}`);
-                $('#confirmDeleteModal').modal('show');
-            });
-
-            $('#confirmDeleteButton').on('click', function () {
-                $('#deleteForm').submit();
-            });
-
-
-            // handle confirm global delete
-
-            $('.confrmCancel').on('click', function () {
-                var cancelId = $(this).data('id');
-                var actionUrl = "/maintenances/" + cancelId + "/status";
-                $('#cancelStatus').attr('action', actionUrl);
-                $('#confirmCancelModal').modal('show');
-            });
-
-            $('#confirmCancelButton').on('click', function () {
-                $('#cancelStatus').submit();
-            });
-
-
-            // handle modal create type maintenances
-            var maintenanceModalEl = $('#maintenanceModal');
-            var maintenanceModal = (window.bootstrap && maintenanceModalEl.length)
-                ? new bootstrap.Modal(maintenanceModalEl[0])
-                : null;
-
-            $('#openModalLink').on('click', function () {
-
-                $('#staticBackdrop').hide();
-                $('#maintenanceTextarea').val('');
-                maintenanceModal ? maintenanceModal.show() : maintenanceModalEl.modal('show');
-            });
-
-            $('#closeBtn').on('click', function () {
-
-                $('#staticBackdrop').show();
-                maintenanceModal ? maintenanceModal.hide() : maintenanceModalEl.modal('hide');
-            });
-
-            $('#saveBtn').on('click', function () {
-                var form = $('#maintenanceForm');
-                var textarea = $('#maintenanceTextarea');
-
-                $.ajax({
-                    url: form.attr('action'),
-                    type: 'POST',
-                    data: form.serialize(),
-                    success: function (response) {
-                        maintenanceModal ? maintenanceModal.hide() : maintenanceModalEl.modal('hide');
-                        $('#staticBackdrop').show();
-
-                        $('#typeMaintenances').append(
-                            $('<option>', {
-                                value: response.data,
-                                text: response.data
-                            }).prop('selected', true)
-                        );
-
-                        textarea.val('');
-                    },
-                    error: function (xhr) {
-                        alert('Terjadi kesalahan: ' + xhr.responseText);
-                    }
-                });
-            });
-
-        });
-    </script>
-
-    {{-- disabled if status done --}}
-
-    @isset($maintenances)
-        @if ($maintenances->status == 'APPROVED')
-            <script>
-                $(".hidden-approved").hide()
-                $(".show-approved").show()
-            </script>
-        @endif
-    @endisset
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {{-- FilePond JS --}}
+    <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
+    <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
+    @vite(['resources/js/page/maintenances.js'])
 @endpush

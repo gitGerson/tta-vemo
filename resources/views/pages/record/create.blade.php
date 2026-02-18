@@ -111,12 +111,12 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label" for="start_km">KM Awal</label>
+                            <label class="form-label" for="start_km">KM Awal <small class="text-danger">*</small></label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bx bx-map"></i></span>
                                 <input type="text" inputmode="numeric" id="start_km" name="start_km"
                                     class="form-control validate-number"
-                                    placeholder="Masukkan KM Awal" value="{{ old('start_km') }}" disabled>
+                                    placeholder="Masukkan KM Awal" value="{{ old('start_km') }}" disabled required>
                             </div>
                         </div>
 
@@ -187,7 +187,7 @@ $(document).ready(function() {
     // Autofill KM akhir from selected vehicle mileage
     $('#no_pol').on('change', function() {
         const mileage = $(this).find('option:selected').data('mileage');
-        $('#finish_km').val(mileage ?? '');
+        $('#start_km').val(mileage ?? '');
     });
 
     // Menangani perubahan driver_1

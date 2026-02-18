@@ -2,20 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use App\Models\Driver;
-use App\Models\Record;
+use App\Exports\RecordExport;
 use App\Models\Company;
-use App\Models\Vehicle;
 use App\Models\Destination;
+use App\Models\Driver;
 use App\Models\Maintenances;
 use App\Models\NotificationService;
-use Illuminate\Support\Str;
+use App\Models\Record;
+use App\Models\Vehicle;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Yajra\DataTables\DataTables;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\RecordExport;
+use Yajra\DataTables\DataTables;
 
 class RecordController extends Controller
 {
@@ -64,6 +63,7 @@ class RecordController extends Controller
             'company' => Company::orderBy('id', 'desc')->get(),
             'pageTitle' => 'Tambah Data Perjalanan',
         ];
+
         return view('pages.record.create', $data);
     }
 
@@ -147,34 +147,43 @@ class RecordController extends Controller
 
         $maintenances = Maintenances::where('no_pol', $vehicle->plat_new)
             ->orwhere('no_pol', $vehicle->plat_old)
-            ->where('isServiceRoutine', '0')
+            ->where('isServiceRoutine', '1')
+            ->orderBy('created_at', 'desc')
             ->first();
 
-        if ($maintenances) {
-            if ($maintenances->status != 'PENDING') {
-                $currentMileage = $request->finish_km;
-                $estimatedMileage = $vehicle->entry_year <= 2010 ? 5000 : 10000;
-                $mileageDifference = $currentMileage - $maintenances?->mileage;
+        // Check for service reminder notification (event-based)
+        if ($maintenances && $maintenances->status == 'COMPLETED') {
+            $currentMileage = $request->finish_km;
+            $estimatedMileage = 10000; // interval 10.000km
+            $mileageDifference = $currentMileage - $maintenances->mileage;
 
-                if ($mileageDifference >= $estimatedMileage) {
-                    $notification = NotificationService::where('no_pol', $maintenances?->no_pol)
-                        ->where('read', 0)
-                        ->get();
-                    if ($notification->count() == 0) {
-                        NotificationService::create([
-                            'no_pol' => $maintenances?->no_pol,
-                            'read' => 0,
-                            'from_km' => $maintenances?->mileage,
-                            'to_km' => $currentMileage,
-                        ]);
-                        return response()->json(
-                            [
-                                'success' => 200,
-                                'message' => 'Catatan perjalanan berhasil dibuat. <span class="text-danger">tetapi mobil harus diperbaiki, Jarak tempuh saat ini adalah ' . $currentMileage . ' terakhir diservis di kilometer ' . $maintenances->mileage . '</span>',
-                            ],
-                            200,
-                        );
-                    }
+            if ($mileageDifference >= $estimatedMileage) {
+                // Check if notification already exists for this range
+                $notification = NotificationService::where('no_pol', $maintenances->no_pol)
+                    ->where('read', 0)
+                    ->where('from_km', $maintenances->mileage)
+                    ->first();
+
+                if (! $notification) {
+                    NotificationService::create([
+                        'no_pol' => $maintenances->no_pol,
+                        'read' => 0,
+                        'from_km' => $maintenances->mileage,
+                        'to_km' => $currentMileage,
+                    ]);
+
+                    // Informational reminder instead of warning
+                    return response()->json(
+                        [
+                            'success' => 200,
+                            'message' => 'Catatan perjalanan berhasil dibuat. <span class="text-info">ℹ️ Pengingat: Kendaraan '.$vehicle->plat_new.' sudah menempuh '.number_format($mileageDifference).' km sejak servis terakhir (servis di km '.number_format($maintenances->mileage).'). Pertimbangkan untuk melakukan servis rutin.</span>',
+                        ],
+                        200,
+                    );
+                }
+
+                if ((int) $notification->to_km < (int) $currentMileage) {
+                    $notification->update(['to_km' => $currentMileage]);
                 }
             }
         }
@@ -197,6 +206,7 @@ class RecordController extends Controller
             'pageTitle' => 'Detail Data Perjalanan',
             'record' => $record,
         ];
+
         return view('pages.record.show', $data);
     }
 
@@ -245,7 +255,6 @@ class RecordController extends Controller
         $scale_formatted = number_format($scale);
         $replacedScale = Str::replace(',', '.', $scale_formatted);
 
-
         $driver_1 = Driver::find($request?->driver_1);
         $driver_2 = Driver::find($request?->driver_2);
         $record = Record::find($id);
@@ -292,16 +301,17 @@ class RecordController extends Controller
     {
         if ($request->ajax()) {
             $data = Record::onlyTrashed()->select('*');
+
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
                     $btn = '';
 
-                    if (auth()->user()->can('activate data nonaktif')){ 
-                        $btn .= '<button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#restoreDateModal" data-id="' . $row->id . '">Aktifkan</button> ';
+                    if (auth()->user()->can('activate data nonaktif')) {
+                        $btn .= '<button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#restoreDateModal" data-id="'.$row->id.'">Aktifkan</button> ';
                     }
-                    if (auth()->user()->can('delete data nonaktif')){
-                        $btn .= '<button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-id="' . $row->id . '">Hapus</button>';
+                    if (auth()->user()->can('delete data nonaktif')) {
+                        $btn .= '<button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-id="'.$row->id.'">Hapus</button>';
                     }
 
                     return $btn;
@@ -319,6 +329,7 @@ class RecordController extends Controller
         $datas = [
             'pageTitle' => 'Data  pelacakan BBM  nonaktif',
         ];
+
         return view('pages.record.trash', $datas);
     }
 
@@ -341,14 +352,13 @@ class RecordController extends Controller
 
     public function exportExcel(Request $request)
     {
-        abort_if(!auth()->user()->can('view pelacakan bbm'), 403, 'Unauthorized.');
+        abort_if(! auth()->user()->can('view pelacakan bbm'), 403, 'Unauthorized.');
         $startDate = $request->query('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->query('end_date', Carbon::now()->endOfMonth()->toDateString());
         $companyId = $request->query('company');
 
-        $fileName = 'Data_Perjalanan_' . now()->format('Ymd_His') . '.xlsx';
+        $fileName = 'Data_Perjalanan_'.now()->format('Ymd_His').'.xlsx';
 
         return Excel::download(new RecordExport($startDate, $endDate, $companyId), $fileName);
     }
-
 }
