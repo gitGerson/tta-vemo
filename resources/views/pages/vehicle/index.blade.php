@@ -80,7 +80,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" for="vehicle-mileage">Kilometer</label>
-                                <input type="text" class="form-control" id="vehicle-mileage" name="mileage">
+                                <input type="text" class="form-control" id="vehicle-mileage" name="mileage" value="0">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" for="vehicle-status">Status<small class="text-danger">*</small></label>
@@ -167,7 +167,7 @@
                 methodInput.value = 'PUT';
                 $('#vehicle-type').val(data.type || '');
                 $('#vehicle-entry_year').val(data.entry_year || '');
-                $('#vehicle-mileage').val(data.mileage || '');
+                $('#vehicle-mileage').val(data.mileage || '0');
                 $('#vehicle-plat_new').val(data.plat_new || '');
                 $('#vehicle-plat_old').val(data.plat_old || '');
                 $('#vehicle-status').val(data.status || 'ACTIVE');
