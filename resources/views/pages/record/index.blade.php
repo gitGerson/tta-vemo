@@ -1,7 +1,7 @@
 @extends('layouts.sneat')
 
 @section('content')
-    <div class="container-xxl flex-grow-1 container-p-y">
+    <div class="container-fluid flex-grow-1 container-p-y">
         <div class="card mb-4">
             <div class="card-body">
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -25,7 +25,7 @@
                 </div>
 
 
-                <form action="" class="ms-6">
+                <form action="">
                     <div class="row">
                         <div class="col-md-2">
                             <div class="form-group">
@@ -77,7 +77,7 @@
                 </form>
                 <br>
 
-                <form method="get" class="d-flex align-items-center ms-6 mb-2" style="gap: 10px;">
+                <form method="get" class="d-flex align-items-center mb-2" style="gap: 10px;">
                     <!-- <label for="per_page">Show</label>
                     <select name="per_page" id="per_page" class="form-control" style="width: auto; min-width: 30px;"
                         onchange="this.form.submit()">
@@ -100,8 +100,8 @@
                     @endif
                 </form>
 
-                <div class="table-responsive text-nowrap ms-6">
-                    <table id="dataTable" class="table table-bordered table-striped search-table">
+                <div class="table-responsive text-nowrap">
+                    <table id="dataTable" class="table table-sm table-bordered table-striped search-table compact-record-table">
                         <thead class="table-light">
                             <tr class="text-nowrap">
                                 <th scope="col">No</th>
@@ -147,12 +147,11 @@
                                         @endif
                                         @if(auth()->user()->hasPermission('record.delete'))
                                             <form action="{{ route('record.destroy', $row->id) }}" method="POST"
-                                                style="display: inline;">
+                                                style="display: inline;"
+                                                onsubmit="return confirm('Hapus catatan ini?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
-                                                    data-bs-target="#deleteModal"
-                                                    data-href="{{ route('record.destroy', $row->id) }}">hapus</button>
+                                                <button type="submit" class="btn btn-danger btn-sm">hapus</button>
                                             </form>
                                         @endif
                                     </td>
@@ -180,6 +179,14 @@
             width: 100%;
             min-width: 1200px;
         }
+
+        .compact-record-table {
+            font-size: 0.8125rem;
+        }
+
+        .compact-record-table > :not(caption) > * > * {
+            padding: 0.4rem 0.5rem;
+        }
     </style>
 @endpush
 @push('addon-script')
@@ -188,24 +195,27 @@
             const searchInput = document.getElementById('global-search');
             const tables = document.querySelectorAll('.search-table');
 
-            searchInput.addEventListener('keyup', function () {
-                const searchTerm = searchInput.value.toLowerCase();
+            if (searchInput) {
+                searchInput.addEventListener('keyup', function () {
+                    const searchTerm = searchInput.value.toLowerCase();
 
-                tables.forEach(function (table) {
-                    const rows = table.querySelectorAll('tbody tr');
+                    tables.forEach(function (table) {
+                        const rows = table.querySelectorAll('tbody tr');
 
-                    rows.forEach(function (row) {
-                        const cells = row.querySelectorAll('td');
-                        let rowText = '';
+                        rows.forEach(function (row) {
+                            const cells = row.querySelectorAll('td');
+                            let rowText = '';
 
-                        cells.forEach(function (cell) {
-                            rowText += cell.textContent.toLowerCase() + ' ';
+                            cells.forEach(function (cell) {
+                                rowText += cell.textContent.toLowerCase() + ' ';
+                            });
+
+                            row.style.display = rowText.includes(searchTerm) ? '' : 'none';
                         });
-
-                        row.style.display = rowText.includes(searchTerm) ? '' : 'none';
                     });
                 });
-            });
+            }
         });
+
     </script>
 @endpush

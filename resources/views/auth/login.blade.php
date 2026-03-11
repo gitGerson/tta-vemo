@@ -35,7 +35,34 @@
                         <div class="feature-item" style="--delay: 0s">
                             <div class="feature-icon">📦</div>
                             <div class="feature-content">
-                                <h5>Version 1.0.0 - Initial Release</h5>
+                                <h5>Version 2.0.1 - Latest Update</h5>
+                            </div>
+                        </div>
+                        <div class="feature-item collapsible-section" style="--delay: 0.2s">
+                            <div class="feature-icon">🔧</div>
+                            <div class="feature-content">
+                                <h5>
+                                    <button
+                                        class="btn btn-link text-white p-0 text-start w-100 d-flex align-items-center justify-content-between collapsed"
+                                        type="button" data-bs-toggle="collapse" data-bs-target="#fixCollapse"
+                                        aria-expanded="false" aria-controls="fixCollapse">
+                                        <span>Fix</span>
+                                        <i class="bx bx-chevron-down ms-2 collapse-icon"></i>
+                                    </button>
+                                </h5>
+                                <div class="collapse" id="fixCollapse">
+                                    <p class="collapse-content">
+                                        • Wider Record Table<br>
+                                        • Fix Issue Delete on Record Module<br>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="feature-item" style="--delay: 0s">
+                            <div class="feature-icon">📦</div>
+                            <div class="feature-content">
+                                <h5>Version 2.0.0 - Revamp</h5>
                                 <p>✅ LDAP Authentication Integration<br>
                                     ✅ User Management System<br>
                                     ✅ DataTables with Server-side Processing</p>
@@ -83,7 +110,10 @@
                                         • Export Functionality Enhancement<br>
                                         • Real-time Notifications<br>
                                         • Mobile Responsive Improvements<br>
-                                        • Performance Optimizations</p>
+                                        • Performance Optimizations<br>
+                                        • UI UX Improvements<br>
+                                        • Wider Record Table<br>
+                                    </p>
                                 </div>
                             </div>
                         </div>
