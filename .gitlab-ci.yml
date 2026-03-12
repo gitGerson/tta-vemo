@@ -28,3 +28,17 @@ deploy-production:
     - ssh-keyscan -H 19.38.40.35 >> ~/.ssh/known_hosts
   script:
     - ssh root@19.38.40.35 "bash /root/deploy-tta-vemo-2-spm.sh"
+
+deploy-development:
+  stage: deploy
+  only:
+    - development
+  before_script:
+    - "which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )"
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -H 19.38.40.34 >> ~/.ssh/known_hosts
+  script:
+    - ssh root@19.38.40.34 "bash /root/deploy-tta-vemo-2-spm.sh"
