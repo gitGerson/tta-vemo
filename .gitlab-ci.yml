@@ -11,9 +11,9 @@ deploy-staging:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - ssh-keyscan -H 19.38.40.34 >> ~/.ssh/known_hosts
+    - ssh-keyscan -H 19.38.40.46 >> ~/.ssh/known_hosts
   script:
-    - ssh root@19.38.40.34 "bash /root/deploy-tta-vemo-2-spm.sh"
+    - ssh root@19.38.40.46 "bash /root/deploy-tta-vemo-2-spm.sh"
 
 deploy-production:
   stage: deploy
@@ -25,9 +25,9 @@ deploy-production:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - ssh-keyscan -H 19.38.40.35 >> ~/.ssh/known_hosts
+    - ssh-keyscan -H 19.38.40.42 >> ~/.ssh/known_hosts
   script:
-    - ssh root@19.38.40.35 "bash /root/deploy-tta-vemo-2-spm.sh"
+    - ssh root@19.38.40.42 "bash /root/deploy-tta-vemo-2-spm.sh"
 
 deploy-development:
   stage: deploy
@@ -39,6 +39,6 @@ deploy-development:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - ssh-keyscan -H 19.38.40.34 >> ~/.ssh/known_hosts
+    - ssh-keyscan -H 19.38.40.46 >> ~/.ssh/known_hosts
   script:
-    - ssh root@19.38.40.34 "bash /root/deploy-tta-vemo-2-spm.sh"
+    - ssh root@19.38.40.46 "bash /root/deploy-dev-tta-vemo-2-spm.sh"
