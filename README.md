@@ -1,333 +1,249 @@
-# TTA Starter Kit - Aplikasi Internal Tongtji
+# VEMO
 
-Starter kit untuk aplikasi internal tongtji menggunakan Laravel dengan template admin Sneat, integrasi LDAP, dan sistem Role-Based Access Control (RBAC) lengkap dengan antarmuka manajemen web.
+VEMO adalah aplikasi monitoring operasional kendaraan berbasis Laravel 12 untuk kebutuhan internal Tong Tji. Aplikasi ini mencakup autentikasi LDAP, pengelolaan master data armada, pencatatan perjalanan kendaraan, workflow maintenance, laporan operasional, upload gambar, dan manajemen akses berbasis role-permission.
 
-## 🚀 Cara Install
+## Ringkasan Fitur
 
-### 1. Persiapan Awal
+- Login menggunakan akun LDAP.
+- Dashboard operasional dengan notifikasi service dan maintenance draft.
+- Master data untuk company, driver, vehicle, destination, category, product, dan type maintenance.
+- Modul `record` untuk pencatatan aktivitas/perjalanan kendaraan.
+- Modul `maintenances` untuk pengajuan, approval, konfirmasi, dan detail biaya maintenance.
+- Laporan harian, bulanan, maintenance harian, dan maintenance tahunan.
+- Export laporan ke PDF dan Excel.
+- Upload dan manajemen gambar.
+- RBAC untuk user, role template, permission assignment, dan activity log.
+- Soft delete pada beberapa modul penting.
+
+## Tech Stack
+
+- PHP 8.4
+- Laravel 12
+- MySQL
+- Laravel UI
+- Bootstrap 5
+- Tailwind CSS v4
+- Vite
+- LDAPRecord Laravel
+- Yajra DataTables
+- Maatwebsite Excel
+- DomPDF
+- AWS S3 compatible storage
+
+## Modul Utama
+
+### Authentication
+
+- Login dari route `/login`.
+- Kredensial menggunakan `username` dan `password` LDAP.
+- Root URL `/` akan diarahkan ke halaman login.
+
+### Dashboard
+
+- Route utama setelah login: `/home`.
+- Menampilkan ringkasan driver, vehicle aktif, notifikasi service, dan maintenance berstatus `DRAFT`.
+
+### Management
+
+- User management.
+- Role template management.
+- Assignment role dan permission ke user.
+- User activity logs.
+
+### Master Data
+
+- Categories
+- Products
+- Companies
+- Drivers
+- Vehicles
+- Destinations
+- Type Maintenances
+
+### Operational
+
+- `record`: pencatatan operasional kendaraan dan export Excel.
+- `maintenances`: request, detail item maintenance, approval, confirmation, dan tracking total biaya.
+- `note`: catatan tambahan.
+- `search`: pencarian data global.
+- `mobile`: endpoint tampilan mobile.
+
+### Reports
+
+- Daily report
+- Monthly report
+- Daily maintenance report
+- Yearly maintenance report
+- Export PDF untuk seluruh report
+- Export Excel untuk yearly maintenance report
+
+### Media
+
+- Upload file menggunakan FilePond.
+- Image library dengan restore dan force delete.
+
+## Struktur Penting
+
+```text
+app/
+  Console/Commands/           # Artisan command aplikasi
+  Exports/                    # Export Excel
+  Http/Controllers/           # Controller modul aplikasi
+  Http/Middleware/            # Middleware permission
+  Imports/                    # Import Excel
+  Models/                     # Model Eloquent
+  Observers/                  # Audit / CRUD observer
+database/
+  seeders/                    # Seeder roles, permissions, dan master data
+resources/views/              # Blade views
+routes/web.php                # Web routes utama
+```
+
+## Setup Lokal
+
+### 1. Install dependency
+
 ```bash
-# goto project ini
-cd tta-starter-sneat
-
-# Install dependencies PHP
 composer install
-
-# Install dependencies JavaScript
 npm install
 ```
 
-### 2. Konfigurasi Environment
-```bash
-# Copy file .env
-cp .env.example .env
+### 2. Konfigurasi environment
 
-# Generate application key
+```bash
+cp .env.example .env
 php artisan key:generate
 ```
 
-### 3. Setup Database
-Pastikan database MySQL sudah dibuat dengan nama `tta_starter_sneat`, lalu:
-```bash
-# Jalankan migrasi database
-php artisan migrate
+Sesuaikan konfigurasi berikut di `.env`:
 
-# Seed roles dan permissions default
-php artisan db:seed --class=RolePermissionSeeder
+- `APP_NAME`, `APP_URL`
+- koneksi database MySQL
+- konfigurasi LDAP
+- konfigurasi S3 / object storage
+- queue connection bila berbeda dari default
+
+### 3. Siapkan database
+
+Buat database, lalu jalankan:
+
+```bash
+php artisan migrate
+php artisan db:seed
 ```
 
-## 🏃‍♂️ Cara Menjalankan
+Seeder utama akan menyiapkan:
 
-### Development Mode (Recommended)
+- role dan permission
+- company
+- driver
+- vehicle
+- destination
+- type maintenance
+- user awal `stagingpurpose` jika belum ada
+
+### 4. Jalankan aplikasi
+
+Mode development yang direkomendasikan:
+
 ```bash
-# Jalankan semua service sekaligus (server, queue, vite)
 composer run dev
 ```
 
-### Manual (Jika ingin jalankan terpisah)
+Command ini menjalankan:
+
+- Laravel development server
+- queue listener
+- Vite dev server
+
+Alternatif manual:
+
 ```bash
-# Terminal 1 - Laravel server
 php artisan serve
-
-# Terminal 2 - Queue worker
 php artisan queue:listen --tries=1
-
-# Terminal 3 - Vite dev server
 npm run dev
 ```
 
-Buka browser ke: `http://localhost:8000`
+## Storage dan Upload
 
-## 👥 LDAP Integration
+Project ini menggunakan `FILESYSTEM_DISK=s3` pada konfigurasi contoh. Pastikan endpoint, bucket, key, dan secret sudah sesuai dengan environment yang dipakai.
 
-### Import User dari LDAP
+Route upload yang tersedia:
+
+- `POST /uploads/process`
+- `DELETE /uploads/revert`
+- `GET /uploads/load`
+
+## Permission Model
+
+Permission dibagi per area:
+
+- `management.*`
+- `images.*`
+- `master.*`
+- `record.*`
+- `maintenances.*`
+- `reports.*`
+
+Seeder `RolePermissionSeeder` juga menyiapkan template role untuk kebutuhan assignment user.
+
+## Reporting dan Export
+
+Laporan yang tersedia:
+
+- `/report/daily`
+- `/report/monthly`
+- `/report/maintenances/daily`
+- `/report/maintenances/year`
+
+Export:
+
+- PDF untuk report harian, bulanan, dan maintenance
+- Excel untuk maintenance tahunan
+- Excel untuk modul record
+
+## Command Aplikasi
+
+Tersedia command internal:
+
 ```bash
-# Import user tertentu
-php artisan ldap:import users --filter="(uid=stagingpupose)"
-
-# Import semua user (hati-hati!)
-php artisan ldap:import users
+php artisan recalculate:maintenances
 ```
 
-### Login
-- Username: gunakan UID dari LDAP
-- Password: password LDAP Anda
+Gunakan untuk proses perhitungan ulang maintenance bila diperlukan sesuai implementasi command aplikasi.
 
-## 🧪 Testing
+## Testing dan Quality
+
+Menjalankan test:
 
 ```bash
-# Jalankan test
 composer run test
-
-# Format code (jika ada)
-php artisan pint
 ```
 
-## ✨ Fitur Utama
+Menjalankan formatter:
 
-### 👥 User Management
-- **CRUD Lengkap**: Create, Read, Update, Delete user dengan validasi
-- **Soft Delete**: User dihapus secara soft dengan kemampuan restore
-- **Audit Trail**: Tracking lengkap created_by, updated_by, deleted_by
-- **Activity Logging**: Log semua aktivitas user dengan IP tracking
-- **DataTables**: Tampilan data dengan export, search, dan pagination
-
-### 🔐 RBAC System
-- **5 Role Default**: Super Admin, Admin, User Manager, Viewer, User
-- **19 Permission**: Dikelompokkan berdasarkan modul (users, roles, permissions, etc)
-- **Web Interface**: UI lengkap untuk manajemen role dan assignment user
-- **Permission Middleware**: Route protection otomatis
-- **Real-time Assignment**: AJAX operations untuk role management
-
-### 📊 Audit & Logging
-- **User Activity Logs**: Semua aktivitas user tercatat dengan detail
-- **Change Tracking**: Old/new values disimpan dalam JSON
-- **IP & User Agent**: Tracking lokasi dan device access
-- **Export Reports**: Export audit logs ke CSV, Excel, PDF
-
-### 🎨 UI/UX Features
-- **Responsive Design**: Bootstrap-based dengan mobile support
-- **DataTables**: Advanced table dengan export dan filter
-- **AJAX Operations**: Update data tanpa refresh halaman
-- **Toast Notifications**: Feedback visual untuk user actions
-- **Permission-based UI**: Menu dan tombol muncul sesuai permission
-
-## 📁 Struktur Project
-
-### Controllers Utama
-- `UserController` - User management dengan audit trail
-- `RoleController` - Role management dengan permission assignment
-- `UserRoleController` - User role assignment interface
-- `HomeController` - Dashboard utama
-
-### Models Utama
-- `User` - Model user dengan LDAP dan RBAC integration
-- `Role` - Model role dengan permission relationships
-- `Permission` - Model permission dengan module grouping
-- `UserLog` - Model untuk activity logging
-
-### Views Structure
-- `resources/views/users/` - User management views
-- `resources/views/roles/` - Role management views
-- `resources/views/layouts/` - Layout templates
-- `public/sneat/` - Asset template Sneat
-
-## ⚙️ Konfigurasi LDAP
-
-Ubah setting di file `.env`:
-```env
-LDAP_HOST=19.38.40.5
-LDAP_USERNAME="cn=admin,dc=tongtji,dc=com"
-LDAP_PASSWORD="your-password"
-LDAP_BASE_DN="dc=tongtji,dc=com"
-```
-
-## 🎨 Template
-
-Menggunakan **Sneat Bootstrap Admin Template** untuk tampilan yang modern dan responsive.
-
-## 🔐 Role-Based Access Control (RBAC)
-
-Aplikasi ini menggunakan sistem RBAC lengkap dengan antarmuka manajemen web untuk mengatur akses pengguna.
-
-### 🎛️ Fitur RBAC Management UI
-- **Manajemen Role**: `/roles` - CRUD role dengan assignment permission
-- **Assignment User Role**: `/users/{user}/roles` - Interface lengkap untuk mengelola role user
-- **Permission Grouping**: Permission dikelompokkan berdasarkan modul
-- **Real-time Operations**: AJAX untuk add/remove role tanpa refresh halaman
-- **Activity Logging**: Semua perubahan role/permission tercatat di audit log
-
-### 👤 User Testing
-- **Username**: `stagingpupose` (Super Administrator)
-- **Akses**: Semua permission untuk testing fitur RBAC
-- **Login**: Gunakan kredensial LDAP atau username 'stagingpupose'
-
-### Role Default
-- **Super Administrator**: Akses penuh ke seluruh sistem
-- **Administrator**: Akses ke manajemen user dan sebagian besar fitur
-- **User Manager**: Dapat mengelola user dengan akses sistem terbatas
-- **Viewer**: Akses read-only ke sebagian besar fitur
-- **User**: User biasa dengan akses terbatas
-
-### Permission Default
-**User Management:**
-- `users.view` - Melihat daftar user
-- `users.create` - Membuat user baru
-- `users.edit` - Mengedit user
-- `users.delete` - Menghapus user (soft delete)
-- `users.restore` - Memulihkan user yang dihapus
-- `users.force_delete` - Menghapus permanen
-- `users.logs` - Melihat activity logs
-
-**Role Management:**
-- `roles.view` - Melihat daftar role
-- `roles.create` - Membuat role baru
-- `roles.edit` - Mengedit role
-- `roles.delete` - Menghapus role
-
-**Permission Management:**
-- `permissions.view` - Melihat daftar permission
-- `permissions.create` - Membuat permission baru
-- `permissions.edit` - Mengedit permission
-- `permissions.delete` - Menghapus permission
-
-**System:**
-- `dashboard.view` - Akses dashboard
-- `reports.view` - Melihat reports
-- `settings.view` - Melihat pengaturan
-- `settings.edit` - Mengedit pengaturan
-
-### Cara Menambah Menu Baru dengan RBAC
-
-Ketika menambah menu/fitur baru, ikuti langkah ini:
-
-#### 1. Buat Permission Baru
 ```bash
-# Tambahkan di RolePermissionSeeder.php
-['name' => 'orders.view', 'display_name' => 'View Orders', 'description' => 'Can view orders', 'module' => 'orders'],
-['name' => 'orders.create', 'display_name' => 'Create Orders', 'description' => 'Can create orders', 'module' => 'orders'],
-['name' => 'orders.edit', 'display_name' => 'Edit Orders', 'description' => 'Can edit orders', 'module' => 'orders'],
-['name' => 'orders.delete', 'display_name' => 'Delete Orders', 'description' => 'Can delete orders', 'module' => 'orders'],
+vendor/bin/pint --dirty
 ```
 
-#### 2. Update Routes dengan Middleware
-```php
-// Di routes/web.php
-Route::middleware(['permission:orders.view'])->group(function () {
-    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-});
+Build asset production:
 
-Route::middleware(['permission:orders.create'])->group(function () {
-    Route::get('/orders/create', [OrderController::class, 'create'])->name('orders.create');
-    Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
-});
-```
-
-#### 3. Update Views dengan Permission Check
-```blade
-{{-- Di view --}}
-@if(auth()->user()->hasPermission('orders.create'))
-    <a href="{{ route('orders.create') }}" class="btn btn-primary">
-        <i class="bx bx-plus me-1"></i> Tambah Order
-    </a>
-@endif
-```
-
-#### 4. Update Controller Actions
-```php
-// Di controller DataTables
-->addColumn('action', function ($order) {
-    $actions = '<div class="dropdown">...';
-    
-    if (auth()->user()->hasPermission('orders.edit')) {
-        $actions .= '<a href="' . route('orders.edit', $order->id) . '">Edit</a>';
-    }
-    
-    if (auth()->user()->hasPermission('orders.delete')) {
-        $actions .= '<form>...Delete</form>';
-    }
-    
-    return $actions;
-})
-```
-
-#### 5. Assign Permission ke Role
 ```bash
-# Jalankan seeder lagi atau manual assign
-php artisan db:seed --class=RolePermissionSeeder
-
-# Atau via code:
-$role = Role::where('name', 'admin')->first();
-$permission = Permission::where('name', 'orders.view')->first();
-$role->assignPermission($permission);
+npm run build
 ```
 
-### 🖥️ Antarmuka Web RBAC
+## Deployment
 
-#### Manajemen Role
-1. **Akses**: `/roles` - Daftar semua role
-2. **Tambah Role**: `/roles/create` - Form pembuatan role dengan selection permission
-3. **Edit Role**: `/roles/{role}/edit` - Edit role dan assignment permission
-4. **Detail Role**: `/roles/{role}` - Lihat detail role dan daftar permission
+Pipeline GitLab menggunakan branch-based deployment:
 
-#### Manajemen User Role
-1. **Akses**: `/users/{user}/roles` - Interface lengkap manajemen role user
-2. **Multiple Methods**: 
-   - Checkbox bulk assignment
-   - Quick add dropdown
-   - One-click remove dengan konfirmasi
-3. **Real-time Updates**: AJAX operations tanpa refresh halaman
-4. **Visual Feedback**: Role badges, notifikasi success/error
+- `development` -> server development
+- `staging` -> server staging
+- `main` -> server production
 
-#### Programmatic Management
-```bash
-# Assign role ke user
-$user = User::find(1);
-$user->assignRole('admin');
+Deploy dijalankan melalui `.gitlab-ci.yml` dengan SSH dan remote script `deploy-tta-vemo-2-spm.sh`.
 
-# Check permission
-if ($user->hasPermission('users.create')) {
-    // User dapat membuat user baru
-}
+## Catatan
 
-# Check role
-if ($user->hasRole('admin')) {
-    // User adalah admin
-}
-```
-
-## 🚀 Quick Access URLs
-
-Setelah aplikasi berjalan di `http://localhost:8000`:
-
-### 🔐 Authentication
-- **Login**: `/login` - Halaman login dengan LDAP
-- **Dashboard**: `/home` - Dashboard utama setelah login
-
-### 👥 User Management  
-- **Daftar User**: `/users` - Kelola semua user
-- **Tambah User**: `/users/create` - Buat user baru
-- **User Logs**: `/users/logs` - Activity logs global
-- **Trash**: `/users/trash` - User yang dihapus (restore)
-
-### 🛡️ RBAC Management
-- **Daftar Role**: `/roles` - Kelola role dan permission
-- **Tambah Role**: `/roles/create` - Buat role baru
-- **User Role**: `/users/{id}/roles` - Assign role ke user tertentu
-
-### 📊 Features  
-- **Export Data**: Tersedia di semua tabel (CSV, Excel, PDF)
-- **Search & Filter**: Advanced filtering di semua DataTables
-- **Responsive**: Akses optimal di desktop dan mobile
-
-## 🧪 Testing RBAC
-
-1. **Login** dengan user `stagingpupose` (Super Administrator)
-2. **Akses** `/roles` untuk manajemen role
-3. **Test** assignment role di `/users/{id}/roles`
-4. **Verifikasi** permission dengan user role berbeda
-5. **Cek** activity logs di `/users/logs`
-
-## 📞 Support
-
-Jika ada masalah, hubungi tim IT Tongtji.
+- Jika perubahan frontend tidak terlihat, jalankan `npm run dev` atau `npm run build`.
+- Queue listener perlu aktif agar proses berbasis queue berjalan normal.
+- Kredensial sensitif pada `.env` harus disesuaikan per environment dan tidak dipakai sebagai referensi dokumentasi publik.

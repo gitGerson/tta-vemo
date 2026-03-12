@@ -370,10 +370,6 @@
     </div>
     <!-- / Layout wrapper -->
 
-    <div class="buy-now">
-        <a href="#" class="btn btn-danger btn-buy-now">Staging Ver</a>
-    </div>
-
     <!-- Core JS -->
 
     <script src="{{ asset('sneat/assets/vendor/libs/jquery/jquery.js') }}"></script>
