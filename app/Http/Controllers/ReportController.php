@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use App\Models\Record;
 use App\Models\Company;
-use App\Models\Vehicle;
 use App\Models\Maintenances;
-use Illuminate\Http\Request;
+use App\Models\MaintenancesDetails;
+use App\Models\Record;
+use App\Models\Vehicle;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use App\Models\MaintenancesDetails;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
@@ -41,7 +41,7 @@ class ReportController extends Controller
     public function monthly(Request $request)
     {
         $dateString = $request->query('date', Carbon::now()->format('Y-m'));
-        $date = Carbon::parse($dateString . '-01');
+        $date = Carbon::parse($dateString.'-01');
         $companyId = $this->resolveCompanyId($request);
         $unit = $request->query('unit');
 
@@ -112,7 +112,7 @@ class ReportController extends Controller
             'date' => $date,
             'vehicles' => $vehicles,
             'company' => Company::find($companyId),
-        ])->setPaper('A4', 'landscape');
+        ])->setPaper('A4', 'portrait');
 
         return $pdf->download("laporan_harian_{$date}.pdf");
     }
@@ -120,7 +120,7 @@ class ReportController extends Controller
     public function monthlyPdf(Request $request)
     {
         $dateString = $request->query('date', Carbon::now()->format('Y-m'));
-        $date = Carbon::parse($dateString . '-01');
+        $date = Carbon::parse($dateString.'-01');
         $companyId = $this->resolveCompanyId($request);
         $unit = $request->query('unit');
 
