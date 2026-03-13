@@ -33,20 +33,21 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-auto">
                     <label class="form-label text-white d-block">placeholder</label>
                     <a target="_blank"
                         href="/report/daily/pdf?category={{ $category }}&date={{ request()->query('date') ?? Carbon\Carbon::now()->format('Y-m-d') }}&company={{ $QueryCompany ?? $defaluteCompany->id }}"
-                        class="btn btn-danger w-100">Cetak PDF</a>
-                </div>
-                <div class="col">
-                    <label class="form-label text-white d-block">placeholder</label>
-                    <input type="text" id="global-search" class="form-control" placeholder="Search...">
+                        class="btn btn-danger px-3">Cetak PDF</a>
                 </div>
             </form>
 
             @php
                 $allowedPlates = collect();
+                $vehiclesByPlate = $vehicle->flatMap(function ($item) {
+                    return collect(array_filter([$item->plat_new, $item->plat_old]))
+                        ->mapWithKeys(fn ($plate) => [$plate => $item]);
+                });
+
                 if ($category === 'UMUM' || $category === 'PRIBADI') {
                     $allowedPlates = $vehicle
                         ->filter(function ($v) use ($category) {
@@ -57,36 +58,70 @@
                         })
                         ->values();
                 }
+
+                $filteredRecords = $record->filter(function ($item) use ($category, $allowedPlates) {
+                    return $category === 'KESELURUHAN' || $allowedPlates->contains($item->no_pol);
+                })->values();
             @endphp
 
-            <div class="table-responsive text-nowrap ms-6">
-                <table id="dataTable" class="table table-bordered table-striped">
+            <div class="report-table-toolbar ms-6 mb-3">
+                <div id="dataTableButtons" class="report-table-buttons"></div>
+                <div class="report-table-search">
+                    <input type="text" id="global-search" class="form-control" placeholder="Search...">
+                </div>
+            </div>
+
+            <div class="table-responsive ms-6">
+                <table id="dataTable" class="table table-bordered table-striped compact-report-table">
                     <thead class="table-light">
                         <tr class="text-nowrap">
-                            <th scope="col">No</th>
-                            <th scope="col">TANGGAL</th>
-                            <th scope="col">SUPIR 1</th>
-                            <th scope="col">SUPIR 2</th>
-                            <th scope="col">NO POLISI</th>
-                            <th scope="col">TUJUAN</th>
+                            <th scope="col" rowspan="2">No</th>
+                            <th scope="col" rowspan="2">JENIS</th>
+                            <th scope="col" rowspan="2">NOPOL</th>
+                            <th scope="col" rowspan="2">TUJUAN</th>
+                            <th scope="col" colspan="3">KILOMETER</th>
+                            <th scope="col" rowspan="2">LITER</th>
+                            <th scope="col" rowspan="2">RUPIAH</th>
+                            <th scope="col" rowspan="2">SUPIR</th>
+                            <th scope="col" rowspan="2">SKALA</th>
+                        </tr>
+                        <tr class="text-nowrap">
+                            <th scope="col">AWAL</th>
+                            <th scope="col">AKHIR</th>
+                            <th scope="col">TOTAL</th>
                         </tr>
                     </thead>
                     <tbody class="table-border-bottom-0">
-                        @foreach ($record as $row)
+                        @php $rowNumber = 1; @endphp
+                        @foreach ($filteredRecords as $row)
                             @php
-                                $include = $category === 'KESELURUHAN' || $allowedPlates->contains($row->no_pol);
+                                $selectedVehicle = $vehiclesByPlate->get($row->no_pol);
                             @endphp
-                            @continue(!$include)
                             <tr>
-                                <td>{{ $loop->iteration }}</td>
-                                <td>{{ Carbon\Carbon::parse($row->date)->translatedFormat('d F Y') }}</td>
-                                <td>{{ $row->driver_1 ? strtoupper($row->driver_1) : 'NONE' }}</td>
-                                <td>{{ $row->driver_2 ? strtoupper($row->driver_2) : 'NONE' }}</td>
+                                <td class="text-center">{{ $rowNumber++ }}</td>
+                                <td>{{ $selectedVehicle?->type ?? '-' }}</td>
                                 <td>{{ $row->no_pol }}</td>
                                 <td>{{ $row->destination }}</td>
+                                <td class="text-end">{{ $row->start_km ?? 0 }}</td>
+                                <td class="text-end">{{ $row->finish_km ?? 0 }}</td>
+                                <td class="text-end">{{ $row->totals ?? 0 }}</td>
+                                <td class="text-end">{{ $row->bbm ?? 0 }}</td>
+                                <td class="text-end">{{ number_format((float) ($row->idr ?? 0), 0, ',', '.') }}</td>
+                                <td>{{ strtoupper($row->driver_1 ?: 'NONE') }} - {{ strtoupper($row->driver_2 ?: 'NONE') }}</td>
+                                <td class="text-center">{{ $row->scale ?? '-' }}</td>
                             </tr>
                         @endforeach
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="6" class="fw-semibold">JUMLAH</td>
+                            <td class="text-end fw-semibold">{{ $filteredRecords->sum(fn ($item) => (float) ($item->totals ?? 0)) }}</td>
+                            <td class="text-end fw-semibold">{{ $filteredRecords->sum(fn ($item) => (float) ($item->bbm ?? 0)) }}</td>
+                            <td class="text-end fw-semibold">{{ number_format($filteredRecords->sum(fn ($item) => (float) ($item->idr ?? 0)), 0, ',', '.') }}</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -94,14 +129,48 @@
 </div>
 @endsection
 
+@push('addon-style')
+<style>
+    .compact-report-table {
+        font-size: 0.8125rem;
+    }
+
+    .compact-report-table th,
+    .compact-report-table td {
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    .report-table-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .report-table-buttons .dt-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .report-table-search {
+        width: min(100%, 240px);
+    }
+</style>
+@endpush
+
 @push('addon-script')
 <script>
 $(document).ready(function() {
     const table = $('#dataTable').DataTable({
-        dom: 'lBfrtip',
+        dom: 't',
+        paging: false,
+        info: false,
         buttons: [
-            { extend: 'copy', exportOptions: { columns: ':not(:last-child)' } },
-            { extend: 'csv', exportOptions: { columns: ':not(:last-child)' } },
+            { extend: 'copy', exportOptions: { columns: ':visible' } },
+            { extend: 'csv', exportOptions: { columns: ':visible' } },
             {
                 extend: 'excelHtml5',
                 text: "<i class='bx bx-export me-1'></i> Export Excel",
@@ -149,17 +218,20 @@ $(document).ready(function() {
                     sheetData.innerHTML = row1 + row2 + row3 + row4 + row5 + sheetData.innerHTML;
                 }
             },
-            { extend: 'pdf', exportOptions: { columns: ':not(:last-child)' } },
-            { extend: 'print', exportOptions: { columns: ':not(:last-child)' } },
+            { extend: 'pdf', exportOptions: { columns: ':visible' } },
+            { extend: 'print', exportOptions: { columns: ':visible' } },
             'colvis'
         ],
         language: {
+            emptyTable: 'Tidak ada data.',
             paginate: {
                 previous: '‹',
                 next: '›'
             }
         },
     });
+
+    table.buttons().container().appendTo('#dataTableButtons');
 
     $('#global-search').on('keyup', function() {
         table.search(this.value).draw();
