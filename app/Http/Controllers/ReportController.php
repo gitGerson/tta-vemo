@@ -131,7 +131,8 @@ class ReportController extends Controller
             'date' => $date,
             'unit' => $unit,
             'company' => Company::find($companyId),
-        ])->setPaper('A4', 'landscape');
+            'vehicles' => Vehicle::all(),
+        ])->setPaper('A4', 'portrait');
 
         return $pdf->download("laporan_bulanan_{$date->format('Y_m')}.pdf");
     }
