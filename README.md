@@ -30,6 +30,25 @@ VEMO adalah aplikasi monitoring operasional kendaraan berbasis Laravel 12 untuk 
 - DomPDF
 - AWS S3 compatible storage
 
+## Changelog
+
+### 2026-04-16
+
+- Monthly BBM report was redesigned for both web and PDF views with a denser table layout, kilometer columns (`awal`, `akhir`, `total`), fuel and rupiah totals, combined driver display, scale column, and signature/footer blocks.
+- Monthly PDF export now uses portrait orientation and includes vehicle metadata lookup so the printed report shows vehicle type and more structured report headers.
+- Monthly report filter handling was tightened so the selected company is preserved consistently between the filter form and PDF export action.
+
+### 2026-03-13
+
+- Daily BBM report was redesigned for both web and PDF views with vehicle type, kilometer breakdown, liter and rupiah columns, totals row, and a cleaner export/search toolbar.
+- Daily PDF export now uses portrait orientation and applies category filtering before rendering so printed totals follow the selected `KESELURUHAN`, `UMUM`, or `PRIBADI` filter.
+- Daily report exports were aligned to visible columns for copy, CSV, Excel, PDF, and print output.
+
+### 2026-03-12
+
+- GitLab CI was updated with a dedicated `development` deployment job in addition to the existing `staging` and `main` pipelines.
+- Project documentation was refreshed to reflect the current VEMO scope, setup flow, reporting modules, and deployment model.
+
 ## Modul Utama
 
 ### Authentication
