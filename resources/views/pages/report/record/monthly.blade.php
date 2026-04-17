@@ -96,7 +96,7 @@
                 </div>
             </div>
 
-            <div class="table-responsive ms-6">
+            <div class="table-responsive">
                 <table id="dataTable" class="table table-bordered table-striped compact-report-table">
                     <thead class="table-light">
                         <tr class="text-nowrap">
