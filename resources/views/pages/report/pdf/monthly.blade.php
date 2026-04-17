@@ -70,6 +70,7 @@
         <thead>
             <tr>
                 <th rowspan="2">No</th>
+                <th rowspan="2">TANGGAL</th>
                 <th rowspan="2">TUJUAN</th>
                 <th colspan="3">KILOMETER</th>
                 <th rowspan="2">LITER</th>
@@ -87,6 +88,7 @@
             @foreach ($records as $row)
                 <tr>
                     <td class="text-center">{{ $loop->iteration }}</td>
+                    <td>{{ \Carbon\Carbon::parse($row->date)->format('d-m-Y') }}</td>
                     <td>{{ $row->destination }}</td>
                     <td class="text-right">{{ $row->start_km ?? 0 }}</td>
                     <td class="text-right">{{ $row->finish_km ?? 0 }}</td>
@@ -98,7 +100,7 @@
                 </tr>
             @endforeach
             <tr>
-                <td colspan="4" class="text-left"><strong>JUMLAH</strong></td>
+                <td colspan="5" class="text-left"><strong>JUMLAH</strong></td>
                 <td class="text-right"><strong>{{ $records->sum(fn ($row) => (float) ($row->totals ?? 0)) }}</strong></td>
                 <td class="text-right"><strong>{{ $records->sum(fn ($row) => (float) ($row->bbm ?? 0)) }}</strong></td>
                 <td class="text-right"><strong>{{ number_format($records->sum(fn ($row) => (float) ($row->idr ?? 0)), 0, ',', '.') }}</strong></td>
@@ -106,7 +108,7 @@
                 <td></td>
             </tr>
             <tr>
-                <td colspan="4" rowspan="2">&nbsp;</td>
+                <td colspan="5" rowspan="2">&nbsp;</td>
                 <td colspan="3" class="signature-title">Mengetahui</td>
                 <td colspan="2" class="signature-title">Dibuat Oleh</td>
             </tr>
@@ -115,7 +117,7 @@
                 <td colspan="2" class="signature-space">&nbsp;</td>
             </tr>
             <tr>
-                <td colspan="4" class="footer-label">
+                <td colspan="5" class="footer-label">
                     Printed at: {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('d F Y H:i') }}<br>
                     Dicetak oleh: {{ auth()->user()?->name ?? '-' }}
                 </td>
