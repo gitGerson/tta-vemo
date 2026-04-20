@@ -101,6 +101,7 @@
                     <thead class="table-light">
                         <tr class="text-nowrap">
                             <th scope="col" rowspan="2">No</th>
+                            <th scope="col" rowspan="2">TANGGAL</th>
                             <th scope="col" rowspan="2">JENIS</th>
                             <th scope="col" rowspan="2">NOPOL</th>
                             <th scope="col" rowspan="2">TUJUAN</th>
@@ -129,6 +130,7 @@
                             @endphp
                             <tr>
                                 <td class="text-center">{{ $loop->iteration }}</td>
+                                <td>{{ \Carbon\Carbon::parse($row->date)->format('d-m-Y') }}</td>
                                 <td>{{ $selectedVehicle?->type ?? '-' }}</td>
                                 <td>{{ $row->no_pol }}</td>
                                 <td>{{ $row->destination }}</td>
@@ -144,7 +146,7 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="6" class="fw-semibold">JUMLAH</td>
+                            <td colspan="7" class="fw-semibold">JUMLAH</td>
                             <td class="text-end fw-semibold">{{ $record->sum(fn ($item) => (float) ($item->totals ?? 0)) }}</td>
                             <td class="text-end fw-semibold">{{ $record->sum(fn ($item) => (float) ($item->bbm ?? 0)) }}</td>
                             <td class="text-end fw-semibold">{{ number_format($record->sum(fn ($item) => (float) ($item->idr ?? 0)), 0, ',', '.') }}</td>
