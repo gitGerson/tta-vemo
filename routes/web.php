@@ -28,6 +28,7 @@ Route::middleware(['auth'])->group(function () {
     // User management routes with permissions
     Route::middleware(['permission:management.users.create'])->group(function () {
         Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('/users/verify-ldap', [UserController::class, 'verifyLdap'])->name('users.verify-ldap');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
     });
 

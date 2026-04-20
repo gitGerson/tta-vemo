@@ -391,6 +391,15 @@
             color: rgba(0, 0, 0, 0.4) !important;
         }
 
+        .flat-input-white:-webkit-autofill,
+        .flat-input-white:-webkit-autofill:hover,
+        .flat-input-white:-webkit-autofill:focus,
+        .flat-input-white:-webkit-autofill:active {
+            -webkit-text-fill-color: #212529 !important;
+            box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.95) inset !important;
+            caret-color: #212529 !important;
+        }
+
         .flat-input-addon-white {
             background: transparent !important;
             border: 0 !important;

@@ -351,9 +351,21 @@
     </div>
     <!-- / Layout wrapper -->
 
-    <div class="buy-now">
-        <a href="#" class="btn btn-danger btn-buy-now">Staging Ver</a>
-    </div>
+    @php
+        $host = request()->getHost();
+        $environmentLabel = match (true) {
+            str_ends_with($host, '.test') => 'local',
+            str_starts_with($host, 'dev-') => 'Development',
+            str_starts_with($host, 'stg-') => 'Staging',
+            default => null,
+        };
+    @endphp
+
+    @if ($environmentLabel)
+        <div class="buy-now">
+            <a href="#" class="btn btn-danger btn-buy-now">{{ $environmentLabel }}</a>
+        </div>
+    @endif
 
     <!-- Core JS -->
 

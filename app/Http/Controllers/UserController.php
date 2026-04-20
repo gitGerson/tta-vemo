@@ -9,6 +9,7 @@ use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use LdapRecord\Models\OpenLDAP\User as LdapUser;
 
 class UserController extends Controller
@@ -18,7 +19,11 @@ class UserController extends Controller
      */
     public function index()
     {
-        return view('users.index');
+        $roles = Role::where('is_active', true)
+            ->orderBy('display_name')
+            ->get();
+
+        return view('users.index', compact('roles'));
     }
 
     /**
@@ -34,7 +39,52 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('users.create');
+        $roles = Role::where('is_active', true)
+            ->orderBy('display_name')
+            ->get();
+
+        return view('users.create', compact('roles'));
+    }
+
+    public function verifyLdap(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string|max:255',
+        ]);
+
+        if (User::where('username', $request->username)->exists()) {
+            return response()->json([
+                'message' => 'User dengan username tersebut sudah ada di database.',
+            ], 422);
+        }
+
+        try {
+            $ldapUser = LdapUser::where('uid', $request->username)->first();
+
+            if (!$ldapUser) {
+                return response()->json([
+                    'message' => 'Username tidak ditemukan di LDAP. Pastikan username sudah terdaftar di sistem LDAP.',
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'User LDAP berhasil diverifikasi. Silakan pilih role.',
+                'user' => [
+                    'name' => $ldapUser->cn[0] ?? $ldapUser->displayname[0] ?? $ldapUser->uid[0] ?? $request->username,
+                    'username' => $request->username,
+                    'email' => $ldapUser->mail[0] ?? $request->username . '@tongtji.com',
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('LDAP User Verification Error: ' . $e->getMessage(), [
+                'username' => $request->username,
+                'exception' => $e,
+            ]);
+
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat menghubungi LDAP server. Silakan coba lagi atau hubungi administrator.',
+            ], 500);
+        }
     }
 
     /**
@@ -44,6 +94,10 @@ class UserController extends Controller
     {
         $request->validate([
             'username' => 'required|string|max:255|unique:users',
+            'role_id' => [
+                'required',
+                Rule::exists('roles', 'id')->where('is_active', true),
+            ],
         ]);
 
         try {
@@ -74,6 +128,9 @@ class UserController extends Controller
                 'guid' => $ldapUser->entryuuid[0] ?? null,
             ]);
 
+            $role = Role::findOrFail($request->role_id);
+            $user->assignRole($role);
+
             UserLog::log(
                 'CREATE_USER',
                 "Created user from LDAP sync: {$user->name} ({$user->username})",
@@ -83,12 +140,13 @@ class UserController extends Controller
                     'username' => $request->username,
                     'ldap_dn' => $ldapUser->getDn(),
                     'ldap_guid' => $ldapUser->entryuuid[0] ?? null,
+                    'role' => $role->name,
                 ],
                 $user
             );
 
             return redirect()->route('users.index')
-                ->with('success', "User berhasil ditemukan di LDAP dan disinkronisasi ke database. User: {$user->name} ({$user->username})");
+                ->with('success', "User berhasil ditemukan di LDAP, disinkronisasi, dan diberi role {$role->display_name}. User: {$user->name} ({$user->username})");
         } catch (\Exception $e) {
             Log::error('LDAP User Sync Error: ' . $e->getMessage(), [
                 'username' => $request->username,
