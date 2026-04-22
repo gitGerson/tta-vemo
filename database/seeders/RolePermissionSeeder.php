@@ -39,63 +39,38 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'management.roles.edit', 'display_name' => 'Role Templates - Edit', 'description' => 'Can edit role templates', 'module' => 'management', 'parent' => 'management.access', 'sort_order' => 11],
             ['name' => 'management.roles.delete', 'display_name' => 'Role Templates - Delete', 'description' => 'Can delete role templates', 'module' => 'management', 'parent' => 'management.access', 'sort_order' => 12],
 
-            // === IMAGES ===
-            ['name' => 'images.access', 'display_name' => 'Images', 'description' => 'Can access Images section', 'module' => 'images', 'parent' => null, 'sort_order' => 3],
-            ['name' => 'images.view', 'display_name' => 'Images - View', 'description' => 'Can view images', 'module' => 'images', 'parent' => 'images.access', 'sort_order' => 1],
-            ['name' => 'images.create', 'display_name' => 'Images - Upload', 'description' => 'Can upload images', 'module' => 'images', 'parent' => 'images.access', 'sort_order' => 2],
-            ['name' => 'images.edit', 'display_name' => 'Images - Edit', 'description' => 'Can edit images', 'module' => 'images', 'parent' => 'images.access', 'sort_order' => 3],
-            ['name' => 'images.delete', 'display_name' => 'Images - Delete', 'description' => 'Can delete images', 'module' => 'images', 'parent' => 'images.access', 'sort_order' => 4],
-            ['name' => 'images.restore', 'display_name' => 'Images - Restore', 'description' => 'Can restore deleted images', 'module' => 'images', 'parent' => 'images.access', 'sort_order' => 5],
-            ['name' => 'images.force_delete', 'display_name' => 'Images - Force Delete', 'description' => 'Can permanently delete images', 'module' => 'images', 'parent' => 'images.access', 'sort_order' => 6],
-
             // === MASTER DATA (Header) ===
             ['name' => 'master.access', 'display_name' => 'Master Data', 'description' => 'Can access Master Data section', 'module' => 'master', 'parent' => null, 'sort_order' => 4],
 
-            // Master > Categories
-            ['name' => 'master.categories.view', 'display_name' => 'Categories - View', 'description' => 'Can view categories', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 1],
-            ['name' => 'master.categories.create', 'display_name' => 'Categories - Create', 'description' => 'Can create categories', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 2],
-            ['name' => 'master.categories.edit', 'display_name' => 'Categories - Edit', 'description' => 'Can edit categories', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 3],
-            ['name' => 'master.categories.delete', 'display_name' => 'Categories - Delete', 'description' => 'Can delete categories', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 4],
-            ['name' => 'master.categories.restore', 'display_name' => 'Categories - Restore', 'description' => 'Can restore deleted categories', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 5],
-            ['name' => 'master.categories.force_delete', 'display_name' => 'Categories - Force Delete', 'description' => 'Can permanently delete categories', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 6],
-
-            // Master > Products
-            ['name' => 'master.products.view', 'display_name' => 'Products - View', 'description' => 'Can view products', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 7],
-            ['name' => 'master.products.create', 'display_name' => 'Products - Create', 'description' => 'Can create products', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 8],
-            ['name' => 'master.products.edit', 'display_name' => 'Products - Edit', 'description' => 'Can edit products', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 9],
-            ['name' => 'master.products.delete', 'display_name' => 'Products - Delete', 'description' => 'Can delete products', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 10],
-            ['name' => 'master.products.restore', 'display_name' => 'Products - Restore', 'description' => 'Can restore deleted products', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 11],
-            ['name' => 'master.products.force_delete', 'display_name' => 'Products - Force Delete', 'description' => 'Can permanently delete products', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 12],
-
             // Master > Companies
-            ['name' => 'master.companies.view', 'display_name' => 'Companies - View', 'description' => 'Can view companies', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 13],
-            ['name' => 'master.companies.create', 'display_name' => 'Companies - Create', 'description' => 'Can create companies', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 14],
-            ['name' => 'master.companies.edit', 'display_name' => 'Companies - Edit', 'description' => 'Can edit companies', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 15],
-            ['name' => 'master.companies.delete', 'display_name' => 'Companies - Delete', 'description' => 'Can delete companies', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 16],
+            ['name' => 'master.companies.view', 'display_name' => 'Companies - View', 'description' => 'Can view companies', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 1],
+            ['name' => 'master.companies.create', 'display_name' => 'Companies - Create', 'description' => 'Can create companies', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 2],
+            ['name' => 'master.companies.edit', 'display_name' => 'Companies - Edit', 'description' => 'Can edit companies', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 3],
+            ['name' => 'master.companies.delete', 'display_name' => 'Companies - Delete', 'description' => 'Can delete companies', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 4],
 
             // Master > Drivers
-            ['name' => 'master.drivers.view', 'display_name' => 'Drivers - View', 'description' => 'Can view drivers', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 17],
-            ['name' => 'master.drivers.create', 'display_name' => 'Drivers - Create', 'description' => 'Can create drivers', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 18],
-            ['name' => 'master.drivers.edit', 'display_name' => 'Drivers - Edit', 'description' => 'Can edit drivers', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 19],
-            ['name' => 'master.drivers.delete', 'display_name' => 'Drivers - Delete', 'description' => 'Can delete drivers', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 20],
+            ['name' => 'master.drivers.view', 'display_name' => 'Drivers - View', 'description' => 'Can view drivers', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 5],
+            ['name' => 'master.drivers.create', 'display_name' => 'Drivers - Create', 'description' => 'Can create drivers', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 6],
+            ['name' => 'master.drivers.edit', 'display_name' => 'Drivers - Edit', 'description' => 'Can edit drivers', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 7],
+            ['name' => 'master.drivers.delete', 'display_name' => 'Drivers - Delete', 'description' => 'Can delete drivers', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 8],
 
             // Master > Vehicles
-            ['name' => 'master.vehicles.view', 'display_name' => 'Vehicles - View', 'description' => 'Can view vehicles', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 21],
-            ['name' => 'master.vehicles.create', 'display_name' => 'Vehicles - Create', 'description' => 'Can create vehicles', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 22],
-            ['name' => 'master.vehicles.edit', 'display_name' => 'Vehicles - Edit', 'description' => 'Can edit vehicles', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 23],
-            ['name' => 'master.vehicles.delete', 'display_name' => 'Vehicles - Delete', 'description' => 'Can delete vehicles', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 24],
+            ['name' => 'master.vehicles.view', 'display_name' => 'Vehicles - View', 'description' => 'Can view vehicles', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 9],
+            ['name' => 'master.vehicles.create', 'display_name' => 'Vehicles - Create', 'description' => 'Can create vehicles', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 10],
+            ['name' => 'master.vehicles.edit', 'display_name' => 'Vehicles - Edit', 'description' => 'Can edit vehicles', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 11],
+            ['name' => 'master.vehicles.delete', 'display_name' => 'Vehicles - Delete', 'description' => 'Can delete vehicles', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 12],
 
             // Master > Destinations
-            ['name' => 'master.destinations.view', 'display_name' => 'Destinations - View', 'description' => 'Can view destinations', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 25],
-            ['name' => 'master.destinations.create', 'display_name' => 'Destinations - Create', 'description' => 'Can create destinations', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 26],
-            ['name' => 'master.destinations.edit', 'display_name' => 'Destinations - Edit', 'description' => 'Can edit destinations', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 27],
-            ['name' => 'master.destinations.delete', 'display_name' => 'Destinations - Delete', 'description' => 'Can delete destinations', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 28],
+            ['name' => 'master.destinations.view', 'display_name' => 'Destinations - View', 'description' => 'Can view destinations', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 13],
+            ['name' => 'master.destinations.create', 'display_name' => 'Destinations - Create', 'description' => 'Can create destinations', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 14],
+            ['name' => 'master.destinations.edit', 'display_name' => 'Destinations - Edit', 'description' => 'Can edit destinations', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 15],
+            ['name' => 'master.destinations.delete', 'display_name' => 'Destinations - Delete', 'description' => 'Can delete destinations', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 16],
 
             // Master > Type Maintenances
-            ['name' => 'master.type_maintenances.view', 'display_name' => 'Type Maintenances - View', 'description' => 'Can view type maintenances', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 29],
-            ['name' => 'master.type_maintenances.create', 'display_name' => 'Type Maintenances - Create', 'description' => 'Can create type maintenances', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 30],
-            ['name' => 'master.type_maintenances.edit', 'display_name' => 'Type Maintenances - Edit', 'description' => 'Can edit type maintenances', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 31],
-            ['name' => 'master.type_maintenances.delete', 'display_name' => 'Type Maintenances - Delete', 'description' => 'Can delete type maintenances', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 32],
+            ['name' => 'master.type_maintenances.view', 'display_name' => 'Type Maintenances - View', 'description' => 'Can view type maintenances', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 17],
+            ['name' => 'master.type_maintenances.create', 'display_name' => 'Type Maintenances - Create', 'description' => 'Can create type maintenances', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 18],
+            ['name' => 'master.type_maintenances.edit', 'display_name' => 'Type Maintenances - Edit', 'description' => 'Can edit type maintenances', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 19],
+            ['name' => 'master.type_maintenances.delete', 'display_name' => 'Type Maintenances - Delete', 'description' => 'Can delete type maintenances', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 20],
 
             // === RECORD ===
             ['name' => 'record.access', 'display_name' => 'Record', 'description' => 'Can access Record section', 'module' => 'record', 'parent' => null, 'sort_order' => 5],
@@ -113,8 +88,6 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'maintenances.edit', 'display_name' => 'Maintenances - Edit', 'description' => 'Can edit maintenances', 'module' => 'maintenances', 'parent' => 'maintenances.access', 'sort_order' => 3],
             ['name' => 'maintenances.approve', 'display_name' => 'Maintenances - Approve', 'description' => 'Can approve maintenances', 'module' => 'maintenances', 'parent' => 'maintenances.access', 'sort_order' => 4],
             ['name' => 'maintenances.delete', 'display_name' => 'Maintenances - Delete', 'description' => 'Can delete maintenances', 'module' => 'maintenances', 'parent' => 'maintenances.access', 'sort_order' => 5],
-            ['name' => 'maintenances.restore', 'display_name' => 'Maintenances - Restore', 'description' => 'Can restore maintenances', 'module' => 'maintenances', 'parent' => 'maintenances.access', 'sort_order' => 6],
-            ['name' => 'maintenances.force_delete', 'display_name' => 'Maintenances - Force Delete', 'description' => 'Can permanently delete maintenances', 'module' => 'maintenances', 'parent' => 'maintenances.access', 'sort_order' => 7],
 
             // === REPORTS ===
             ['name' => 'reports.access', 'display_name' => 'Reports', 'description' => 'Can access Reports section', 'module' => 'reports', 'parent' => null, 'sort_order' => 7],
@@ -150,7 +123,6 @@ class RolePermissionSeeder extends Seeder
                 'display_name' => 'Administrator Template',
                 'description' => 'Admin - full CRUD, no approval',
                 'permissions' => [
-                    'dashboard.view',
                     'management.access',
                     'management.users.view',
                     'management.users.create',
@@ -161,23 +133,7 @@ class RolePermissionSeeder extends Seeder
                     'management.roles.view',
                     'management.roles.create',
                     'management.roles.edit',
-                    'images.access',
-                    'images.view',
-                    'images.create',
-                    'images.edit',
-                    'images.delete',
-                    'images.restore',
                     'master.access',
-                    'master.categories.view',
-                    'master.categories.create',
-                    'master.categories.edit',
-                    'master.categories.delete',
-                    'master.categories.restore',
-                    'master.products.view',
-                    'master.products.create',
-                    'master.products.edit',
-                    'master.products.delete',
-                    'master.products.restore',
                     'master.companies.view',
                     'master.companies.create',
                     'master.companies.edit',
@@ -210,8 +166,6 @@ class RolePermissionSeeder extends Seeder
                     'maintenances.create',
                     'maintenances.edit',
                     'maintenances.delete',
-                    'maintenances.restore',
-                    'maintenances.force_delete',
                     'reports.access',
                     'reports.daily.view',
                     'reports.daily.export',
@@ -228,12 +182,9 @@ class RolePermissionSeeder extends Seeder
                 'display_name' => 'Approval Template',
                 'description' => 'Approval - view all with approval',
                 'permissions' => [
-                    'dashboard.view',
                     'management.access',
                     'management.users.view',
                     'master.access',
-                    'master.categories.view',
-                    'master.products.view',
                     'master.companies.view',
                     'master.drivers.view',
                     'master.vehicles.view',
@@ -260,12 +211,9 @@ class RolePermissionSeeder extends Seeder
                 'display_name' => 'User Template',
                 'description' => 'User - view all, add record, add maintenance, no delete, no approval',
                 'permissions' => [
-                    'dashboard.view',
                     'management.access',
                     'management.users.view',
                     'master.access',
-                    'master.categories.view',
-                    'master.products.view',
                     'master.companies.view',
                     'master.drivers.view',
                     'master.vehicles.view',
