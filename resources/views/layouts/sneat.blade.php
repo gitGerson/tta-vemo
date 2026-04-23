@@ -1,7 +1,6 @@
 <!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-
-<html lang="en" class="layout-menu-fixed layout-compact" data-bs-theme="light" data-assets-path="../assets/"
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="layout-menu-fixed layout-compact" data-bs-theme="light"
+    data-assets-path="../assets/"
     data-template="vertical-menu-template-free">
 
 <head>
@@ -9,21 +8,7 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-    {{-- Dark mode --}}
-    <script>
-        (function() {
-            try {
-                const storedTheme = localStorage.getItem('sneat-theme');
-                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                const theme = storedTheme || (prefersDark ? 'dark' : 'light');
-                const root = document.documentElement;
-                root.setAttribute('data-bs-theme', theme);
-                root.classList.toggle('theme-dark', theme === 'dark');
-            } catch (err) {
-                document.documentElement.setAttribute('data-bs-theme', 'light');
-            }
-        })();
-    </script>
+    @vite(['resources/sass/app.scss', 'resources/js/modules/sneat-theme.js', 'resources/js/app.js'])
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -56,8 +41,6 @@
     <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}" />
 
     <!-- endbuild -->
-
-    <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/libs/apex-charts/apex-charts.css') }}" />
 
     <!-- Page CSS -->
 
@@ -380,227 +363,15 @@
 
     <!-- endbuild -->
 
-    <!-- Vendors JS -->
-    <script src="{{ asset('sneat/assets/vendor/libs/apex-charts/apexcharts.js') }}"></script>
-
     <!-- Main JS -->
 
     <script src="{{ asset('sneat/assets/js/main.js') }}"></script>
-
-    <!-- Page JS -->
-    <script src="{{ asset('sneat/assets/js/dashboards-analytics.js') }}"></script>
-
-    <!-- Place this tag before closing body tag for github widget button. -->
-    <script async defer src="https://buttons.github.io/buttons.js"></script>
 
     {{-- Datatables --}}
     <script src="{{ asset('datatables/datatables.min.js') }}"></script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // const htmlEl = document.documentElement;
-            // const themeToggleBtn = document.getElementById("theme-toggle");
-
-            // // Load saved theme from localStorage
-            // const savedTheme = localStorage.getItem("theme");
-            // if (savedTheme && themeToggleBtn) {
-            //     htmlEl.setAttribute("data-bs-theme", savedTheme);
-            //     themeToggleBtn.textContent = savedTheme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
-            // }
-
-            // if (themeToggleBtn) {
-            //     themeToggleBtn.addEventListener("click", function() {
-            //         const currentTheme = htmlEl.getAttribute("data-bs-theme") || "light";
-            //         const newTheme = currentTheme === "light" ? "dark" : "light";
-            //         htmlEl.setAttribute("data-bs-theme", newTheme);
-            //         localStorage.setItem("theme", newTheme);
-
-            //         themeToggleBtn.textContent = newTheme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
-            //     });
-            // }
-
-            // Sidebar Toggle Functionality
-            const sidebarToggleBtn = document.getElementById("sidebar-toggle-btn");
-            const layoutContainer = document.querySelector(".layout-container");
-
-            if (sidebarToggleBtn && layoutContainer) {
-                // Load saved sidebar state from localStorage
-                const savedSidebarState = localStorage.getItem("sidebarHidden");
-                if (savedSidebarState === "true") {
-                    layoutContainer.classList.add("sidebar-hidden");
-                    updateToggleIcon(true);
-                }
-
-                function updateToggleIcon(isHidden) {
-                    const icon = sidebarToggleBtn.querySelector("i");
-                    if (icon) {
-                        if (isHidden) {
-                            icon.className = "icon-base bx bx-menu-alt-right icon-md";
-                            sidebarToggleBtn.title = "Show Sidebar";
-                        } else {
-                            icon.className = "icon-base bx bx-menu icon-md";
-                            sidebarToggleBtn.title = "Hide Sidebar";
-                        }
-                    }
-                }
-
-                sidebarToggleBtn.addEventListener("click", function(e) {
-                    e.preventDefault();
-
-                    const isCurrentlyHidden = layoutContainer.classList.contains("sidebar-hidden");
-
-                    if (isCurrentlyHidden) {
-                        // Show sidebar
-                        layoutContainer.classList.remove("sidebar-hidden");
-                        localStorage.setItem("sidebarHidden", "false");
-                        updateToggleIcon(false);
-                    } else {
-                        // Hide sidebar
-                        layoutContainer.classList.add("sidebar-hidden");
-                        localStorage.setItem("sidebarHidden", "true");
-                        updateToggleIcon(true);
-                    }
-                });
-
-                // Keyboard shortcut: Ctrl + B to toggle sidebar (only if toggle button exists)
-                document.addEventListener("keydown", function(e) {
-                    if (e.ctrlKey && e.key === "b") {
-                        e.preventDefault();
-                        sidebarToggleBtn.click();
-                    }
-                });
-            }
-
-            // Menu Search Functionality
-            const menuSearch = document.getElementById('menu-search');
-            const searchResults = document.getElementById('search-results');
-            const searchResultsContent = document.getElementById('search-results-content');
-            const noResults = document.getElementById('no-results');
-
-            if (menuSearch && searchResults) {
-                const menuItems = {{ \Illuminate\Support\Js::from($searchMenuItems ?? []) }};
-
-                let currentFocusIndex = -1;
-
-                function showSearchResults() {
-                    searchResults.classList.remove('d-none');
-                }
-
-                function hideSearchResults() {
-                    searchResults.classList.add('d-none');
-                    currentFocusIndex = -1;
-                }
-
-                function performSearch(query) {
-                    const results = menuItems.filter(item => {
-                        const searchTerms = query.toLowerCase().split(' ');
-                        return searchTerms.every(term =>
-                            item.keywords.some(keyword => keyword.includes(term)) ||
-                            item.title.toLowerCase().includes(term) ||
-                            item.description.toLowerCase().includes(term)
-                        );
-                    });
-
-                    renderResults(results);
-                }
-
-                function renderResults(results) {
-                    searchResultsContent.innerHTML = '';
-
-                    if (results.length === 0) {
-                        noResults.classList.remove('d-none');
-                        return;
-                    }
-
-                    noResults.classList.add('d-none');
-
-                    results.forEach((item, index) => {
-                        const resultItem = document.createElement('a');
-                        resultItem.href = item.url;
-                        resultItem.className = 'search-result-item';
-                        resultItem.innerHTML = `
-                            <div class="result-icon">
-                                <i class="bx ${item.icon}"></i>
-                            </div>
-                            <div class="result-content">
-                                <div class="result-title">${item.title}</div>
-                                <div class="result-description">${item.description}</div>
-                            </div>
-                        `;
-
-                        resultItem.addEventListener('click', () => {
-                            hideSearchResults();
-                            menuSearch.value = '';
-                        });
-
-                        searchResultsContent.appendChild(resultItem);
-                    });
-                }
-
-                // Search input event listeners
-                menuSearch.addEventListener('input', (e) => {
-                    const query = e.target.value.trim();
-
-                    if (query.length >= 2) {
-                        performSearch(query);
-                        showSearchResults();
-                    } else {
-                        hideSearchResults();
-                    }
-                });
-
-                menuSearch.addEventListener('focus', (e) => {
-                    const query = e.target.value.trim();
-                    if (query.length >= 2) {
-                        showSearchResults();
-                    }
-                });
-
-                // Keyboard navigation
-                menuSearch.addEventListener('keydown', (e) => {
-                    const items = searchResultsContent.querySelectorAll('.search-result-item');
-
-                    if (e.key === 'ArrowDown') {
-                        e.preventDefault();
-                        currentFocusIndex = Math.min(currentFocusIndex + 1, items.length - 1);
-                        updateFocus(items);
-                    } else if (e.key === 'ArrowUp') {
-                        e.preventDefault();
-                        currentFocusIndex = Math.max(currentFocusIndex - 1, -1);
-                        updateFocus(items);
-                    } else if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (currentFocusIndex >= 0 && items[currentFocusIndex]) {
-                            items[currentFocusIndex].click();
-                        }
-                    } else if (e.key === 'Escape') {
-                        hideSearchResults();
-                        menuSearch.blur();
-                    }
-                });
-
-                function updateFocus(items) {
-                    items.forEach((item, index) => {
-                        item.classList.toggle('keyboard-focus', index === currentFocusIndex);
-                    });
-                }
-
-                // Hide dropdown when clicking outside
-                document.addEventListener('click', (e) => {
-                    if (!menuSearch.contains(e.target) && !searchResults.contains(e.target)) {
-                        hideSearchResults();
-                    }
-                });
-
-                // Search shortcut: Ctrl + K or Cmd + K
-                document.addEventListener('keydown', (e) => {
-                    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                        e.preventDefault();
-                        menuSearch.focus();
-                    }
-                });
-            }
-        });
+        window.sneatSearchMenuItems = {{ \Illuminate\Support\Js::from($searchMenuItems ?? []) }};
     </script>
 
     @stack('scripts')
