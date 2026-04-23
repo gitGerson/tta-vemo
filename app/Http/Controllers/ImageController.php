@@ -200,29 +200,25 @@ class ImageController extends Controller
                 return $image->created_at->format('d M Y H:i');
             })
             ->addColumn('action', function ($image) {
-                $actions = '<div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                        <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">';
+                $actions = '<div class="d-inline-flex align-items-center gap-1">';
 
                 // View action
                 if (auth()->user()->hasPermission('images.view')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('images.show', $image->id) . '">
-                        <i class="bx bx-show me-1"></i> View
+                    $actions .= '<a class="btn btn-sm btn-info" href="' . route('images.show', $image->id) . '" title="View" aria-label="View">
+                        <i class="bx bx-show"></i>
                     </a>';
                 }
 
                 // Edit action
                 if (auth()->user()->hasPermission('images.edit')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('images.edit', $image->id) . '">
-                        <i class="bx bx-edit-alt me-1"></i> Edit
+                    $actions .= '<a class="btn btn-sm btn-warning" href="' . route('images.edit', $image->id) . '" title="Edit" aria-label="Edit">
+                        <i class="bx bx-edit-alt"></i>
                     </a>';
                 }
 
                 // Download action
-                $actions .= '<a class="dropdown-item" href="' . $image->url . '" download target="_blank">
-                    <i class="bx bx-download me-1"></i> Download
+                $actions .= '<a class="btn btn-sm btn-secondary" href="' . $image->url . '" download target="_blank" title="Download" aria-label="Download">
+                    <i class="bx bx-download"></i>
                 </a>';
 
                 // Delete action
@@ -230,13 +226,13 @@ class ImageController extends Controller
                     $actions .= '<form action="' . route('images.destroy', $image->id) . '" method="POST" style="display: inline;">
                         ' . csrf_field() . '
                         ' . method_field('DELETE') . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Are you sure you want to delete this image?\')">
-                            <i class="bx bx-trash me-1"></i> Delete
+                        <button type="submit" class="btn btn-sm btn-danger" title="Delete" aria-label="Delete" onclick="return confirm(\'Are you sure you want to delete this image?\')">
+                            <i class="bx bx-trash"></i>
                         </button>
                     </form>';
                 }
 
-                $actions .= '</div></div>';
+                $actions .= '</div>';
 
                 return $actions;
             })
@@ -267,18 +263,14 @@ class ImageController extends Controller
                 return $image->deleter ? $image->deleter->name : '-';
             })
             ->addColumn('action', function ($image) {
-                $actions = '<div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                        <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">';
+                $actions = '<div class="d-inline-flex align-items-center gap-1">';
 
                 // Restore action
                 if (auth()->user()->hasPermission('images.restore')) {
                     $actions .= '<form action="' . route('images.restore', $image->id) . '" method="POST" style="display: inline;">
                         ' . csrf_field() . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Are you sure you want to restore this image?\')">
-                            <i class="bx bx-refresh me-1"></i> Restore
+                        <button type="submit" class="btn btn-sm btn-success" title="Restore" aria-label="Restore" onclick="return confirm(\'Are you sure you want to restore this image?\')">
+                            <i class="bx bx-refresh"></i>
                         </button>
                     </form>';
                 }
@@ -288,13 +280,13 @@ class ImageController extends Controller
                     $actions .= '<form action="' . route('images.force-delete', $image->id) . '" method="POST" style="display: inline;">
                         ' . csrf_field() . '
                         ' . method_field('DELETE') . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Are you sure you want to permanently delete this image? This cannot be undone!\')">
-                            <i class="bx bx-trash me-1"></i> Delete Permanently
+                        <button type="submit" class="btn btn-sm btn-danger" title="Delete Permanently" aria-label="Delete Permanently" onclick="return confirm(\'Are you sure you want to permanently delete this image? This cannot be undone!\')">
+                            <i class="bx bx-trash"></i>
                         </button>
                     </form>';
                 }
 
-                $actions .= '</div></div>';
+                $actions .= '</div>';
 
                 return $actions;
             })

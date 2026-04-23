@@ -243,33 +243,29 @@ class UserController extends Controller
                 return $user->roles->pluck('display_name')->join(', ') ?: '-';
             })
             ->addColumn('action', function ($user) {
-                $actions = '<div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                        <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">';
+                $actions = '<div class="d-inline-flex align-items-center gap-1">';
 
                 // View action - always available if user has users.view permission
                 if (auth()->user()->hasPermission('management.users.view')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('users.show', $user->id) . '">
-                        <i class="bx bx-show me-1"></i> Lihat
+                    $actions .= '<a class="btn btn-sm btn-info" href="' . route('users.show', $user->id) . '" title="Lihat" aria-label="Lihat">
+                        <i class="bx bx-show"></i>
                     </a>';
                 }
 
                 // Activity logs
                 if (auth()->user()->hasPermission('management.users.logs')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('users.user-logs', $user->id) . '">
-                        <i class="bx bx-history me-1"></i> Activity Log
+                    $actions .= '<a class="btn btn-sm btn-secondary" href="' . route('users.user-logs', $user->id) . '" title="Activity Log" aria-label="Activity Log">
+                        <i class="bx bx-history"></i>
                     </a>';
                 }
 
                 // Edit action
                 if (auth()->user()->hasPermission('management.users.edit')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('users.edit', $user->id) . '">
-                        <i class="bx bx-edit-alt me-1"></i> Edit
+                    $actions .= '<a class="btn btn-sm btn-warning" href="' . route('users.edit', $user->id) . '" title="Edit" aria-label="Edit">
+                        <i class="bx bx-edit-alt"></i>
                     </a>';
-                    $actions .= '<a class="dropdown-item d-none" href="' . route('users.roles', $user->id) . '">
-                        <i class="bx bx-shield me-1"></i> Kelola Role
+                    $actions .= '<a class="btn btn-sm btn-primary d-none" href="' . route('users.roles', $user->id) . '" title="Kelola Role" aria-label="Kelola Role">
+                        <i class="bx bx-shield"></i>
                     </a>';
                 }
 
@@ -278,13 +274,13 @@ class UserController extends Controller
                     $actions .= '<form action="' . route('users.destroy', $user->id) . '" method="POST" style="display: inline;">
                         ' . csrf_field() . '
                         ' . method_field('DELETE') . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Yakin ingin menghapus user ini?\')">
-                            <i class="bx bx-trash me-1"></i> Hapus
+                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus" aria-label="Hapus" onclick="return confirm(\'Yakin ingin menghapus user ini?\')">
+                            <i class="bx bx-trash"></i>
                         </button>
                     </form>';
                 }
 
-                $actions .= '</div></div>';
+                $actions .= '</div>';
 
                 return $actions;
             })
@@ -312,18 +308,14 @@ class UserController extends Controller
                 return $user->deleter ? $user->deleter->name : '-';
             })
             ->addColumn('action', function ($user) {
-                $actions = '<div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                        <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">';
+                $actions = '<div class="d-inline-flex align-items-center gap-1">';
 
                 // Restore action
                 if (auth()->user()->hasPermission('management.users.restore')) {
                     $actions .= '<form action="' . route('users.restore', $user->id) . '" method="POST" style="display: inline;">
                         ' . csrf_field() . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Yakin ingin memulihkan user ini?\')">
-                            <i class="bx bx-refresh me-1"></i> Pulihkan
+                        <button type="submit" class="btn btn-sm btn-success" title="Pulihkan" aria-label="Pulihkan" onclick="return confirm(\'Yakin ingin memulihkan user ini?\')">
+                            <i class="bx bx-refresh"></i>
                         </button>
                     </form>';
                 }
@@ -333,13 +325,13 @@ class UserController extends Controller
                     $actions .= '<form action="' . route('users.force-delete', $user->id) . '" method="POST" style="display: inline;">
                         ' . csrf_field() . '
                         ' . method_field('DELETE') . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Yakin ingin menghapus permanen user ini? Data tidak dapat dipulihkan!\')">
-                            <i class="bx bx-trash me-1"></i> Hapus Permanen
+                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus Permanen" aria-label="Hapus Permanen" onclick="return confirm(\'Yakin ingin menghapus permanen user ini? Data tidak dapat dipulihkan!\')">
+                            <i class="bx bx-trash"></i>
                         </button>
                     </form>';
                 }
 
-                $actions .= '</div></div>';
+                $actions .= '</div>';
 
                 return $actions;
             })

@@ -197,21 +197,17 @@ class ProductController extends Controller
                     : '<span class="badge bg-secondary">Nonaktif</span>';
             })
             ->addColumn('action', function ($product) {
-                $actions = '<div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                        <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">';
+                $actions = '<div class="d-inline-flex align-items-center gap-1">';
 
                 if (auth()->user()->hasPermission('master.products.view')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('products.show', $product->id) . '">
-                        <i class="bx bx-show me-1"></i> Lihat
+                    $actions .= '<a class="btn btn-sm btn-info" href="' . route('products.show', $product->id) . '" title="Lihat" aria-label="Lihat">
+                        <i class="bx bx-show"></i>
                     </a>';
                 }
 
                 if (auth()->user()->hasPermission('master.products.edit')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('products.edit', $product->id) . '">
-                        <i class="bx bx-edit-alt me-1"></i> Edit
+                    $actions .= '<a class="btn btn-sm btn-warning" href="' . route('products.edit', $product->id) . '" title="Edit" aria-label="Edit">
+                        <i class="bx bx-edit-alt"></i>
                     </a>';
                 }
 
@@ -219,13 +215,13 @@ class ProductController extends Controller
                     $actions .= '<form action="' . route('products.destroy', $product->id) . '" method="POST" style="display: inline;">
                         ' . csrf_field() . '
                         ' . method_field('DELETE') . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Yakin ingin menghapus produk ini?\')">
-                            <i class="bx bx-trash me-1"></i> Hapus
+                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus" aria-label="Hapus" onclick="return confirm(\'Yakin ingin menghapus produk ini?\')">
+                            <i class="bx bx-trash"></i>
                         </button>
                     </form>';
                 }
 
-                $actions .= '</div></div>';
+                $actions .= '</div>';
                 return $actions;
             })
             ->rawColumns(['image_preview', 'status', 'action'])
@@ -249,17 +245,13 @@ class ProductController extends Controller
                 return $product->deleter ? $product->deleter->name : '-';
             })
             ->addColumn('action', function ($product) {
-                $actions = '<div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                        <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">';
+                $actions = '<div class="d-inline-flex align-items-center gap-1">';
 
                 if (auth()->user()->hasPermission('master.products.restore')) {
                     $actions .= '<form action="' . route('products.restore', $product->id) . '" method="POST" style="display: inline;">
                         ' . csrf_field() . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Yakin ingin memulihkan produk ini?\')">
-                            <i class="bx bx-refresh me-1"></i> Pulihkan
+                        <button type="submit" class="btn btn-sm btn-success" title="Pulihkan" aria-label="Pulihkan" onclick="return confirm(\'Yakin ingin memulihkan produk ini?\')">
+                            <i class="bx bx-refresh"></i>
                         </button>
                     </form>';
                 }
@@ -268,13 +260,13 @@ class ProductController extends Controller
                     $actions .= '<form action="' . route('products.force-delete', $product->id) . '" method="POST" style="display: inline;">
                         ' . csrf_field() . '
                         ' . method_field('DELETE') . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Yakin ingin menghapus permanen? Data tidak dapat dipulihkan!\')">
-                            <i class="bx bx-trash me-1"></i> Hapus Permanen
+                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus Permanen" aria-label="Hapus Permanen" onclick="return confirm(\'Yakin ingin menghapus permanen? Data tidak dapat dipulihkan!\')">
+                            <i class="bx bx-trash"></i>
                         </button>
                     </form>';
                 }
 
-                $actions .= '</div></div>';
+                $actions .= '</div>';
                 return $actions;
             })
             ->rawColumns(['action'])

@@ -104,23 +104,19 @@ class RoleController extends Controller
                 return $role->permissions_count;
             })
             ->addColumn('action', function ($role) {
-                $actions = '<div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                        <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">';
+                $actions = '<div class="d-inline-flex align-items-center gap-1">';
 
                 // View action
                 if (auth()->user()->hasPermission('management.roles.view')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('roles.show', $role->id) . '">
-                        <i class="bx bx-show me-1"></i> Lihat
+                    $actions .= '<a class="btn btn-sm btn-info" href="' . route('roles.show', $role->id) . '" title="Lihat" aria-label="Lihat">
+                        <i class="bx bx-show"></i>
                     </a>';
                 }
 
                 // Edit action
                 if (auth()->user()->hasPermission('management.roles.edit')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('roles.edit', $role->id) . '">
-                        <i class="bx bx-edit-alt me-1"></i> Edit
+                    $actions .= '<a class="btn btn-sm btn-warning" href="' . route('roles.edit', $role->id) . '" title="Edit" aria-label="Edit">
+                        <i class="bx bx-edit-alt"></i>
                     </a>';
                 }
 
@@ -129,18 +125,18 @@ class RoleController extends Controller
                     $actions .= '<form action="' . route('roles.destroy', $role->id) . '" method="POST" style="display: inline;">
                         ' . csrf_field() . '
                         ' . method_field('DELETE') . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Yakin ingin menghapus role ini?\')">
-                            <i class="bx bx-trash me-1"></i> Hapus
+                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus" aria-label="Hapus" onclick="return confirm(\'Yakin ingin menghapus role ini?\')">
+                            <i class="bx bx-trash"></i>
                         </button>
                     </form>';
                 } elseif ($role->users_count > 0) {
-                    $actions .= '<span class="dropdown-item text-muted">
-                        <i class="bx bx-trash me-1"></i> Tidak dapat dihapus (sedang digunakan)
-                    </span>';
+                    $actions .= '<button type="button" class="btn btn-sm btn-outline-secondary" title="Tidak dapat dihapus (sedang digunakan)" aria-label="Tidak dapat dihapus (sedang digunakan)" disabled>
+                        <i class="bx bx-trash"></i>
+                    </button>';
                 }
 
-                $actions .= '</div></div>';
-                
+                $actions .= '</div>';
+
                 return $actions;
             })
             ->rawColumns(['action'])
