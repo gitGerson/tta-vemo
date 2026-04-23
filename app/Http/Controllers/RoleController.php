@@ -103,41 +103,11 @@ class RoleController extends Controller
             ->addColumn('permissions_count', function ($role) {
                 return $role->permissions_count;
             })
+            ->addColumn('row_url', function ($role) {
+                return route('roles.show', $role->id);
+            })
             ->addColumn('action', function ($role) {
-                $actions = '<div class="d-inline-flex align-items-center gap-1">';
-
-                // View action
-                if (auth()->user()->hasPermission('management.roles.view')) {
-                    $actions .= '<a class="btn btn-sm btn-info" href="' . route('roles.show', $role->id) . '" title="Lihat" aria-label="Lihat">
-                        <i class="bx bx-show"></i>
-                    </a>';
-                }
-
-                // Edit action
-                if (auth()->user()->hasPermission('management.roles.edit')) {
-                    $actions .= '<a class="btn btn-sm btn-warning" href="' . route('roles.edit', $role->id) . '" title="Edit" aria-label="Edit">
-                        <i class="bx bx-edit-alt"></i>
-                    </a>';
-                }
-
-                // Delete action (only if role is not in use)
-                if (auth()->user()->hasPermission('management.roles.delete') && $role->users_count == 0) {
-                    $actions .= '<form action="' . route('roles.destroy', $role->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        ' . method_field('DELETE') . '
-                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus" aria-label="Hapus" onclick="return confirm(\'Yakin ingin menghapus role ini?\')">
-                            <i class="bx bx-trash"></i>
-                        </button>
-                    </form>';
-                } elseif ($role->users_count > 0) {
-                    $actions .= '<button type="button" class="btn btn-sm btn-outline-secondary" title="Tidak dapat dihapus (sedang digunakan)" aria-label="Tidak dapat dihapus (sedang digunakan)" disabled>
-                        <i class="bx bx-trash"></i>
-                    </button>';
-                }
-
-                $actions .= '</div>';
-
-                return $actions;
+                return view('datatable.actions.roles', compact('role'))->render();
             })
             ->rawColumns(['action'])
             ->make(true);

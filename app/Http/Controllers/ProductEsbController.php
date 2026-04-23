@@ -58,7 +58,7 @@ class ProductEsbController extends Controller
                     : '-';
             })
             ->addColumn('action', function () {
-                return '<span class="text-muted">-</span>';
+                return view('datatable.actions.empty')->render();
             })
             ->rawColumns(['requestable_badge', 'purchasable_badge', 'saleable_badge', 'action'])
             ->make(true);

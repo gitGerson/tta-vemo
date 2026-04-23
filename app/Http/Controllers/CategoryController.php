@@ -206,33 +206,11 @@ class CategoryController extends Controller
             ->addColumn('products_count', function ($category) {
                 return $category->products->count();
             })
+            ->addColumn('row_url', function ($category) {
+                return route('categories.show', $category->id);
+            })
             ->addColumn('action', function ($category) {
-                $actions = '<div class="d-inline-flex align-items-center gap-1">';
-
-                if (auth()->user()->hasPermission('master.categories.view')) {
-                    $actions .= '<a class="btn btn-sm btn-info" href="' . route('categories.show', $category->id) . '" title="Lihat" aria-label="Lihat">
-                        <i class="bx bx-show"></i>
-                    </a>';
-                }
-
-                if (auth()->user()->hasPermission('master.categories.edit')) {
-                    $actions .= '<a class="btn btn-sm btn-warning" href="' . route('categories.edit', $category->id) . '" title="Edit" aria-label="Edit">
-                        <i class="bx bx-edit-alt"></i>
-                    </a>';
-                }
-
-                if (auth()->user()->hasPermission('master.categories.delete')) {
-                    $actions .= '<form action="' . route('categories.destroy', $category->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        ' . method_field('DELETE') . '
-                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus" aria-label="Hapus" onclick="return confirm(\'Yakin ingin menghapus kategori ini?\')">
-                            <i class="bx bx-trash"></i>
-                        </button>
-                    </form>';
-                }
-
-                $actions .= '</div>';
-                return $actions;
+                return view('datatable.actions.categories', compact('category'))->render();
             })
             ->rawColumns(['image_preview', 'status', 'action'])
             ->make(true);
@@ -252,29 +230,7 @@ class CategoryController extends Controller
                 return $category->deleter ? $category->deleter->name : '-';
             })
             ->addColumn('action', function ($category) {
-                $actions = '<div class="d-inline-flex align-items-center gap-1">';
-
-                if (auth()->user()->hasPermission('master.categories.restore')) {
-                    $actions .= '<form action="' . route('categories.restore', $category->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        <button type="submit" class="btn btn-sm btn-success" title="Pulihkan" aria-label="Pulihkan" onclick="return confirm(\'Yakin ingin memulihkan kategori ini?\')">
-                            <i class="bx bx-refresh"></i>
-                        </button>
-                    </form>';
-                }
-
-                if (auth()->user()->hasPermission('master.categories.force_delete')) {
-                    $actions .= '<form action="' . route('categories.force-delete', $category->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        ' . method_field('DELETE') . '
-                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus Permanen" aria-label="Hapus Permanen" onclick="return confirm(\'Yakin ingin menghapus permanen? Data tidak dapat dipulihkan!\')">
-                            <i class="bx bx-trash"></i>
-                        </button>
-                    </form>';
-                }
-
-                $actions .= '</div>';
-                return $actions;
+                return view('datatable.actions.categories-trash', compact('category'))->render();
             })
             ->rawColumns(['action'])
             ->make(true);

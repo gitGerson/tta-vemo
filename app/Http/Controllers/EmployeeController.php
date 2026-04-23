@@ -174,7 +174,7 @@ class EmployeeController extends Controller
                     : '-';
             })
             ->addColumn('action', function () {
-                return '<span class="text-muted">-</span>';
+                return view('datatable.actions.empty')->render();
             })
             ->rawColumns(['status', 'action'])
             ->make(true);

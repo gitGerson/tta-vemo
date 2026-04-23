@@ -50,30 +50,12 @@
             </div>
         </div>
 
-        <div class="card mt-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Daftar Employee</h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive text-nowrap">
-                    <table id="employees-table" class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>NIK</th>
-                                <th>Nama</th>
-                                <th>Department</th>
-                                <th>Company</th>
-                                <th>Group</th>
-                                <th>Status</th>
-                                <th>Last Synced</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-            </div>
-        </div>
+        <x-datatable.card title="Daftar Employee" class="mt-4">
+            <x-datatable.table
+                id="employees-table"
+                :columns="['No', 'NIK', 'Nama', 'Department', 'Company', 'Group', 'Status', 'Last Synced', 'Aksi']"
+            />
+        </x-datatable.card>
     </div>
 @endsection
 
@@ -136,33 +118,16 @@
         });
     </script>
 
-    <script>
-        $(function() {
-            $('#employees-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: '{{ route('employees.data') }}',
-                columns: [
-                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-                    { data: 'nik', name: 'nik' },
-                    { data: 'name', name: 'name' },
-                    { data: 'department', name: 'department' },
-                    { data: 'company', name: 'company' },
-                    { data: 'group', name: 'group' },
-                    { data: 'status', name: 'status', orderable: false, searchable: false },
-                    { data: 'last_synced_at', name: 'last_synced_at' },
-                    { data: 'action', name: 'action', orderable: false, searchable: false }
-                ],
-                dom: 'lBfrtip',
-                buttons: [
-                    { extend: 'copy', exportOptions: { columns: ':not(:last-child)' } },
-                    { extend: 'csv', exportOptions: { columns: ':not(:last-child)' } },
-                    { extend: 'excel', exportOptions: { columns: ':not(:last-child)' } },
-                    { extend: 'pdf', exportOptions: { columns: ':not(:last-child)' } },
-                    { extend: 'print', exportOptions: { columns: ':not(:last-child)' } },
-                    'colvis'
-                ],
-            });
-        });
-    </script>
 @endpush
+
+<x-datatable.scripts table-id="employees-table" ajax="{{ route('employees.data') }}">
+    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+    { data: 'nik', name: 'nik' },
+    { data: 'name', name: 'name' },
+    { data: 'department', name: 'department' },
+    { data: 'company', name: 'company' },
+    { data: 'group', name: 'group' },
+    { data: 'status', name: 'status', orderable: false, searchable: false },
+    { data: 'last_synced_at', name: 'last_synced_at' },
+    { data: 'action', name: 'action', orderable: false, searchable: false }
+</x-datatable.scripts>

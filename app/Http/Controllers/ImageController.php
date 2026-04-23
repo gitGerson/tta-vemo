@@ -199,42 +199,11 @@ class ImageController extends Controller
             ->addColumn('formatted_date', function ($image) {
                 return $image->created_at->format('d M Y H:i');
             })
+            ->addColumn('row_url', function ($image) {
+                return route('images.show', $image->id);
+            })
             ->addColumn('action', function ($image) {
-                $actions = '<div class="d-inline-flex align-items-center gap-1">';
-
-                // View action
-                if (auth()->user()->hasPermission('images.view')) {
-                    $actions .= '<a class="btn btn-sm btn-info" href="' . route('images.show', $image->id) . '" title="View" aria-label="View">
-                        <i class="bx bx-show"></i>
-                    </a>';
-                }
-
-                // Edit action
-                if (auth()->user()->hasPermission('images.edit')) {
-                    $actions .= '<a class="btn btn-sm btn-warning" href="' . route('images.edit', $image->id) . '" title="Edit" aria-label="Edit">
-                        <i class="bx bx-edit-alt"></i>
-                    </a>';
-                }
-
-                // Download action
-                $actions .= '<a class="btn btn-sm btn-secondary" href="' . $image->url . '" download target="_blank" title="Download" aria-label="Download">
-                    <i class="bx bx-download"></i>
-                </a>';
-
-                // Delete action
-                if (auth()->user()->hasPermission('images.delete')) {
-                    $actions .= '<form action="' . route('images.destroy', $image->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        ' . method_field('DELETE') . '
-                        <button type="submit" class="btn btn-sm btn-danger" title="Delete" aria-label="Delete" onclick="return confirm(\'Are you sure you want to delete this image?\')">
-                            <i class="bx bx-trash"></i>
-                        </button>
-                    </form>';
-                }
-
-                $actions .= '</div>';
-
-                return $actions;
+                return view('datatable.actions.images', compact('image'))->render();
             })
             ->rawColumns(['action'])
             ->make(true);
@@ -263,32 +232,7 @@ class ImageController extends Controller
                 return $image->deleter ? $image->deleter->name : '-';
             })
             ->addColumn('action', function ($image) {
-                $actions = '<div class="d-inline-flex align-items-center gap-1">';
-
-                // Restore action
-                if (auth()->user()->hasPermission('images.restore')) {
-                    $actions .= '<form action="' . route('images.restore', $image->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        <button type="submit" class="btn btn-sm btn-success" title="Restore" aria-label="Restore" onclick="return confirm(\'Are you sure you want to restore this image?\')">
-                            <i class="bx bx-refresh"></i>
-                        </button>
-                    </form>';
-                }
-
-                // Force delete action
-                if (auth()->user()->hasPermission('images.force_delete')) {
-                    $actions .= '<form action="' . route('images.force-delete', $image->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        ' . method_field('DELETE') . '
-                        <button type="submit" class="btn btn-sm btn-danger" title="Delete Permanently" aria-label="Delete Permanently" onclick="return confirm(\'Are you sure you want to permanently delete this image? This cannot be undone!\')">
-                            <i class="bx bx-trash"></i>
-                        </button>
-                    </form>';
-                }
-
-                $actions .= '</div>';
-
-                return $actions;
+                return view('datatable.actions.images-trash', compact('image'))->render();
             })
             ->rawColumns(['action'])
             ->make(true);

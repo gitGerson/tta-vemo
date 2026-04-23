@@ -242,47 +242,11 @@ class UserController extends Controller
             ->addColumn('roles', function ($user) {
                 return $user->roles->pluck('display_name')->join(', ') ?: '-';
             })
+            ->addColumn('row_url', function ($user) {
+                return route('users.show', $user->id);
+            })
             ->addColumn('action', function ($user) {
-                $actions = '<div class="d-inline-flex align-items-center gap-1">';
-
-                // View action - always available if user has users.view permission
-                if (auth()->user()->hasPermission('management.users.view')) {
-                    $actions .= '<a class="btn btn-sm btn-info" href="' . route('users.show', $user->id) . '" title="Lihat" aria-label="Lihat">
-                        <i class="bx bx-show"></i>
-                    </a>';
-                }
-
-                // Activity logs
-                if (auth()->user()->hasPermission('management.users.logs')) {
-                    $actions .= '<a class="btn btn-sm btn-secondary" href="' . route('users.user-logs', $user->id) . '" title="Activity Log" aria-label="Activity Log">
-                        <i class="bx bx-history"></i>
-                    </a>';
-                }
-
-                // Edit action
-                if (auth()->user()->hasPermission('management.users.edit')) {
-                    $actions .= '<a class="btn btn-sm btn-warning" href="' . route('users.edit', $user->id) . '" title="Edit" aria-label="Edit">
-                        <i class="bx bx-edit-alt"></i>
-                    </a>';
-                    $actions .= '<a class="btn btn-sm btn-primary d-none" href="' . route('users.roles', $user->id) . '" title="Kelola Role" aria-label="Kelola Role">
-                        <i class="bx bx-shield"></i>
-                    </a>';
-                }
-
-                // Delete action
-                if (auth()->user()->hasPermission('management.users.delete')) {
-                    $actions .= '<form action="' . route('users.destroy', $user->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        ' . method_field('DELETE') . '
-                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus" aria-label="Hapus" onclick="return confirm(\'Yakin ingin menghapus user ini?\')">
-                            <i class="bx bx-trash"></i>
-                        </button>
-                    </form>';
-                }
-
-                $actions .= '</div>';
-
-                return $actions;
+                return view('datatable.actions.users', compact('user'))->render();
             })
             ->rawColumns(['action'])
             ->make(true);
@@ -308,32 +272,7 @@ class UserController extends Controller
                 return $user->deleter ? $user->deleter->name : '-';
             })
             ->addColumn('action', function ($user) {
-                $actions = '<div class="d-inline-flex align-items-center gap-1">';
-
-                // Restore action
-                if (auth()->user()->hasPermission('management.users.restore')) {
-                    $actions .= '<form action="' . route('users.restore', $user->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        <button type="submit" class="btn btn-sm btn-success" title="Pulihkan" aria-label="Pulihkan" onclick="return confirm(\'Yakin ingin memulihkan user ini?\')">
-                            <i class="bx bx-refresh"></i>
-                        </button>
-                    </form>';
-                }
-
-                // Force delete action
-                if (auth()->user()->hasPermission('management.users.force_delete')) {
-                    $actions .= '<form action="' . route('users.force-delete', $user->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        ' . method_field('DELETE') . '
-                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus Permanen" aria-label="Hapus Permanen" onclick="return confirm(\'Yakin ingin menghapus permanen user ini? Data tidak dapat dipulihkan!\')">
-                            <i class="bx bx-trash"></i>
-                        </button>
-                    </form>';
-                }
-
-                $actions .= '</div>';
-
-                return $actions;
+                return view('datatable.actions.users-trash', compact('user'))->render();
             })
             ->rawColumns(['action'])
             ->make(true);

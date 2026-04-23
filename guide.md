@@ -643,6 +643,110 @@ Prefer forms structured like this:
 - Keep demo coverage updated in `resources/views/form-demo/index.blade.php` when adding a new reusable component.
 - Add or update tests when changing component contracts, especially for rendered markup and non-trivial modes like FilePond or rich editor.
 
+## DataTable Components
+
+Use `x-datatable.*` components for server-side DataTables pages.
+
+Components:
+- `x-datatable.card`
+- `x-datatable.table`
+- `x-datatable.scripts`
+
+Normal table page:
+
+```blade
+<x-datatable.card title="Daftar Produk">
+    <x-slot:actions>
+        <a href="{{ route('products.create') }}" class="btn btn-primary">
+            <i class="bx bx-plus me-1"></i> Tambah Produk
+        </a>
+    </x-slot:actions>
+
+    <x-datatable.table
+        id="products-table"
+        :columns="['No', 'Nama', 'Status', 'Aksi']"
+    />
+</x-datatable.card>
+
+<x-datatable.scripts table-id="products-table" ajax="{{ route('products.data') }}">
+    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+    { data: 'name', name: 'name' },
+    { data: 'status', name: 'status', orderable: false, searchable: false },
+    { data: 'action', name: 'action', orderable: false, searchable: false }
+</x-datatable.scripts>
+```
+
+Clickable rows:
+
+```blade
+<x-datatable.scripts table-id="products-table" ajax="{{ route('products.data') }}" clickable-rows>
+    { data: 'name', name: 'name' },
+    { data: 'action', name: 'action', orderable: false, searchable: false }
+</x-datatable.scripts>
+```
+
+Controller data for clickable rows:
+
+```php
+->addColumn('row_url', function ($product) {
+    return route('products.show', $product->id);
+})
+```
+
+Trash table with date rendering:
+
+```blade
+<x-datatable.scripts table-id="trash-table" ajax="{{ route('products.trash.data') }}">
+    { data: 'id', name: 'id' },
+    { data: 'name', name: 'name' },
+    {
+        data: 'deleted_at',
+        name: 'deleted_at',
+        render: function(data) {
+            return moment(data).format('DD MMM YYYY HH:mm');
+        }
+    },
+    { data: 'action', name: 'action', orderable: false, searchable: false }
+</x-datatable.scripts>
+```
+
+Server-side action partial:
+
+```php
+->addColumn('action', function ($product) {
+    return view('datatable.actions.products', compact('product'))->render();
+})
+->rawColumns(['action'])
+```
+
+Action partial buttons:
+
+```blade
+<div class="d-inline-flex align-items-center gap-1">
+    <a href="{{ route('products.show', $product->id) }}" class="btn btn-sm btn-info" title="Lihat" aria-label="Lihat">
+        <i class="bx bx-show"></i>
+    </a>
+
+    <form action="{{ route('products.destroy', $product->id) }}" method="POST" style="display: inline;">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-sm btn-danger" title="Hapus" aria-label="Hapus" onclick="return confirm(@js('Yakin ingin menghapus produk ini?'))">
+            <i class="bx bx-trash"></i>
+        </button>
+    </form>
+</div>
+```
+
+Rules:
+- Put `x-datatable.scripts` directly in the Blade file, not inside another `@push('scripts')`.
+- Keep DataTables columns in the script slot so raw JS render functions still work.
+- Use `variable="productsEsbTable"` when other scripts need `window.productsEsbTable`.
+- Use `clickable-rows` only when every returned row has a valid `row_url` show route.
+- Set `:export-exclude-last-column="false"` only when the old table exported every column.
+- Render action HTML through `resources/views/datatable/actions/*.blade.php`, not controller string concatenation.
+- Keep action partials explicit: use normal `<a>` tags for GET actions and forms with `@csrf` / `@method` for destructive actions.
+- Add `title` and `aria-label` to every icon-only row action.
+
 ## Demo Reference
 
 Live examples are currently available at:
