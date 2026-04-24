@@ -375,7 +375,7 @@
                                         <button type="submit" id="submitButton" class="btn btn-success btn-lg" disabled>
                                             <i class="bx bx-check me-1"></i> Simpan Data Pemeliharaan
                                         </button>
-                                        <button type="submit" name="save_as_draft" value="1" class="btn btn-link text-muted">
+                                        <button type="submit" name="save_as_draft" value="1" class="btn btn-link text-muted" formnovalidate>
                                             Simpan sebagai Draf
                                         </button>
                                     </div>

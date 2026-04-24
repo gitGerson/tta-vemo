@@ -115,36 +115,33 @@ class MaintenancesController extends Controller
      */
     public function store(Request $request)
     {
-        // Check if saving as draft
         $saveAsDraft = $request->has('save_as_draft');
 
-        // Validation rules differ for draft vs full save
-        // With FilePond, fields[] contains temp file paths (strings), not file uploads
-        $rules = [
-            'no_pol' => 'required',
-            'date_in' => 'required',
-            'mileage' => 'required',
-            'total_amount' => 'nullable',
-            'isServiceRoutine' => 'required',
-            'desc' => 'nullable',
-            'fields' => $saveAsDraft ? 'nullable|array' : 'required|array|min:1',
-            'fields.*' => 'nullable|string', // FilePond sends temp file paths as strings
-        ];
-
-        $request->validate($rules, [
-            'fields.required' => 'Bukti/nota perbaikan wajib diupload',
-            'fields.min' => 'Minimal 1 bukti harus diupload',
-        ]);
+        if (! $saveAsDraft) {
+            $request->validate([
+                'no_pol' => 'required',
+                'date_in' => 'required',
+                'mileage' => 'required',
+                'total_amount' => 'nullable',
+                'isServiceRoutine' => 'required',
+                'desc' => 'nullable',
+                'fields' => 'required|array|min:1',
+                'fields.*' => 'nullable|string',
+            ], [
+                'fields.required' => 'Bukti/nota perbaikan wajib diupload',
+                'fields.min' => 'Minimal 1 bukti harus diupload',
+            ]);
+        }
 
         $maintenances = Maintenances::create([
             'code_mt' => $this->generateCodeMt(),
-            'no_pol' => Str::upper($request->no_pol),
-            'date_in' => $request->date_in,
+            'no_pol' => Str::upper((string) $request->input('no_pol', '')),
+            'date_in' => $request->input('date_in') ?: now()->toDateString(),
             'date_out' => $request->date_out,
             'mileage' => $request->mileage,
             'description' => $request->desc,
             'total_amount' => 0,
-            'isServiceRoutine' => $request->isServiceRoutine,
+            'isServiceRoutine' => $request->input('isServiceRoutine', '1'),
             'status' => $saveAsDraft ? 'DRAFT' : 'COMPLETED',
             'get_request' => auth()->user()->id,
             'requested_by_name' => auth()->user()->name,
@@ -264,28 +261,32 @@ class MaintenancesController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'no_pol' => 'required',
-            'date_in' => 'required',
-            'date_out' => 'nullable',
-            'mileage' => 'required',
-            'total_amount' => 'nullable',
-            'isServiceRoutine' => 'required',
-            'desc' => 'nullable',
-            'fields' => 'nullable|array',
-            'fields.*' => 'nullable|string', // FilePond sends temp file paths as strings
-        ]);
+        $saveAsDraft = $request->has('save_as_draft');
+
+        if (! $saveAsDraft) {
+            $request->validate([
+                'no_pol' => 'required',
+                'date_in' => 'required',
+                'date_out' => 'nullable',
+                'mileage' => 'required',
+                'total_amount' => 'nullable',
+                'isServiceRoutine' => 'required',
+                'desc' => 'nullable',
+                'fields' => 'nullable|array',
+                'fields.*' => 'nullable|string',
+            ]);
+        }
 
         $maintenances = Maintenances::find($id);
         $maintenances->update([
             'code_mt' => $maintenances->code_mt,
-            'no_pol' => Str::upper($request->no_pol),
-            'date_in' => $request->date_in,
+            'no_pol' => Str::upper((string) $request->input('no_pol', $maintenances->no_pol)),
+            'date_in' => $request->input('date_in') ?: $maintenances->date_in,
             'date_out' => $request->date_out,
             'mileage' => $request->mileage,
             'description' => $request->desc,
             'total_amount' => $request->total_amount,
-            'isServiceRoutine' => $request->isServiceRoutine,
+            'isServiceRoutine' => $request->input('isServiceRoutine', $maintenances->isServiceRoutine),
             'get_request' => auth()->user()->id,
             'requested_by_name' => auth()->user()->name,
         ]);
