@@ -256,15 +256,26 @@ class ReportController extends Controller
     {
         return MaintenancesDetails::query()
             ->select([
+                'maintenances_details.id',
                 'maintenances_details.maintenance_name',
-                DB::raw('SUM(COALESCE(NULLIF(maintenances_details.qty, \'\'), 0)) as total_qty'),
-                DB::raw('SUM(maintenances_details.price) as total_price'),
+                'maintenances_details.material',
+                'maintenances_details.qty',
+                'maintenances_details.price',
+                'maintenances_details.subtotal',
+                'maintenances.code_mt',
+                'maintenances.date_in',
+                'maintenances.date_out',
+                'maintenances.mileage',
+                'maintenances.status',
+                'maintenances.description',
             ])
             ->join('maintenances', 'maintenances.id', '=', 'maintenances_details.maintenance_id')
             ->where('maintenances.no_pol', $plate)
+            ->where('maintenances.status', 'COMPLETED')
             ->whereBetween(DB::raw('COALESCE(maintenances.date_out, maintenances.date_in)'), [$startDate, $endDate])
-            ->groupBy('maintenances_details.maintenance_name')
-            ->orderBy('maintenances_details.maintenance_name')
+            ->orderByRaw('COALESCE(maintenances.date_out, maintenances.date_in) ASC')
+            ->orderBy('maintenances.code_mt')
+            ->orderBy('maintenances_details.id')
             ->get();
     }
 
