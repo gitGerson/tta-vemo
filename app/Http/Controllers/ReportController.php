@@ -180,7 +180,7 @@ class ReportController extends Controller
         $year = $request->query('year', Carbon::now()->year);
         [$mtc, $vehicles] = $this->fetchYearlyMaintenance($year);
 
-        $header = ['KENDARAAN'];
+        $header = ['KENDARAAN', 'TAHUN MASUK'];
         foreach (['JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'] as $label) {
             $header[] = $label;
         }
@@ -200,11 +200,12 @@ class ReportController extends Controller
                 $total += $item->total_amount;
             }
 
-            $vehicleLabel = optional($vehicles->where('plat_new', $noPol)->first())->plat_new
-                ?? optional($vehicles->where('plat_old', $noPol)->first())->plat_old
-                ?? $noPol;
+            $vehicle = $vehicles->where('plat_new', $noPol)->first()
+                ?? $vehicles->where('plat_old', $noPol)->first();
 
-            $row = [$vehicleLabel];
+            $vehicleLabel = $vehicle?->plat_new ?? $vehicle?->plat_old ?? $noPol;
+
+            $row = [$vehicleLabel, $vehicle?->entry_year ?? '-'];
             for ($i = 1; $i <= 12; $i++) {
                 $row[] = $sums[$i];
             }
@@ -213,7 +214,7 @@ class ReportController extends Controller
             $rows[] = $row;
         }
 
-        $totalRow = ['TOTAL'];
+        $totalRow = ['TOTAL', ''];
         $overall = 0;
         for ($i = 1; $i <= 12; $i++) {
             $totalRow[] = $monthlyTotals[$i];

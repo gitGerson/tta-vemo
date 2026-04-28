@@ -47,6 +47,7 @@
                 <tr class="text-nowrap">
                     <th class="text-center" scope="col">No</th>
                     <th class="text-center" scope="col">KENDARAAN</th>
+                    <th class="text-center" scope="col">TAHUN MASUK</th>
                     @foreach (['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'] as $month)
                         <th class="text-center" scope="col">{{ $month }}</th>
                     @endforeach
@@ -61,7 +62,8 @@
 
                     @foreach ($mtc->groupBy('no_pol') as $noPol => $rows)
                         @php
-                            $vehicle = $vehicles->where('plat_new', $noPol)->first();
+                            $vehicle = $vehicles->where('plat_new', $noPol)->first()
+                                ?? $vehicles->where('plat_old', $noPol)->first();
                             $totalAmount = 0;
                             $monthlySums = array_fill(1, 12, 0);
 
@@ -78,6 +80,7 @@
                             <td>
                                 {{ $vehicle ? $vehicle->plat_new . ' / ' . $vehicle->type : 'Unknown Vehicle' }}
                             </td>
+                            <td>{{ $vehicle?->entry_year ?? '-' }}</td>
                             @for ($month = 1; $month <= 12; $month++)
                                 <td class="text-right">{{ number_format($monthlySums[$month]) }}</td>
                             @endfor
@@ -86,7 +89,7 @@
                     @endforeach
 
                     <tr class="fw-bold">
-                        <td colspan="2" class="text-center font-weight-bold">TOTAL</td>
+                        <td colspan="3" class="text-center font-weight-bold">TOTAL</td>
                         @foreach ($monthlyTotals as $total)
                             <td class="text-right font-weight-bold">{{ number_format($total) }}</td>
                         @endforeach

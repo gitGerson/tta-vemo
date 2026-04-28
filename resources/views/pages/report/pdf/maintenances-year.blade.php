@@ -17,6 +17,7 @@
             <tr>
                 <th>No</th>
                 <th>Kendaraan</th>
+                <th>Tahun Masuk</th>
                 @foreach (['JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'] as $month)
                     <th>{{ $month }}</th>
                 @endforeach
@@ -31,7 +32,8 @@
 
             @foreach ($mtc->groupBy('no_pol') as $noPol => $rows)
                 @php
-                    $vehicle = $vehicles->where('plat_new', $noPol)->first();
+                    $vehicle = $vehicles->where('plat_new', $noPol)->first()
+                        ?? $vehicles->where('plat_old', $noPol)->first();
                     $totalAmount = 0;
                     $monthlySums = array_fill(1, 12, 0);
 
@@ -46,6 +48,7 @@
                 <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ $vehicle ? $vehicle->plat_new . ' / ' . $vehicle->type : $noPol }}</td>
+                    <td>{{ $vehicle?->entry_year ?? '-' }}</td>
                     @for ($month = 1; $month <= 12; $month++)
                         <td>{{ number_format($monthlySums[$month]) }}</td>
                     @endfor
@@ -54,7 +57,7 @@
             @endforeach
 
             <tr>
-                <td colspan="2"><strong>TOTAL</strong></td>
+                <td colspan="3"><strong>TOTAL</strong></td>
                 @foreach ($monthlyTotals as $total)
                     <td><strong>{{ number_format($total) }}</strong></td>
                 @endforeach

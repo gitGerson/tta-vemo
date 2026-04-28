@@ -82,6 +82,7 @@
                     <span class="text-primary">UNIT &nbsp;:</span>
                     &nbsp;{{ $unit?->plat_new ?? $unit?->plat_old ?? request()->query('unit') }}
                     {{ $unit?->type ? '/ ' . $unit->type : '' }}
+                    {{ $unit?->entry_year ? '/ Tahun Masuk ' . $unit->entry_year : '' }}
                 </h6>
 
                 <div class="report-table-toolbar ms-6 mb-3">
@@ -238,7 +239,8 @@ $(document).ready(function() {
                     let startDate = $('#start_date').val() || '';
                     let endDate = $('#end_date').val() || '';
                     let unit = $('select[name="unit"]').val() || '';
-                    let unitType = '{{ isset($unit) ? $unit->type : "" }}';
+                    let unitType = @json($unit?->type ?? '');
+                    let unitEntryYear = @json($unit?->entry_year ?? '');
 
                     let formattedStartDate = startDate ? new Date(startDate).toLocaleDateString('id-ID') : '';
                     let formattedEndDate = endDate ? new Date(endDate).toLocaleDateString('id-ID') : '';
@@ -261,7 +263,7 @@ $(document).ready(function() {
                     const heading =
                         '<row r="1">' + createCell(1, 'A', 'LAPORAN PEMELIHARAAN PERUNIT') + '</row>' +
                         '<row r="2">' + createCell(2, 'A', 'Periode: ' + formattedStartDate + ' - ' + formattedEndDate) + '</row>' +
-                        '<row r="3">' + createCell(3, 'A', 'Unit: ' + unit + (unitType ? ' / ' + unitType : '')) + '</row>' +
+                        '<row r="3">' + createCell(3, 'A', 'Unit: ' + unit + (unitType ? ' / ' + unitType : '') + (unitEntryYear ? ' / Tahun Masuk ' + unitEntryYear : '')) + '</row>' +
                         '<row r="4"></row>';
 
                     const sheetData = sheet.getElementsByTagName('sheetData')[0];

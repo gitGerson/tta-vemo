@@ -51,6 +51,11 @@
                         <td class="meta-colon"><strong>:</strong></td>
                         <td><strong>{{ $unit?->type ?? '-' }}</strong></td>
                     </tr>
+                    <tr>
+                        <td class="meta-label"><strong>Tahun Masuk</strong></td>
+                        <td class="meta-colon"><strong>:</strong></td>
+                        <td><strong>{{ $unit?->entry_year ?? '-' }}</strong></td>
+                    </tr>
                 </table>
             </td>
         </tr>
