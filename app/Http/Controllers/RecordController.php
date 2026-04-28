@@ -13,6 +13,7 @@ use App\Models\Vehicle;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\DataTables;
 
@@ -77,7 +78,10 @@ class RecordController extends Controller
             'date' => 'required|date',
             'driver_1' => 'required|exists:drivers,id',
             'driver_2' => 'nullable',
-            'no_pol' => 'required|exists:vehicles,plat_new',
+            'no_pol' => [
+                'required',
+                Rule::exists('vehicles', 'plat_new')->where('company_id', $request->company_id),
+            ],
             'destination' => 'required|exists:destinations,destination',
             'start_km' => 'nullable|string',
             'finish_km' => 'required|string',
@@ -232,7 +236,10 @@ class RecordController extends Controller
         $request->validate([
             'driver_1' => 'required',
             'driver_2' => 'nullable',
-            'no_pol' => 'required|exists:vehicles,plat_new',
+            'no_pol' => [
+                'required',
+                Rule::exists('vehicles', 'plat_new')->where('company_id', $request->company_id),
+            ],
             'destination' => 'required|exists:destinations,destination',
             'company_id' => 'required|exists:company,id',
             'start_km' => 'required|string',

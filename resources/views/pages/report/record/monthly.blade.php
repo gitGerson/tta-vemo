@@ -52,6 +52,7 @@
                                             @if (!empty($row->plat_new))
                                                 <option
                                                     {{ request()->query('unit') == $row->plat_new ? 'selected' : '' }}
+                                                    data-company-id="{{ $row->company_id }}"
                                                     value="{{ $row->plat_new }}">
                                                     {{ $row->plat_new }}
                                                 </option>
@@ -64,6 +65,7 @@
                                             @if (!empty($row->plat_old))
                                                 <option
                                                     {{ request()->query('unit') == $row->plat_old ? 'selected' : '' }}
+                                                    data-company-id="{{ $row->company_id }}"
                                                     value="{{ $row->plat_old }}">
                                                     {{ $row->plat_old }}
                                                 </option>
@@ -280,7 +282,29 @@
             $('.select2').select2();
             datatable.buttons().container().appendTo('#dataTableButtons');
 
+            function filterUnitOptions() {
+                const companyId = $('#company').val();
+                const currentUnit = $('#unit').val();
+
+                $('#unit option').each(function() {
+                    const optionCompanyId = String($(this).data('company-id') || '');
+                    const shouldShow = !$(this).val() || (companyId && optionCompanyId === String(companyId));
+                    $(this).prop('disabled', !shouldShow);
+                });
+
+                if (currentUnit && $('#unit option:selected').prop('disabled')) {
+                    $('#unit').val(null);
+                }
+
+                $('#unit').trigger('change.select2');
+            }
+
+            filterUnitOptions();
+
             $('#company, #date, #unit').on('change', function() {
+                if ($(this).attr('id') === 'company') {
+                    filterUnitOptions();
+                }
                 $('#FormSearchWithQuery').submit();
             });
 

@@ -93,7 +93,8 @@
                                 <option selected disabled>- pilih kendaraan -</option>
                                 @foreach ($vehicles as $row)
                                     <option {{ old('no_pol') == $row->plat_new ? 'selected' : '' }}
-                                        data-mileage={{ $row->mileage }} value="{{ $row->plat_new }}">
+                                        data-company-id="{{ $row->company_id }}"
+                                        data-mileage="{{ $row->mileage }}" value="{{ $row->plat_new }}">
                                         {{ $row->plat_new }}</option>
                                 @endforeach
                             </select>
@@ -184,6 +185,24 @@
 $(document).ready(function() {
     $('.select2').select2();
 
+    function filterVehicleOptions() {
+        const companyId = $('#company_id').val();
+        const currentVehicle = $('#no_pol').val();
+
+        $('#no_pol option').each(function() {
+            const optionCompanyId = String($(this).data('company-id') || '');
+            const shouldShow = !$(this).val() || (companyId && optionCompanyId === String(companyId));
+            $(this).prop('disabled', !shouldShow);
+        });
+
+        if (currentVehicle && $('#no_pol option:selected').prop('disabled')) {
+            $('#no_pol').val(null);
+            $('#start_km').val('');
+        }
+
+        $('#no_pol').trigger('change.select2');
+    }
+
     // Autofill KM akhir from selected vehicle mileage
     $('#no_pol').on('change', function() {
         const mileage = $(this).find('option:selected').data('mileage');
@@ -260,6 +279,7 @@ $(document).ready(function() {
     if ($('#company_id').val()) {
         toggleFormState(true);
     }
+    filterVehicleOptions();
 
     // Mengaktifkan elemen form jika company_id dipilih
     $('#company_id').change(function() {
@@ -268,6 +288,7 @@ $(document).ready(function() {
         } else {
             toggleFormState(false);
         }
+        filterVehicleOptions();
     });
 
     // Handle submit button response

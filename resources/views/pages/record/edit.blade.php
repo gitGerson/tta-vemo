@@ -110,7 +110,9 @@
                         <option selected disabled>- pilih kendaraan -</option>
                         @foreach ($vehicles as $row)
                             <option {{ $record->no_pol == $row->plat_new ? 'selected' : '' }}
-                                value="{{ $row->plat_new }}" data-mileage={{ $row->mileage }}>{{ $row->plat_new }}</option>
+                                value="{{ $row->plat_new }}"
+                                data-company-id="{{ $row->company_id }}"
+                                data-mileage="{{ $row->mileage }}">{{ $row->plat_new }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -198,6 +200,29 @@
     <script>
         $(document).ready(function() {
             $('.select2').select2();
+            filterVehicleOptions();
+        });
+
+        function filterVehicleOptions() {
+            const companyId = $('#company_id').val();
+            const currentVehicle = $('#no_pol').val();
+
+            $('#no_pol option').each(function() {
+                const optionCompanyId = String($(this).data('company-id') || '');
+                const shouldShow = !$(this).val() || (companyId && optionCompanyId === String(companyId));
+                $(this).prop('disabled', !shouldShow);
+            });
+
+            if (currentVehicle && $('#no_pol option:selected').prop('disabled')) {
+                $('#no_pol').val(null);
+                $('#start_km').val('');
+            }
+
+            $('#no_pol').trigger('change.select2');
+        }
+
+        $('#company_id').on('change', function() {
+            filterVehicleOptions();
         });
         {{--  menage check driver 2  --}}
         $("#driver_1").on("change", function(event) {
