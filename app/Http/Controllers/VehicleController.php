@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -10,12 +11,15 @@ class VehicleController extends Controller
 {
     public function index()
     {
-        return view('pages.vehicle.index');
+        return view('pages.vehicle.index', [
+            'companies' => Company::orderBy('name')->get(),
+        ]);
     }
 
     public function store(Request $request)
     {
         $request->validate([
+            'company_id' => ['nullable', 'exists:company,id'],
             'type' => ['required', 'string'],
             'entry_year' => ['required', 'string'],
             'mileage' => ['nullable', 'string'],
@@ -28,6 +32,7 @@ class VehicleController extends Controller
         ]);
 
         $vehicleData = $request->only([
+            'company_id',
             'type',
             'entry_year',
             'mileage',
@@ -40,6 +45,7 @@ class VehicleController extends Controller
         ]);
 
         $vehicleData['mileage'] = blank($vehicleData['mileage']) ? '0' : $vehicleData['mileage'];
+        $vehicleData['company_id'] = blank($vehicleData['company_id']) ? null : $vehicleData['company_id'];
 
         $created = Vehicle::create($vehicleData);
 
@@ -55,6 +61,7 @@ class VehicleController extends Controller
         $vehicle = Vehicle::findOrFail($id);
 
         $request->validate([
+            'company_id' => ['nullable', 'exists:company,id'],
             'type' => ['required', 'string'],
             'entry_year' => ['required', 'string'],
             'mileage' => ['nullable', 'string'],
@@ -67,6 +74,7 @@ class VehicleController extends Controller
         ]);
 
         $vehicleData = $request->only([
+            'company_id',
             'type',
             'entry_year',
             'mileage',
@@ -79,6 +87,7 @@ class VehicleController extends Controller
         ]);
 
         $vehicleData['mileage'] = blank($vehicleData['mileage']) ? '0' : $vehicleData['mileage'];
+        $vehicleData['company_id'] = blank($vehicleData['company_id']) ? null : $vehicleData['company_id'];
 
         $updated = $vehicle->update($vehicleData);
 
@@ -102,21 +111,29 @@ class VehicleController extends Controller
 
     public function getData(Request $request)
     {
-        $vehicles = Vehicle::select([
-            'id',
-            'type',
-            'entry_year',
-            'mileage',
-            'plat_new',
-            'plat_old',
-            'status',
-            'mtc',
-            'desc',
-            'isprivate',
-        ]);
+        $vehicles = Vehicle::query()
+            ->with('company:id,name,code')
+            ->select([
+                'id',
+                'company_id',
+                'type',
+                'entry_year',
+                'mileage',
+                'plat_new',
+                'plat_old',
+                'status',
+                'mtc',
+                'desc',
+                'isprivate',
+            ]);
 
         return datatables()->of($vehicles)
             ->addIndexColumn()
+            ->addColumn('company_name', function ($vehicle) {
+                return $vehicle->company
+                    ? "{$vehicle->company->name} ({$vehicle->company->code})"
+                    : '-';
+            })
             ->addColumn('isprivate_label', function ($vehicle) {
                 return $vehicle->isprivate ? 'Yes' : 'No';
             })
@@ -125,6 +142,7 @@ class VehicleController extends Controller
                 $canDelete = auth()->user()->hasPermission('master.vehicles.delete');
 
                 $attrs = [
+                    'company_id' => e($vehicle->company_id),
                     'type' => e($vehicle->type),
                     'entry_year' => e($vehicle->entry_year),
                     'mileage' => e($vehicle->mileage),
@@ -145,6 +163,7 @@ class VehicleController extends Controller
                     $actions .= '<a class="dropdown-item btn-edit-vehicle"
                             href="#"
                             data-update-url="'.route('vehicle.update', $vehicle->id).'"
+                            data-company_id="'.$attrs['company_id'].'"
                             data-type="'.$attrs['type'].'"
                             data-entry_year="'.$attrs['entry_year'].'"
                             data-mileage="'.$attrs['mileage'].'"

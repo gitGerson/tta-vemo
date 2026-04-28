@@ -37,6 +37,7 @@
                         <thead>
                             <tr>
                                 <th>No</th>
+                                <th>Perusahaan</th>
                                 <th>Tipe</th>
                                 <th>Plat Baru</th>
                                 <th>Plat Lama</th>
@@ -62,6 +63,17 @@
                     </div>
                     <div class="modal-body">
                         <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="vehicle-company_id">Perusahaan</label>
+                                <select class="form-select" id="vehicle-company_id" name="company_id">
+                                    <option value="">- Pilih Perusahaan -</option>
+                                    @foreach ($companies as $company)
+                                        <option value="{{ $company->id }}">
+                                            {{ $company->name }} ({{ $company->code }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                             <div class="col-md-6">
                                 <label class="form-label" for="vehicle-type">Tipe<small class="text-danger">*</small></label>
                                 <input type="text" class="form-control" id="vehicle-type" name="type" required>
@@ -128,6 +140,7 @@
                 ajax: '{{ route('vehicle.data') }}',
                 columns: [
                     { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+                    { data: 'company_name', name: 'company.name' },
                     { data: 'type', name: 'type' },
                     { data: 'plat_new', name: 'plat_new' },
                     { data: 'plat_old', name: 'plat_old' },
@@ -165,6 +178,7 @@
             const setFormForEdit = (data) => {
                 vehicleForm.action = data.updateUrl;
                 methodInput.value = 'PUT';
+                $('#vehicle-company_id').val(data.company_id || '');
                 $('#vehicle-type').val(data.type || '');
                 $('#vehicle-entry_year').val(data.entry_year || '');
                 $('#vehicle-mileage').val(data.mileage || '0');
@@ -187,6 +201,7 @@
                 const button = $(this);
                 setFormForEdit({
                     updateUrl: button.data('update-url'),
+                    company_id: button.data('company_id'),
                     type: button.data('type'),
                     entry_year: button.data('entry_year'),
                     mileage: button.data('mileage'),

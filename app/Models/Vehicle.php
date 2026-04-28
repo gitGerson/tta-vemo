@@ -13,6 +13,11 @@ class Vehicle extends Model
     protected $table = 'vehicles';
     protected $guarded = [''];
 
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'company_id');
+    }
+
     static function getByNoPol($plat)
     {
         return static::where('plat_new', $plat)->orWhere('plat_old', $plat)->first();
