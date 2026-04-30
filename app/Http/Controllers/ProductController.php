@@ -142,9 +142,8 @@ class ProductController extends Controller
     /**
      * Restore soft deleted product.
      */
-    public function restore($id)
+    public function restore(Product $product)
     {
-        $product = Product::withTrashed()->findOrFail($id);
         $product->deleted_by = null;
         $product->restore();
 
@@ -155,10 +154,8 @@ class ProductController extends Controller
     /**
      * Permanently delete product.
      */
-    public function forceDelete($id)
+    public function forceDelete(Product $product)
     {
-        $product = Product::withTrashed()->findOrFail($id);
-
         // Delete image from S3
         if ($product->image) {
             Storage::disk('s3')->delete($product->image);
@@ -197,7 +194,7 @@ class ProductController extends Controller
                     : '<span class="badge bg-secondary">Nonaktif</span>';
             })
             ->addColumn('row_url', function ($product) {
-                return route('products.show', $product->id);
+                return route('products.show', $product);
             })
             ->addColumn('action', function ($product) {
                 return view('datatable.actions.products', compact('product'))->render();

@@ -104,7 +104,7 @@ class RoleController extends Controller
                 return $role->permissions_count;
             })
             ->addColumn('row_url', function ($role) {
-                return route('roles.show', $role->id);
+                return route('roles.show', $role);
             })
             ->addColumn('action', function ($role) {
                 return view('datatable.actions.roles', compact('role'))->render();

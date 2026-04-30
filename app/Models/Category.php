@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\HasDiffrntHashId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,7 +12,7 @@ use Illuminate\Support\Str;
 
 class Category extends Model
 {
-    use HasFactory, SoftDeletes, Auditable;
+    use HasFactory, SoftDeletes, Auditable, HasDiffrntHashId;
 
     protected $fillable = [
         'name',

@@ -210,9 +210,8 @@ class UserController extends Controller
     /**
      * Restore soft deleted user.
      */
-    public function restore($id)
+    public function restore(User $user)
     {
-        $user = User::withTrashed()->findOrFail($id);
         $user->deleted_by = null;
         $user->restore();
 
@@ -222,9 +221,8 @@ class UserController extends Controller
     /**
      * Permanently delete user.
      */
-    public function forceDelete($id)
+    public function forceDelete(User $user)
     {
-        $user = User::withTrashed()->findOrFail($id);
         $user->forceDelete();
 
         return redirect()->route('users.trash')->with('success', 'User berhasil dihapus permanen');
@@ -243,7 +241,7 @@ class UserController extends Controller
                 return $user->roles->pluck('display_name')->join(', ') ?: '-';
             })
             ->addColumn('row_url', function ($user) {
-                return route('users.show', $user->id);
+                return route('users.show', $user);
             })
             ->addColumn('action', function ($user) {
                 return view('datatable.actions.users', compact('user'))->render();

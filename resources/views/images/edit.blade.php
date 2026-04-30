@@ -23,7 +23,7 @@
                             </div>
                         @endif
 
-                        <form action="{{ route('images.update', $image->id) }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ route('images.update', $image) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             @method('PUT')
 

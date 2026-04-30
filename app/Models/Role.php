@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\HasDiffrntHashId;
 use Illuminate\Database\Eloquent\Model;
 
 class Role extends Model
 {
-    use Auditable;
+    use Auditable, HasDiffrntHashId;
 
     protected $fillable = [
         'name',

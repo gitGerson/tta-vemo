@@ -155,9 +155,8 @@ class CategoryController extends Controller
     /**
      * Restore soft deleted category.
      */
-    public function restore($id)
+    public function restore(Category $category)
     {
-        $category = Category::withTrashed()->findOrFail($id);
         $category->deleted_by = null;
         $category->restore();
 
@@ -168,10 +167,8 @@ class CategoryController extends Controller
     /**
      * Permanently delete category.
      */
-    public function forceDelete($id)
+    public function forceDelete(Category $category)
     {
-        $category = Category::withTrashed()->findOrFail($id);
-
         // Delete image from S3
         if ($category->image) {
             Storage::disk('s3')->delete($category->image);
@@ -207,7 +204,7 @@ class CategoryController extends Controller
                 return $category->products->count();
             })
             ->addColumn('row_url', function ($category) {
-                return route('categories.show', $category->id);
+                return route('categories.show', $category);
             })
             ->addColumn('action', function ($category) {
                 return view('datatable.actions.categories', compact('category'))->render();

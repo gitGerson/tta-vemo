@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\HasDiffrntHashId;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -19,7 +20,7 @@ class User extends Authenticatable implements LdapAuthenticatable
     use HasApiTokens;
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes, Auditable;
+    use HasFactory, Notifiable, SoftDeletes, Auditable, HasDiffrntHashId;
 
     /**
      * The attributes that are mass assignable.

@@ -156,9 +156,8 @@ class ImageController extends Controller
     /**
      * Restore soft deleted image.
      */
-    public function restore($id)
+    public function restore(Image $image)
     {
-        $image = Image::withTrashed()->findOrFail($id);
         $image->deleted_by = null;
         $image->restore();
 
@@ -169,9 +168,8 @@ class ImageController extends Controller
     /**
      * Permanently delete image.
      */
-    public function forceDelete($id)
+    public function forceDelete(Image $image)
     {
-        $image = Image::withTrashed()->findOrFail($id);
         // Delete from MinIO
         Storage::disk('s3')->delete($image->file_path);
 
@@ -200,7 +198,7 @@ class ImageController extends Controller
                 return $image->created_at->format('d M Y H:i');
             })
             ->addColumn('row_url', function ($image) {
-                return route('images.show', $image->id);
+                return route('images.show', $image);
             })
             ->addColumn('action', function ($image) {
                 return view('datatable.actions.images', compact('image'))->render();

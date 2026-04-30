@@ -62,7 +62,7 @@
                                 <select name="role_template" class="form-select" required>
                                     <option value="">Select Template</option>
                                     @foreach($roleTemplates as $role)
-                                        <option value="{{ $role->id }}">{{ $role->display_name }}</option>
+                                        <option value="{{ $role->id }}" data-permissions-url="{{ route('roles.permissions', $role) }}">{{ $role->display_name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -216,13 +216,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (roleTemplateSelect) {
         roleTemplateSelect.addEventListener('change', function() {
             const roleId = this.value;
+            const permissionsUrl = this.selectedOptions[0]?.dataset.permissionsUrl;
 
-            if (!roleId) {
+            if (!roleId || !permissionsUrl) {
                 return;
             }
 
             // Fetch permissions for the selected template
-            fetch(`/roles/${roleId}/permissions`)
+            fetch(permissionsUrl)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {

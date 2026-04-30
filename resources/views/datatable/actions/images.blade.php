@@ -1,6 +1,6 @@
 <div class="d-inline-flex align-items-center gap-1">
     @if(auth()->user()->hasPermission('images.edit'))
-        <a href="{{ route('images.edit', $image->id) }}" class="btn btn-sm btn-warning" title="Edit" aria-label="Edit">
+        <a href="{{ route('images.edit', $image) }}" class="btn btn-sm btn-warning" title="Edit" aria-label="Edit">
             <i class="bx bx-edit-alt"></i>
         </a>
     @endif
@@ -10,7 +10,7 @@
     </a>
 
     @if(auth()->user()->hasPermission('images.delete'))
-        <form action="{{ route('images.destroy', $image->id) }}" method="POST" style="display: inline;">
+        <form action="{{ route('images.destroy', $image) }}" method="POST" style="display: inline;">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn btn-sm btn-danger" title="Delete" aria-label="Delete" onclick="return confirm(@js('Are you sure you want to delete this image?'))">

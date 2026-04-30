@@ -61,11 +61,11 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:management.users.delete'])->group(function () {
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
-        Route::delete('/users/{id}/force-delete', [UserController::class, 'forceDelete'])->name('users.force-delete');
+        Route::delete('/users/{user}/force-delete', [UserController::class, 'forceDelete'])->withTrashed()->name('users.force-delete');
     });
 
     Route::middleware(['permission:management.users.restore'])->group(function () {
-        Route::post('/users/{id}/restore', [UserController::class, 'restore'])->name('users.restore');
+        Route::post('/users/{user}/restore', [UserController::class, 'restore'])->withTrashed()->name('users.restore');
     });
 
     // Role management routes with permissions
@@ -120,11 +120,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/images/trash', [ImageController::class, 'trash'])->name('images.trash');
         Route::get('/images/trash/data', [ImageController::class, 'getTrashData'])->name('images.trash-data');
         Route::delete('/images/{image}', [ImageController::class, 'destroy'])->name('images.destroy');
-        Route::delete('/images/{id}/force-delete', [ImageController::class, 'forceDelete'])->name('images.force-delete');
+        Route::delete('/images/{image}/force-delete', [ImageController::class, 'forceDelete'])->withTrashed()->name('images.force-delete');
     });
 
     Route::middleware(['permission:images.restore'])->group(function () {
-        Route::post('/images/{id}/restore', [ImageController::class, 'restore'])->name('images.restore');
+        Route::post('/images/{image}/restore', [ImageController::class, 'restore'])->withTrashed()->name('images.restore');
     });
 
     // Category management routes with permissions
@@ -152,11 +152,11 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:master.categories.delete'])->group(function () {
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
-        Route::delete('/categories/{id}/force-delete', [CategoryController::class, 'forceDelete'])->name('categories.force-delete');
+        Route::delete('/categories/{category}/force-delete', [CategoryController::class, 'forceDelete'])->withTrashed()->name('categories.force-delete');
     });
 
     Route::middleware(['permission:master.categories.restore'])->group(function () {
-        Route::post('/categories/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
+        Route::post('/categories/{category}/restore', [CategoryController::class, 'restore'])->withTrashed()->name('categories.restore');
     });
 
     // Product management routes with permissions
@@ -184,11 +184,11 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:master.products.delete'])->group(function () {
         Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
-        Route::delete('/products/{id}/force-delete', [ProductController::class, 'forceDelete'])->name('products.force-delete');
+        Route::delete('/products/{product}/force-delete', [ProductController::class, 'forceDelete'])->withTrashed()->name('products.force-delete');
     });
 
     Route::middleware(['permission:master.products.restore'])->group(function () {
-        Route::post('/products/{id}/restore', [ProductController::class, 'restore'])->name('products.restore');
+        Route::post('/products/{product}/restore', [ProductController::class, 'restore'])->withTrashed()->name('products.restore');
     });
 
     // Product ESB sync routes with permissions

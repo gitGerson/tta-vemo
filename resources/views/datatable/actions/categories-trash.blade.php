@@ -1,6 +1,6 @@
 <div class="d-inline-flex align-items-center gap-1">
     @if(auth()->user()->hasPermission('master.categories.restore'))
-        <form action="{{ route('categories.restore', $category->id) }}" method="POST" style="display: inline;">
+        <form action="{{ route('categories.restore', $category) }}" method="POST" style="display: inline;">
             @csrf
             <button type="submit" class="btn btn-sm btn-success" title="Pulihkan" aria-label="Pulihkan" onclick="return confirm(@js('Yakin ingin memulihkan kategori ini?'))">
                 <i class="bx bx-refresh"></i>
@@ -9,7 +9,7 @@
     @endif
 
     @if(auth()->user()->hasPermission('master.categories.force_delete'))
-        <form action="{{ route('categories.force-delete', $category->id) }}" method="POST" style="display: inline;">
+        <form action="{{ route('categories.force-delete', $category) }}" method="POST" style="display: inline;">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn btn-sm btn-danger" title="Hapus Permanen" aria-label="Hapus Permanen" onclick="return confirm(@js('Yakin ingin menghapus permanen? Data tidak dapat dipulihkan!'))">

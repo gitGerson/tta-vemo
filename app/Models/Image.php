@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\HasDiffrntHashId;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
 class Image extends Model
 {
-    use SoftDeletes, Auditable;
+    use SoftDeletes, Auditable, HasDiffrntHashId;
 
     /**
      * The attributes that are mass assignable.
