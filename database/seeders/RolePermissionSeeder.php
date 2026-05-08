@@ -37,6 +37,7 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'management.roles.create', 'display_name' => 'Role Templates - Create', 'description' => 'Can create role templates', 'module' => 'management', 'parent' => 'management.access', 'sort_order' => 10],
             ['name' => 'management.roles.edit', 'display_name' => 'Role Templates - Edit', 'description' => 'Can edit role templates', 'module' => 'management', 'parent' => 'management.access', 'sort_order' => 11],
             ['name' => 'management.roles.delete', 'display_name' => 'Role Templates - Delete', 'description' => 'Can delete role templates', 'module' => 'management', 'parent' => 'management.access', 'sort_order' => 12],
+            ['name' => 'management.tenant.bypass', 'display_name' => 'Tenant - Bypass', 'description' => 'Can bypass company tenant filtering', 'module' => 'management', 'parent' => 'management.access', 'sort_order' => 13],
 
             // === MASTER DATA (Header) ===
             ['name' => 'master.access', 'display_name' => 'Master Data', 'description' => 'Can access Master Data section', 'module' => 'master', 'parent' => null, 'sort_order' => 4],

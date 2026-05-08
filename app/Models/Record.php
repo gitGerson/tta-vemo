@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompanyTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Record extends Model
 {
-    use HasFactory, SoftDeletes;
+    use BelongsToCompanyTenant, HasFactory, SoftDeletes;
     protected $table = 'records';
     protected $guarded = [''];
 
