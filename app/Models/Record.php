@@ -41,6 +41,11 @@ class Record extends Model
         return $this->belongsTo(Company::class, 'company_id');
     }
 
+    public function fuelType()
+    {
+        return $this->belongsTo(FuelType::class, 'fuel_type_id');
+    }
+
     static function checkNoPol($noPol)
     {
         $search = static::where('no_pol', $noPol)->orderBy('created_at', 'desc')->first();

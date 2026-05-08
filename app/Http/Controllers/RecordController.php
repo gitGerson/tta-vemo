@@ -6,6 +6,7 @@ use App\Exports\RecordExport;
 use App\Models\Company;
 use App\Models\Destination;
 use App\Models\Driver;
+use App\Models\FuelType;
 use App\Models\Maintenances;
 use App\Models\NotificationService;
 use App\Models\Record;
@@ -13,7 +14,6 @@ use App\Models\Vehicle;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\DataTables;
 
@@ -62,6 +62,7 @@ class RecordController extends Controller
             'vehicles' => Vehicle::where('status', 'ACTIVE')->get(),
             'destination' => Destination::orderBy('id', 'desc')->get(),
             'company' => Company::orderBy('id', 'desc')->get(),
+            'fuelTypes' => FuelType::orderBy('name')->get(),
             'pageTitle' => 'Tambah Data Perjalanan',
         ];
 
@@ -75,18 +76,16 @@ class RecordController extends Controller
     {
         $request->validate([
             'company_id' => 'required|exists:company,id',
+            'fuel_type_id' => 'required|exists:fuel_types,id',
             'date' => 'required|date',
             'driver_1' => 'required|exists:drivers,id',
             'driver_2' => 'nullable',
-            'no_pol' => [
-                'required',
-                Rule::exists('vehicles', 'plat_new')->where('company_id', $request->company_id),
-            ],
+            'no_pol' => 'required|exists:vehicles,plat_new',
             'destination' => 'required|exists:destinations,destination',
             'start_km' => 'nullable|string',
             'finish_km' => 'required|string',
             'bbm' => 'required|string',
-            'idr' => 'required|string',
+            'idr' => 'required|numeric',
         ]);
 
         if ($request->bbm < 0 || $request->idr < 0) {
@@ -129,6 +128,7 @@ class RecordController extends Controller
             'no_pol' => $request->no_pol,
             'destination' => $request->destination,
             'company_id' => $request->company_id,
+            'fuel_type_id' => $request->fuel_type_id,
             'start_km' => Str::of($start_mileage)->remove('-'),
             'finish_km' => Str::of($request->finish_km)->remove('-'),
             'bbm' => $request->bbm,
@@ -223,6 +223,7 @@ class RecordController extends Controller
             'vehicles' => Vehicle::where('status', 'ACTIVE')->get(),
             'destination' => Destination::orderBy('id', 'desc')->get(),
             'company' => Company::orderBy('id', 'desc')->get(),
+            'fuelTypes' => FuelType::orderBy('name')->get(),
         ];
 
         return view('pages.record.edit', $data);
@@ -236,16 +237,14 @@ class RecordController extends Controller
         $request->validate([
             'driver_1' => 'required',
             'driver_2' => 'nullable',
-            'no_pol' => [
-                'required',
-                Rule::exists('vehicles', 'plat_new')->where('company_id', $request->company_id),
-            ],
+            'no_pol' => 'required|exists:vehicles,plat_new',
             'destination' => 'required|exists:destinations,destination',
             'company_id' => 'required|exists:company,id',
+            'fuel_type_id' => 'required|exists:fuel_types,id',
             'start_km' => 'required|string',
             'finish_km' => 'required|string',
             'bbm' => 'required|string',
-            'idr' => 'required|string',
+            'idr' => 'required|numeric',
             'date' => 'required|date',
         ]);
 
@@ -273,6 +272,7 @@ class RecordController extends Controller
             'no_pol' => $request->no_pol,
             'destination' => $request->destination,
             'company_id' => $request->company_id,
+            'fuel_type_id' => $request->fuel_type_id,
             'start_km' => Str::of($request->start_km)->remove('-'),
             'finish_km' => Str::of($request->finish_km)->remove('-'),
             'bbm' => $request->bbm,

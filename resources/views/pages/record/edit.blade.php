@@ -110,9 +110,7 @@
                         <option selected disabled>- pilih kendaraan -</option>
                         @foreach ($vehicles as $row)
                             <option {{ $record->no_pol == $row->plat_new ? 'selected' : '' }}
-                                value="{{ $row->plat_new }}"
-                                data-company-id="{{ $row->company_id }}"
-                                data-mileage="{{ $row->mileage }}">{{ $row->plat_new }}</option>
+                                value="{{ $row->plat_new }}" data-mileage={{ $row->mileage }}>{{ $row->plat_new }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -164,13 +162,18 @@
                 </div>
 
                 <div class="col-md-6 mb-3">
-                    <label class="form-label" for="idr">IDR <small class="text-danger">*</small></label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bx bx-money"></i></span>
-                        <input type="text" inputmode="numeric" id="idr" name="idr"
-                            class="form-control validate-number"
-                            placeholder="Masukkan Nominal Rupiah" value="{{ $record->idr }}">
-                    </div>
+                    <label for="fuel_type_id" class="form-label">Jenis BBM<small class="text-danger">*</small></label>
+                    <input type="hidden" id="idr" name="idr" value="{{ old('idr', $record->idr) }}">
+                    <select class="form-select select2" id="fuel_type_id" name="fuel_type_id" required>
+                        <option value="">- pilih jenis BBM -</option>
+                        @foreach ($fuelTypes as $fuelType)
+                            <option {{ (string) old('fuel_type_id', $record->fuel_type_id) === (string) $fuelType->id ? 'selected' : '' }}
+                                value="{{ $fuelType->id }}"
+                                data-price="{{ $fuelType->price }}">
+                                {{ $fuelType->name }} - Rp. {{ number_format((float) $fuelType->price, 0, ',', '.') }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
 
@@ -200,29 +203,25 @@
     <script>
         $(document).ready(function() {
             $('.select2').select2();
-            filterVehicleOptions();
-        });
 
-        function filterVehicleOptions() {
-            const companyId = $('#company_id').val();
-            const currentVehicle = $('#no_pol').val();
+            function syncFuelTypePrice() {
+                const selectedOption = $('#fuel_type_id').find('option:selected');
+                const price = selectedOption.data('price');
 
-            $('#no_pol option').each(function() {
-                const optionCompanyId = String($(this).data('company-id') || '');
-                const shouldShow = !$(this).val() || (companyId && optionCompanyId === String(companyId));
-                $(this).prop('disabled', !shouldShow);
-            });
+                if (price === undefined || price === null || price === '') {
+                    $('#idr').val('');
+                    return;
+                }
 
-            if (currentVehicle && $('#no_pol option:selected').prop('disabled')) {
-                $('#no_pol').val(null);
-                $('#start_km').val('');
+                const numericPrice = parseFloat(price);
+                $('#idr').val(numericPrice);
             }
 
-            $('#no_pol').trigger('change.select2');
-        }
+            syncFuelTypePrice();
 
-        $('#company_id').on('change', function() {
-            filterVehicleOptions();
+            $('#fuel_type_id').on('change', function() {
+                syncFuelTypePrice();
+            });
         });
         {{--  menage check driver 2  --}}
         $("#driver_1").on("change", function(event) {

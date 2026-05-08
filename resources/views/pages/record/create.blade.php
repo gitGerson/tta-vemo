@@ -93,8 +93,7 @@
                                 <option selected disabled>- pilih kendaraan -</option>
                                 @foreach ($vehicles as $row)
                                     <option {{ old('no_pol') == $row->plat_new ? 'selected' : '' }}
-                                        data-company-id="{{ $row->company_id }}"
-                                        data-mileage="{{ $row->mileage }}" value="{{ $row->plat_new }}">
+                                        data-mileage={{ $row->mileage }} value="{{ $row->plat_new }}">
                                         {{ $row->plat_new }}</option>
                                 @endforeach
                             </select>
@@ -147,13 +146,18 @@
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label class="form-label" for="idr">IDR <small class="text-danger">*</small></label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bx bx-money"></i></span>
-                                <input type="text" inputmode="numeric" id="idr" name="idr"
-                                    class="form-control validate-number"
-                                    placeholder="Masukkan Nominal Rupiah" value="{{ old('idr') }}" disabled required>
-                            </div>
+                            <label for="fuel_type_id" class="form-label">Jenis BBM<small class="text-danger">*</small></label>
+                            <input type="hidden" id="idr" name="idr" value="{{ old('idr') }}">
+                            <select class="form-select select2" id="fuel_type_id" name="fuel_type_id" disabled required>
+                                <option value="">- pilih jenis BBM -</option>
+                                @foreach ($fuelTypes as $fuelType)
+                                    <option {{ old('fuel_type_id') == $fuelType->id ? 'selected' : '' }}
+                                        value="{{ $fuelType->id }}"
+                                        data-price="{{ $fuelType->price }}">
+                                        {{ $fuelType->name }} - Rp. {{ number_format((float) $fuelType->price, 0, ',', '.') }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
 
@@ -185,22 +189,17 @@
 $(document).ready(function() {
     $('.select2').select2();
 
-    function filterVehicleOptions() {
-        const companyId = $('#company_id').val();
-        const currentVehicle = $('#no_pol').val();
+    function syncFuelTypePrice() {
+        const selectedOption = $('#fuel_type_id').find('option:selected');
+        const price = selectedOption.data('price');
 
-        $('#no_pol option').each(function() {
-            const optionCompanyId = String($(this).data('company-id') || '');
-            const shouldShow = !$(this).val() || (companyId && optionCompanyId === String(companyId));
-            $(this).prop('disabled', !shouldShow);
-        });
-
-        if (currentVehicle && $('#no_pol option:selected').prop('disabled')) {
-            $('#no_pol').val(null);
-            $('#start_km').val('');
+        if (price === undefined || price === null || price === '') {
+            $('#idr').val('');
+            return;
         }
 
-        $('#no_pol').trigger('change.select2');
+        const numericPrice = parseFloat(price);
+        $('#idr').val(numericPrice);
     }
 
     // Autofill KM akhir from selected vehicle mileage
@@ -264,11 +263,8 @@ $(document).ready(function() {
 
     // FIXED: Mengaktifkan dan menonaktifkan form
     function toggleFormState(enable) {
-        // Only enable/disable fields that should be controlled, excluding company_id
-        $('form :input').not('#company_id').prop('disabled', !enable);
-        // Use the correct selector for the submit button
+        $('form :input').not('#company_id, #idr').prop('disabled', !enable);
         $('#submitBtn').prop('disabled', !enable);
-
         $('#backBtn').prop('disabled', false);
     }
 
@@ -279,7 +275,8 @@ $(document).ready(function() {
     if ($('#company_id').val()) {
         toggleFormState(true);
     }
-    filterVehicleOptions();
+
+    syncFuelTypePrice();
 
     // Mengaktifkan elemen form jika company_id dipilih
     $('#company_id').change(function() {
@@ -288,7 +285,10 @@ $(document).ready(function() {
         } else {
             toggleFormState(false);
         }
-        filterVehicleOptions();
+    });
+
+    $('#fuel_type_id').on('change', function() {
+        syncFuelTypePrice();
     });
 
     // Handle submit button response

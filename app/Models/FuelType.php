@@ -20,4 +20,9 @@ class FuelType extends Model
             'price' => 'decimal:2',
         ];
     }
+
+    public function records()
+    {
+        return $this->hasMany(Record::class);
+    }
 }
