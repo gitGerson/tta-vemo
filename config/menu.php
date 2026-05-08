@@ -84,7 +84,7 @@ return [
             'header' => 'Rekap Laporan',
             'items' => [
                 [
-                    'title' => 'Laporan Harian',
+                    'title' => 'BBM Harian',
                     'description' => 'Rekap laporan harian',
                     'route' => 'report.daily',
                     'routePattern' => 'report.daily',
@@ -93,7 +93,7 @@ return [
                     'keywords' => ['laporan', 'harian', 'report'],
                 ],
                 [
-                    'title' => 'Laporan Bulanan',
+                    'title' => 'BBM Bulanan',
                     'description' => 'Rekap laporan bulanan',
                     'route' => 'report.monthly',
                     'routePattern' => 'report.monthly',
@@ -102,7 +102,7 @@ return [
                     'keywords' => ['laporan', 'bulanan', 'report'],
                 ],
                 [
-                    'title' => 'MTC Harian',
+                    'title' => 'Maintenance Harian',
                     'description' => 'Rekap maintenances harian',
                     'route' => 'report.maintenances.daily',
                     'routePattern' => 'report.maintenances.daily',
@@ -111,7 +111,7 @@ return [
                     'keywords' => ['mtc', 'maintenance', 'harian'],
                 ],
                 [
-                    'title' => 'MTC Tahunan',
+                    'title' => 'Maintenance Tahunan',
                     'description' => 'Rekap maintenances tahunan',
                     'route' => 'report.maintenances.year',
                     'routePattern' => 'report.maintenances.year',
