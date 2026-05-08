@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -72,6 +71,12 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'master.type_maintenances.edit', 'display_name' => 'Type Maintenances - Edit', 'description' => 'Can edit type maintenances', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 19],
             ['name' => 'master.type_maintenances.delete', 'display_name' => 'Type Maintenances - Delete', 'description' => 'Can delete type maintenances', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 20],
 
+            // Master > Fuel Types
+            ['name' => 'master.fuel_types.view', 'display_name' => 'Fuel Types - View', 'description' => 'Can view fuel types', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 21],
+            ['name' => 'master.fuel_types.create', 'display_name' => 'Fuel Types - Create', 'description' => 'Can create fuel types', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 22],
+            ['name' => 'master.fuel_types.edit', 'display_name' => 'Fuel Types - Edit', 'description' => 'Can edit fuel types', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 23],
+            ['name' => 'master.fuel_types.delete', 'display_name' => 'Fuel Types - Delete', 'description' => 'Can delete fuel types', 'module' => 'master', 'parent' => 'master.access', 'sort_order' => 24],
+
             // === RECORD ===
             ['name' => 'record.access', 'display_name' => 'Record', 'description' => 'Can access Record section', 'module' => 'record', 'parent' => null, 'sort_order' => 5],
             ['name' => 'record.view', 'display_name' => 'Record - View', 'description' => 'Can view records', 'module' => 'record', 'parent' => 'record.access', 'sort_order' => 1],
@@ -116,7 +121,7 @@ class RolePermissionSeeder extends Seeder
                 'name' => 'super_admin_template',
                 'display_name' => 'Super Administrator Template',
                 'description' => 'Superadmin - full access',
-                'permissions' => Permission::all()->pluck('name')->toArray()
+                'permissions' => Permission::all()->pluck('name')->toArray(),
             ],
             [
                 'name' => 'admin_template',
@@ -154,6 +159,10 @@ class RolePermissionSeeder extends Seeder
                     'master.type_maintenances.create',
                     'master.type_maintenances.edit',
                     'master.type_maintenances.delete',
+                    'master.fuel_types.view',
+                    'master.fuel_types.create',
+                    'master.fuel_types.edit',
+                    'master.fuel_types.delete',
                     'record.access',
                     'record.view',
                     'record.create',
@@ -175,7 +184,7 @@ class RolePermissionSeeder extends Seeder
                     'reports.maintenances.daily.export',
                     'reports.maintenances.year.view',
                     'reports.maintenances.year.export',
-                ]
+                ],
             ],
             [
                 'name' => 'approval_template',
@@ -190,6 +199,7 @@ class RolePermissionSeeder extends Seeder
                     'master.vehicles.view',
                     'master.destinations.view',
                     'master.type_maintenances.view',
+                    'master.fuel_types.view',
                     'record.access',
                     'record.view',
                     'maintenances.access',
@@ -204,7 +214,7 @@ class RolePermissionSeeder extends Seeder
                     'reports.maintenances.daily.export',
                     'reports.maintenances.year.view',
                     'reports.maintenances.year.export',
-                ]
+                ],
             ],
             [
                 'name' => 'user_template',
@@ -219,6 +229,7 @@ class RolePermissionSeeder extends Seeder
                     'master.vehicles.view',
                     'master.destinations.view',
                     'master.type_maintenances.view',
+                    'master.fuel_types.view',
                     'record.access',
                     'record.view',
                     'record.create',
@@ -234,8 +245,8 @@ class RolePermissionSeeder extends Seeder
                     'reports.maintenances.daily.export',
                     'reports.maintenances.year.view',
                     'reports.maintenances.year.export',
-                ]
-            ]
+                ],
+            ],
         ];
 
         foreach ($roles as $roleData) {
@@ -243,14 +254,14 @@ class RolePermissionSeeder extends Seeder
                 ['name' => $roleData['name']],
                 [
                     'display_name' => $roleData['display_name'],
-                    'description' => $roleData['description']
+                    'description' => $roleData['description'],
                 ]
             );
 
             // Ensure role has listed permissions (no removals)
             foreach ($roleData['permissions'] as $permissionName) {
                 $permission = Permission::where('name', $permissionName)->first();
-                if ($permission && !$role->hasPermission($permission)) {
+                if ($permission && ! $role->hasPermission($permission)) {
                     $role->assignPermission($permission);
                 }
             }
@@ -260,12 +271,13 @@ class RolePermissionSeeder extends Seeder
         $legacyTemplates = ['user_manager_template', 'viewer_template'];
         foreach ($legacyTemplates as $legacyName) {
             $legacyRole = Role::where('name', $legacyName)->first();
-            if (!$legacyRole) {
+            if (! $legacyRole) {
                 continue;
             }
 
             if ($legacyRole->users()->exists()) {
                 $this->command->info("Skipping deletion of {$legacyName}; role still assigned to users.");
+
                 continue;
             }
 
@@ -278,7 +290,7 @@ class RolePermissionSeeder extends Seeder
         $superAdminRole = Role::where('name', 'super_admin_template')->first();
         if ($superAdminRole) {
             foreach (Permission::all() as $permission) {
-                if (!$superAdminRole->hasPermission($permission)) {
+                if (! $superAdminRole->hasPermission($permission)) {
                     $superAdminRole->assignPermission($permission);
                 }
             }

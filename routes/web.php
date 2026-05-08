@@ -5,6 +5,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DestinationController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\FileUploadController;
+use App\Http\Controllers\FuelTypeController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\MaintenancesController;
@@ -30,7 +31,7 @@ Route::get('/', function () {
 
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/home', [HomeController::class, 'index'])->name('home');
 
 // Route group middleware for authenticated users
 Route::middleware(['auth'])->group(function () {
@@ -282,6 +283,21 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::middleware(['permission:master.type_maintenances.delete'])->group(function () {
         Route::delete('/type-maintenance/{type_maintenance}', [TypeMaintenanceController::class, 'destroy'])->name('type-maintenance.destroy');
+    });
+
+    // Fuel Type
+    Route::middleware(['permission:master.fuel_types.view'])->group(function () {
+        Route::get('/fuel-type', [FuelTypeController::class, 'index'])->name('fuel-type.index');
+        Route::get('/fuel-type/data', [FuelTypeController::class, 'getData'])->name('fuel-type.data');
+    });
+    Route::middleware(['permission:master.fuel_types.create'])->group(function () {
+        Route::post('/fuel-type', [FuelTypeController::class, 'store'])->name('fuel-type.store');
+    });
+    Route::middleware(['permission:master.fuel_types.edit'])->group(function () {
+        Route::put('/fuel-type/{fuel_type}', [FuelTypeController::class, 'update'])->name('fuel-type.update');
+    });
+    Route::middleware(['permission:master.fuel_types.delete'])->group(function () {
+        Route::delete('/fuel-type/{fuel_type}', [FuelTypeController::class, 'destroy'])->name('fuel-type.destroy');
     });
 
     // Reports

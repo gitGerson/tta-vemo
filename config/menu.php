@@ -78,6 +78,15 @@ return [
                     'permission' => 'master.type_maintenances.view',
                     'keywords' => ['tipe', 'maintenance', 'type'],
                 ],
+                [
+                    'title' => 'Jenis BBM',
+                    'description' => 'Master data jenis BBM',
+                    'route' => 'fuel-type.index',
+                    'routePattern' => 'fuel-type.*',
+                    'icon' => 'bx-gas-pump',
+                    'permission' => 'master.fuel_types.view',
+                    'keywords' => ['bbm', 'fuel', 'jenis', 'harga'],
+                ],
             ],
         ],
         [
