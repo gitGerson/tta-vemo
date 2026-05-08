@@ -55,6 +55,7 @@
                                 <th>Nama</th>
                                 <th>Username</th>
                                 <th>Email</th>
+                                <th>Company</th>
                                 <th>Role</th>
                                 <th>Aksi</th>
                             </tr>
@@ -85,6 +86,34 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                                 <div class="form-text">Username akan digunakan untuk mengambil data dari LDAP</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="company_id" class="form-label">Company</label>
+                                <select class="form-select @error('company_id') is-invalid @enderror" id="company_id" name="company_id" required>
+                                    <option value="">- pilih company -</option>
+                                    @foreach ($companies as $company)
+                                        <option value="{{ $company->id }}" {{ old('company_id') == $company->id ? 'selected' : '' }}>
+                                            {{ $company->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('company_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
+                                <label for="role_id" class="form-label">Role</label>
+                                <select class="form-select @error('role_id') is-invalid @enderror" id="role_id" name="role_id" required>
+                                    <option value="">- pilih role -</option>
+                                    @foreach ($roles as $role)
+                                        <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
+                                            {{ $role->display_name ?: $role->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('role_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -141,6 +170,12 @@
                     {
                         data: 'email',
                         name: 'email'
+                    },
+                    {
+                        data: 'company',
+                        name: 'company.name',
+                        orderable: false,
+                        searchable: false
                     },
                     {
                         data: 'roles',

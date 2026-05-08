@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -18,7 +19,12 @@ class UserController extends Controller
      */
     public function index()
     {
-        return view('users.index');
+        $companies = Company::orderBy('name')->get();
+        $roles = Role::where('is_active', true)
+            ->orderBy('display_name')
+            ->get();
+
+        return view('users.index', compact('companies', 'roles'));
     }
 
     /**
@@ -44,6 +50,8 @@ class UserController extends Controller
     {
         $request->validate([
             'username' => 'required|string|max:255|unique:users',
+            'company_id' => 'required|exists:company,id',
+            'role_id' => 'required|exists:roles,id',
         ]);
 
         try {
@@ -72,7 +80,11 @@ class UserController extends Controller
                 'password' => Hash::make(str()->random(32)), // Random password since we use LDAP auth
                 'domain' => $ldapUser->getDn(),
                 'guid' => $ldapUser->entryuuid[0] ?? null,
+                'company_id' => $request->company_id,
             ]);
+
+            $role = Role::findOrFail($request->role_id);
+            $user->assignRole($role);
 
             UserLog::log(
                 'CREATE_USER',
@@ -81,6 +93,9 @@ class UserController extends Controller
                 null,
                 [
                     'username' => $request->username,
+                    'company_id' => $request->company_id,
+                    'role_id' => $role->id,
+                    'role_name' => $role->name,
                     'ldap_dn' => $ldapUser->getDn(),
                     'ldap_guid' => $ldapUser->entryuuid[0] ?? null,
                 ]
@@ -197,12 +212,15 @@ class UserController extends Controller
      */
     public function getData(Request $request)
     {
-        $users = User::with('roles')->select(['id', 'name', 'email', 'username']);
+        $users = User::with(['roles', 'company'])->select(['id', 'name', 'email', 'username', 'company_id']);
 
         return datatables()->of($users)
             ->addIndexColumn()
             ->addColumn('roles', function ($user) {
                 return $user->roles->pluck('display_name')->join(', ') ?: '-';
+            })
+            ->addColumn('company', function ($user) {
+                return $user->company?->name ?? '-';
             })
             ->addColumn('action', function ($user) {
                 $actions = '<div class="dropdown">

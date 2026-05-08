@@ -32,6 +32,7 @@ class User extends Authenticatable implements LdapAuthenticatable
         'password',
         'guid',
         'domain',
+        'company_id',
         'created_by',
         'updated_by',
     ];
@@ -104,6 +105,11 @@ class User extends Authenticatable implements LdapAuthenticatable
         return $this->belongsToMany(Role::class, 'user_role')
                     ->withPivot(['assigned_by', 'assigned_at'])
                     ->withTimestamps();
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'company_id');
     }
 
     public function hasRole($role)
