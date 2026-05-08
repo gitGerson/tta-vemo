@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToCompanyTenant;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -112,6 +113,29 @@ class User extends Authenticatable implements LdapAuthenticatable
     public function company()
     {
         return $this->belongsTo(Company::class, 'company_id');
+    }
+
+    public function companies(): BelongsToMany
+    {
+        return $this->belongsToMany(Company::class, 'company_user')
+            ->withTimestamps();
+    }
+
+    public function tenantCompanyIds()
+    {
+        $companyIds = $this->relationLoaded('companies')
+            ? $this->companies->pluck('id')
+            : $this->companies()->pluck('company.id');
+
+        if ($this->company_id !== null) {
+            $companyIds->push((int) $this->company_id);
+        }
+
+        return $companyIds
+            ->filter(fn ($id) => $id !== null && $id !== '')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
     }
 
     public function hasRole($role)

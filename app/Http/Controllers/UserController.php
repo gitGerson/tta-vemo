@@ -50,9 +50,24 @@ class UserController extends Controller
     {
         $request->validate([
             'username' => 'required|string|max:255|unique:users',
+            'company_ids' => 'required|array|min:1',
+            'company_ids.*' => 'exists:company,id',
             'company_id' => 'required|exists:company,id',
             'role_id' => 'required|exists:roles,id',
         ]);
+
+        $companyIds = collect($request->input('company_ids', []))
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        if (! $companyIds->contains((int) $request->company_id)) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors([
+                    'company_id' => 'Company aktif harus termasuk dalam daftar company akses user.',
+                ]);
+        }
 
         try {
             // Query LDAP untuk mencari user berdasarkan username (sesuai format: uid=username)
@@ -85,6 +100,7 @@ class UserController extends Controller
 
             $role = Role::findOrFail($request->role_id);
             $user->assignRole($role);
+            $user->companies()->sync($companyIds->all());
 
             UserLog::log(
                 'CREATE_USER',
@@ -93,6 +109,7 @@ class UserController extends Controller
                 null,
                 [
                     'username' => $request->username,
+                    'company_ids' => $companyIds->all(),
                     'company_id' => $request->company_id,
                     'role_id' => $role->id,
                     'role_name' => $role->name,
@@ -120,7 +137,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $user->load(['creator', 'updater', 'deleter', 'roles']);
+        $user->load(['creator', 'updater', 'deleter', 'roles', 'company', 'companies']);
 
         UserLog::log(
             'VIEW_USER',
@@ -212,7 +229,7 @@ class UserController extends Controller
      */
     public function getData(Request $request)
     {
-        $users = User::with(['roles', 'company'])->select(['id', 'name', 'email', 'username', 'company_id']);
+        $users = User::with(['roles', 'company', 'companies'])->select(['id', 'name', 'email', 'username', 'company_id']);
 
         return datatables()->of($users)
             ->addIndexColumn()

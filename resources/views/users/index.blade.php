@@ -88,6 +88,23 @@
                                 <div class="form-text">Username akan digunakan untuk mengambil data dari LDAP</div>
                             </div>
                             <div class="mb-3">
+                                <label for="company_ids" class="form-label">Companies Access</label>
+                                <select class="form-select select2 @error('company_ids') is-invalid @enderror @error('company_ids.*') is-invalid @enderror" id="company_ids" name="company_ids[]" multiple required>
+                                    @foreach ($companies as $company)
+                                        <option value="{{ $company->id }}" {{ collect(old('company_ids', []))->contains($company->id) || collect(old('company_ids', []))->contains((string) $company->id) ? 'selected' : '' }}>
+                                            {{ $company->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('company_ids')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                @error('company_ids.*')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <div class="form-text">Pilih semua company yang bisa diakses user.</div>
+                            </div>
+                            <div class="mb-3">
                                 <label for="company_id" class="form-label">Company</label>
                                 <select class="form-select @error('company_id') is-invalid @enderror" id="company_id" name="company_id" required>
                                     <option value="">- pilih company -</option>
@@ -100,6 +117,7 @@
                                 @error('company_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                                <div class="form-text">Company ini akan menjadi company aktif untuk tenant filtering.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="role_id" class="form-label">Role</label>
@@ -134,6 +152,14 @@
 
 @push('scripts')
     <script>
+        $(function() {
+            $('#company_ids').select2({
+                dropdownParent: $('#createUserModal'),
+                width: '100%',
+                placeholder: '- pilih company akses -'
+            });
+        });
+
         const shouldOpenCreateModal = @json(
             request()->boolean('create') ||
             $errors->any() ||

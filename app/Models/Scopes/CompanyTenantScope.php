@@ -20,17 +20,27 @@ class CompanyTenantScope implements Scope
             return;
         }
 
-        $companyId = $user->company_id;
+        $companyIds = method_exists($user, 'tenantCompanyIds')
+            ? $user->tenantCompanyIds()
+            : collect(array_filter([(int) $user->company_id]));
         $tenantColumn = method_exists($model, 'getTenantScopeColumn')
             ? $model->getTenantScopeColumn()
             : 'company_id';
 
-        if ($companyId === null) {
+        if ($companyIds->isEmpty()) {
             $builder->whereRaw('1 = 0');
 
             return;
         }
 
-        $builder->where($model->qualifyColumn($tenantColumn), $companyId);
+        $qualifiedColumn = $model->qualifyColumn($tenantColumn);
+
+        if ($companyIds->count() === 1) {
+            $builder->where($qualifiedColumn, $companyIds->first());
+
+            return;
+        }
+
+        $builder->whereIn($qualifiedColumn, $companyIds->all());
     }
 }

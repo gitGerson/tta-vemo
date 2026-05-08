@@ -55,6 +55,22 @@
                                         <td>{{ $user->domain ?? '-' }}</td>
                                     </tr>
                                     <tr>
+                                        <th>Company Aktif</th>
+                                        <td>{{ $user->company?->name ?? '-' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Company Akses</th>
+                                        <td>
+                                            @if($user->companies->count() > 0)
+                                                @foreach($user->companies as $company)
+                                                    <span class="badge bg-primary me-1">{{ $company->name }}</span>
+                                                @endforeach
+                                            @else
+                                                <span class="text-muted">Tidak ada company akses</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    <tr>
                                         <th>Role</th>
                                         <td>
                                             @if($user->roles->count() > 0)

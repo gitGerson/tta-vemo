@@ -45,43 +45,51 @@ trait BelongsToCompanyTenant
                 return;
             }
 
-            $companyId = static::resolveTenantCompanyIdForValidation($companyField);
+            $companyIds = static::resolveTenantCompanyIdsForValidation($companyField);
 
-            if ($companyId === null) {
-                $fail('Data yang dipilih tidak valid untuk company aktif.');
+            if ($companyIds === []) {
+                $fail('Data yang dipilih tidak valid untuk company tenant.');
 
                 return;
             }
 
             $model = new static;
 
-            $exists = static::query()
+            $query = static::query()
                 ->withoutGlobalScopes()
-                ->whereKey($value)
-                ->where($model->getTenantScopeColumn(), $companyId)
-                ->exists();
+                ->whereKey($value);
+
+            if (count($companyIds) === 1) {
+                $query->where($model->getTenantScopeColumn(), $companyIds[0]);
+            } else {
+                $query->whereIn($model->getTenantScopeColumn(), $companyIds);
+            }
+
+            $exists = $query->exists();
 
             if (! $exists) {
-                $fail('Data yang dipilih harus berasal dari company yang sesuai.');
+                $fail('Data yang dipilih harus berasal dari company tenant yang sesuai.');
             }
         };
     }
 
-    protected static function resolveTenantCompanyIdForValidation(string $companyField): ?int
+    protected static function resolveTenantCompanyIdsForValidation(string $companyField): array
     {
         $user = auth()->user();
 
         if ($user !== null && ! static::isTenantBypassed($user)) {
-            return $user->company_id !== null ? (int) $user->company_id : null;
+            return method_exists($user, 'tenantCompanyIds')
+                ? $user->tenantCompanyIds()->all()
+                : array_values(array_filter([(int) $user->company_id]));
         }
 
         $companyId = request()->input($companyField);
 
         if ($companyId === null || $companyId === '') {
-            return null;
+            return [];
         }
 
-        return (int) $companyId;
+        return [(int) $companyId];
     }
 
     protected function enforceTenantCompanyAssignment(): void
@@ -91,12 +99,25 @@ trait BelongsToCompanyTenant
         }
 
         $assignmentColumn = $this->getTenantAssignmentColumn();
-        $companyId = auth()->user()?->company_id;
+        $user = auth()->user();
+        $companyIds = method_exists($user, 'tenantCompanyIds')
+            ? $user->tenantCompanyIds()
+            : collect(array_filter([(int) $user?->company_id]));
 
-        if ($assignmentColumn === null || $companyId === null) {
+        if ($assignmentColumn === null || $companyIds->isEmpty()) {
             return;
         }
 
-        $this->setAttribute($assignmentColumn, $companyId);
+        $currentCompanyId = $this->getAttribute($assignmentColumn);
+
+        if ($currentCompanyId !== null && $currentCompanyId !== '' && $companyIds->contains((int) $currentCompanyId)) {
+            return;
+        }
+
+        $fallbackCompanyId = $companyIds->contains((int) $user?->company_id)
+            ? (int) $user->company_id
+            : (int) $companyIds->first();
+
+        $this->setAttribute($assignmentColumn, $fallbackCompanyId);
     }
 }
