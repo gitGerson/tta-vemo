@@ -52,7 +52,6 @@ class UserController extends Controller
             'username' => 'required|string|max:255|unique:users',
             'company_ids' => 'required|array|min:1',
             'company_ids.*' => 'exists:company,id',
-            'company_id' => 'required|exists:company,id',
             'role_id' => 'required|exists:roles,id',
         ]);
 
@@ -60,14 +59,7 @@ class UserController extends Controller
             ->map(fn ($id) => (int) $id)
             ->unique()
             ->values();
-
-        if (! $companyIds->contains((int) $request->company_id)) {
-            return redirect()->back()
-                ->withInput()
-                ->withErrors([
-                    'company_id' => 'Company aktif harus termasuk dalam daftar company akses user.',
-                ]);
-        }
+        $primaryCompanyId = $companyIds->first();
 
         try {
             // Query LDAP untuk mencari user berdasarkan username (sesuai format: uid=username)
@@ -95,7 +87,7 @@ class UserController extends Controller
                 'password' => Hash::make(str()->random(32)), // Random password since we use LDAP auth
                 'domain' => $ldapUser->getDn(),
                 'guid' => $ldapUser->entryuuid[0] ?? null,
-                'company_id' => $request->company_id,
+                'company_id' => $primaryCompanyId,
             ]);
 
             $role = Role::findOrFail($request->role_id);
@@ -110,7 +102,7 @@ class UserController extends Controller
                 [
                     'username' => $request->username,
                     'company_ids' => $companyIds->all(),
-                    'company_id' => $request->company_id,
+                    'company_id' => $primaryCompanyId,
                     'role_id' => $role->id,
                     'role_name' => $role->name,
                     'ldap_dn' => $ldapUser->getDn(),
@@ -153,10 +145,12 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
+        $user->load(['company', 'companies']);
+        $companies = Company::orderBy('name')->get();
         $permissions = Permission::all();
         $roleTemplates = Role::where('name', 'like', '%_template')->get();
 
-        return view('users.edit', compact('user', 'permissions', 'roleTemplates'));
+        return view('users.edit', compact('user', 'companies', 'permissions', 'roleTemplates'));
     }
 
     /**
@@ -164,7 +158,43 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        return redirect()->route('users.index')->with('success', 'User berhasil diperbarui');
+        $request->validate([
+            'company_ids' => 'required|array|min:1',
+            'company_ids.*' => 'exists:company,id',
+        ]);
+
+        $companyIds = collect($request->input('company_ids', []))
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $previousActiveCompanyId = $user->company_id;
+        $previousCompanyIds = $user->companies()->pluck('company.id')->map(fn ($id) => (int) $id)->values()->all();
+        $primaryCompanyId = $companyIds->contains((int) $user->company_id)
+            ? (int) $user->company_id
+            : (int) $companyIds->first();
+
+        $user->update([
+            'company_id' => $primaryCompanyId,
+        ]);
+
+        $user->companies()->sync($companyIds->all());
+
+        UserLog::log(
+            'UPDATE_USER_COMPANIES',
+            "Updated company access for user: {$user->name} ({$user->username})",
+            $user,
+            $user,
+            [
+                'previous_company_id' => $previousActiveCompanyId,
+                'new_company_id' => $primaryCompanyId,
+                'previous_company_ids' => $previousCompanyIds,
+                'new_company_ids' => $companyIds->all(),
+            ]
+        );
+
+        return redirect()->route('users.edit', $user)
+            ->with('success', 'Company user berhasil diperbarui.');
     }
 
     /**
@@ -236,8 +266,8 @@ class UserController extends Controller
             ->addColumn('roles', function ($user) {
                 return $user->roles->pluck('display_name')->join(', ') ?: '-';
             })
-            ->addColumn('company', function ($user) {
-                return $user->company?->name ?? '-';
+            ->addColumn('companies', function ($user) {
+                return $user->companies->pluck('name')->join(', ') ?: '-';
             })
             ->addColumn('action', function ($user) {
                 $actions = '<div class="dropdown">

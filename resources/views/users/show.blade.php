@@ -55,10 +55,6 @@
                                         <td>{{ $user->domain ?? '-' }}</td>
                                     </tr>
                                     <tr>
-                                        <th>Company Aktif</th>
-                                        <td>{{ $user->company?->name ?? '-' }}</td>
-                                    </tr>
-                                    <tr>
                                         <th>Company Akses</th>
                                         <td>
                                             @if($user->companies->count() > 0)

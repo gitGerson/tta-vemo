@@ -55,7 +55,7 @@
                                 <th>Nama</th>
                                 <th>Username</th>
                                 <th>Email</th>
-                                <th>Company</th>
+                                <th>Companies</th>
                                 <th>Role</th>
                                 <th>Aksi</th>
                             </tr>
@@ -103,21 +103,6 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                                 <div class="form-text">Pilih semua company yang bisa diakses user.</div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="company_id" class="form-label">Company</label>
-                                <select class="form-select @error('company_id') is-invalid @enderror" id="company_id" name="company_id" required>
-                                    <option value="">- pilih company -</option>
-                                    @foreach ($companies as $company)
-                                        <option value="{{ $company->id }}" {{ old('company_id') == $company->id ? 'selected' : '' }}>
-                                            {{ $company->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('company_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <div class="form-text">Company ini akan menjadi company aktif untuk tenant filtering.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="role_id" class="form-label">Role</label>
@@ -198,8 +183,8 @@
                         name: 'email'
                     },
                     {
-                        data: 'company',
-                        name: 'company.name',
+                        data: 'companies',
+                        name: 'companies',
                         orderable: false,
                         searchable: false
                     },

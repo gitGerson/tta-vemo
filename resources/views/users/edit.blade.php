@@ -27,6 +27,43 @@
                             </div>
                         </div>
 
+                        <div class="mt-4">
+                            <form action="{{ route('users.update', $user) }}" method="POST">
+                                @csrf
+                                @method('PUT')
+
+                                <div class="mb-3">
+                                    <label for="company_ids" class="form-label">Companies Access</label>
+                                    <select class="form-select select2 @error('company_ids') is-invalid @enderror @error('company_ids.*') is-invalid @enderror"
+                                            id="company_ids"
+                                            name="company_ids[]"
+                                            multiple
+                                            required>
+                                        @php
+                                            $selectedCompanyIds = collect(old('company_ids', $user->companies->pluck('id')->all()));
+                                        @endphp
+                                        @foreach($companies as $company)
+                                            <option value="{{ $company->id }}"
+                                                {{ $selectedCompanyIds->contains($company->id) || $selectedCompanyIds->contains((string) $company->id) ? 'selected' : '' }}>
+                                                {{ $company->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('company_ids')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                @error('company_ids.*')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                                    <small class="text-muted">Tenant filtering will use the assigned company set.</small>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="bx bx-save me-1"></i> Update Company Access
+                                </button>
+                            </form>
+                        </div>
+
                         <div class="mt-3 d-none">
                             <form action="{{ route('users.update', $user) }}" method="POST">
                                 @csrf
@@ -156,6 +193,11 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    $('#company_ids').select2({
+        width: '100%',
+        placeholder: 'Pilih company akses'
+    });
+
     // Select/Deselect All functionality
     document.getElementById('selectAll').addEventListener('click', function() {
         document.querySelectorAll('.child-checkbox').forEach(checkbox => {
