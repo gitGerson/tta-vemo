@@ -6,8 +6,12 @@ $(document).ready(function () {
     const uploadsRevertUrl = pageConfig?.dataset.uploadsRevert || '';
     const uploadsLoadUrl = pageConfig?.dataset.uploadsLoad || '';
     const requireUpload = pageConfig?.dataset.requireUpload === '1';
+    const maintenanceTypeConfig = document.getElementById('maintenanceTypeConfig');
+    const maintenanceTypeStoreUrl = maintenanceTypeConfig?.dataset.storeUrl || '';
+    const canCreateMaintenanceType = maintenanceTypeConfig?.dataset.canCreate === '1';
     let existingUploadCount = parseInt(pageConfig?.dataset.existingUploadCount || '0', 10) || 0;
     let pond = null;
+    let activeMaintenanceTypeSelect = null;
 
     // Initialize Select2
     $('.select2').select2({
@@ -132,6 +136,115 @@ $(document).ready(function () {
     // Service Routine Toggle
     $('#isServiceRoutineToggle').on('change', function () {
         $('#isServiceRoutineValue').val($(this).is(':checked') ? '0' : '1');
+    });
+
+    function appendMaintenanceTypeOption($select, itemName) {
+        if (!$select || $select.length === 0) {
+            return;
+        }
+
+        if ($select.find(`option[value="${itemName}"]`).length === 0) {
+            const newOption = new Option(itemName, itemName, true, true);
+            $select.append(newOption);
+        }
+
+        $select.val(itemName).trigger('change');
+    }
+
+    $(document).on('click', '.open-maintenance-type-modal', function () {
+        if (!canCreateMaintenanceType) {
+            return;
+        }
+
+        activeMaintenanceTypeSelect = $(this).siblings('.repeater-name');
+
+        const addItemModalEl = document.getElementById('staticBackdrop');
+        const maintenanceModalEl = document.getElementById('maintenanceModal');
+        const addItemModal = addItemModalEl ? bootstrap.Modal.getOrCreateInstance(addItemModalEl) : null;
+        const maintenanceModal = maintenanceModalEl ? bootstrap.Modal.getOrCreateInstance(maintenanceModalEl) : null;
+
+        if (addItemModalEl && addItemModalEl.classList.contains('show')) {
+            addItemModal?.hide();
+            maintenanceModalEl?.addEventListener('hidden.bs.modal', function reopenModalAfterHidden() {
+                maintenanceModal?.show();
+                maintenanceModalEl?.removeEventListener('hidden.bs.modal', reopenModalAfterHidden);
+            }, { once: true });
+        } else {
+            maintenanceModal?.show();
+        }
+    });
+
+    $('#openModalLink').on('click', function () {
+        activeMaintenanceTypeSelect = $('#typeMaintenances');
+
+        const addItemModalEl = document.getElementById('staticBackdrop');
+        const maintenanceModalEl = document.getElementById('maintenanceModal');
+        const addItemModal = addItemModalEl ? bootstrap.Modal.getOrCreateInstance(addItemModalEl) : null;
+        const maintenanceModal = maintenanceModalEl ? bootstrap.Modal.getOrCreateInstance(maintenanceModalEl) : null;
+
+        addItemModal?.hide();
+        maintenanceModalEl?.addEventListener('hidden.bs.modal', function reopenModalAfterHidden() {
+            maintenanceModal?.show();
+            maintenanceModalEl?.removeEventListener('hidden.bs.modal', reopenModalAfterHidden);
+        }, { once: true });
+    });
+
+    $('#saveBtn').on('click', function () {
+        const $form = $('#maintenanceForm');
+        const $button = $(this);
+
+        if (!$form.length || !maintenanceTypeStoreUrl) {
+            return;
+        }
+
+        $button.prop('disabled', true);
+
+        $.ajax({
+            url: maintenanceTypeStoreUrl,
+            type: 'POST',
+            data: $form.serialize(),
+            headers: {
+                'X-CSRF-TOKEN': csrfToken
+            },
+            success: function (response) {
+                if (!response?.success || !response?.name) {
+                    Swal.fire('Error!', 'Respons pembuatan jenis perbaikan tidak valid.', 'error');
+                    return;
+                }
+
+                const itemName = response.name;
+
+                $('.repeater-name').each(function () {
+                    appendMaintenanceTypeOption($(this), itemName);
+                });
+
+                appendMaintenanceTypeOption($('#typeMaintenances'), itemName);
+                appendMaintenanceTypeOption($('#edit-maintenance-name'), itemName);
+
+                if (activeMaintenanceTypeSelect && activeMaintenanceTypeSelect.length) {
+                    activeMaintenanceTypeSelect.val(itemName).trigger('change');
+                }
+
+                $('#maintenanceModal').modal('hide');
+                $('#maintenanceTextarea').val('');
+
+                const addItemModalEl = document.getElementById('staticBackdrop');
+                if (addItemModalEl) {
+                    const addItemModal = bootstrap.Modal.getOrCreateInstance(addItemModalEl);
+                    addItemModal.show();
+                }
+            },
+            error: function (xhr) {
+                const message = xhr.responseJSON?.message
+                    || xhr.responseJSON?.errors?.name?.[0]
+                    || 'Gagal menyimpan jenis perbaikan';
+
+                Swal.fire('Error!', message, 'error');
+            },
+            complete: function () {
+                $button.prop('disabled', false);
+            }
+        });
     });
 
     // Agree Checkbox enables submit buttons

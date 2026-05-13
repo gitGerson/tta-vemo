@@ -95,15 +95,17 @@ class TypeMaintenanceController extends Controller
     public function storeResponse(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required', 'string', 'max:255', Rule::unique('type_maintenances', 'name')],
         ]);
 
-        TypeMaintenances::create([
+        $typeMaintenance = TypeMaintenances::create([
             'name' => Str::upper($request->name),
         ]);
 
         return response()->json([
-            'data' => Str::upper($request->name)
+            'success' => true,
+            'id' => $typeMaintenance->id,
+            'name' => $typeMaintenance->name,
         ]);
     }
 

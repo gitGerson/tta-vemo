@@ -198,35 +198,6 @@
 @push('addon-script')
     <script>
         $(document).ready(function () {
-            // Open add type maintenance modal
-            $('#openModalLink').on('click', function () {
-                $('#staticBackdrop').modal('hide');
-                $('#maintenanceModal').modal('show');
-            });
-
-            // Save new maintenance type
-            $('#saveBtn').on('click', function () {
-                var formData = $('#maintenanceForm').serialize();
-
-                $.ajax({
-                    url: $('#maintenanceForm').attr('action'),
-                    type: 'POST',
-                    data: formData,
-                    success: function (response) {
-                        // Add new option to selects
-                        var newOption = new Option(response.name, response.name, true, true);
-                        $('#typeMaintenances').append(newOption).trigger('change');
-
-                        $('#maintenanceModal').modal('hide');
-                        $('#maintenanceTextarea').val('');
-                        $('#staticBackdrop').modal('show');
-                    },
-                    error: function (xhr) {
-                        alert('Gagal menyimpan jenis perbaikan');
-                    }
-                });
-            });
-
             // Delete modal - set action URL
             $('#deleteModal').on('show.bs.modal', function (event) {
                 var button = $(event.relatedTarget);

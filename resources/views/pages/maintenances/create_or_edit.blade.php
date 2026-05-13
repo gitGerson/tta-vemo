@@ -12,6 +12,10 @@
     @endphp
 
     <div class="container-xxl flex-grow-1 container-p-y">
+        <div id="maintenanceTypeConfig" class="d-none"
+            data-store-url="{{ route('type_maintenances.storeResponse') }}"
+            data-can-create="{{ auth()->user()?->hasPermission('master.type_maintenances.create') ? 1 : 0 }}">
+        </div>
         {{-- Alert Messages --}}
         @if (session('error'))
             <div class="alert alert-danger alert-dismissible" role="alert">
@@ -223,6 +227,11 @@
                                                                         </option>
                                                                     @endforeach
                                                                 </select>
+                                                                @if (auth()->user()?->hasPermission('master.type_maintenances.create'))
+                                                                    <a href="javascript:void(0)" class="text-primary mt-1 small open-maintenance-type-modal">
+                                                                        <i class="bx bx-plus-circle me-1"></i>Tambah Jenis Baru
+                                                                    </a>
+                                                                @endif
                                                             </div>
                                                             <div class="col-md-3 pe-0">
                                                                 <div class="input-group input-group-sm">
@@ -266,6 +275,11 @@
                                                             <option value="{{ $row->name }}">{{ $row->name }}</option>
                                                         @endforeach
                                                     </select>
+                                                    @if (auth()->user()?->hasPermission('master.type_maintenances.create'))
+                                                        <a href="javascript:void(0)" class="text-primary mt-1 small open-maintenance-type-modal">
+                                                            <i class="bx bx-plus-circle me-1"></i>Tambah Jenis Baru
+                                                        </a>
+                                                    @endif
                                                 </div>
                                                 <div class="col-md-3 pe-0">
                                                     <div class="input-group input-group-sm">
