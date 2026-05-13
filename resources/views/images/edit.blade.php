@@ -47,30 +47,30 @@
                                 @enderror
                             </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Current Image</label>
-                                <div class="mb-2">
-                                    <img src="{{ $image->url }}" alt="{{ $image->title }}" style="max-width: 100%; max-height: 300px; border-radius: 8px;">
-                                </div>
-                                <small class="text-muted">{{ $image->file_name }} ({{ $image->formatted_size }})</small>
-                            </div>
+                            @php
+                                $imageSource = old('image') ?: $image->url;
+                            @endphp
 
-                            <div class="mb-3">
-                                <label for="image" class="form-label">Replace Image (Optional)</label>
-                                <input type="file" class="form-control @error('image') is-invalid @enderror"
-                                       id="image" name="image" accept="image/*" onchange="previewImage(event)">
-                                @error('image')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <div class="form-text">Leave empty to keep current image. Supported formats: JPEG, PNG, JPG, GIF, WEBP. Max size: 10MB</div>
-                            </div>
-
-                            <div class="mb-3" id="image-preview-container" style="display: none;">
-                                <label class="form-label">New Image Preview</label>
-                                <div>
-                                    <img id="image-preview" src="" alt="Preview" style="max-width: 100%; max-height: 300px; border-radius: 8px;">
-                                </div>
-                            </div>
+                            <x-form.file
+                                name="image"
+                                label="Replace Image (Optional)"
+                                mode="filepond"
+                                accept="image/*"
+                                :acceptedFileTypes="['image/jpeg', 'image/png', 'image/gif', 'image/webp']"
+                                maxFileSize="10MB"
+                                :existingFiles="$imageSource ? [[
+                                    'source' => $imageSource,
+                                    'options' => [
+                                        'type' => 'local',
+                                        'file' => [
+                                            'name' => basename((string) $imageSource),
+                                            'size' => old('image') ? null : $image->file_size,
+                                            'type' => old('image') ? null : $image->file_type,
+                                        ],
+                                    ],
+                                ]] : []"
+                                help="Leave empty to keep current image. Supported formats: JPEG, PNG, JPG, GIF, WEBP. Max size: 10MB"
+                            />
 
                             <button type="submit" class="btn btn-primary">
                                 <i class="bx bx-save me-1"></i> Update
@@ -82,24 +82,3 @@
         </div>
     </div>
 @endsection
-
-@push('scripts')
-<script>
-function previewImage(event) {
-    const input = event.target;
-    const preview = document.getElementById('image-preview');
-    const container = document.getElementById('image-preview-container');
-
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-
-        reader.onload = function(e) {
-            preview.src = e.target.result;
-            container.style.display = 'block';
-        }
-
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-</script>
-@endpush

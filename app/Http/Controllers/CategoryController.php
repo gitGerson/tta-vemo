@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Services\FilePondUploadService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log;
 
 class CategoryController extends Controller
 {
+    public function __construct(protected FilePondUploadService $filePondUploads) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -43,7 +46,7 @@ class CategoryController extends Controller
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:categories',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => ['nullable', $this->filePondUploads->imageUploadValidationRule()],
             'is_active' => 'boolean',
             'sort_order' => 'nullable|integer',
         ]);
@@ -55,13 +58,8 @@ class CategoryController extends Controller
                 $data['slug'] = Str::slug($request->name);
             }
 
-            if ($request->hasFile('image')) {
-                $file = $request->file('image');
-                $fileName = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-                $filePath = 'categories/' . $fileName;
-
-                // Upload to S3
-                Storage::disk('s3')->put($filePath, file_get_contents($file));
+            if ($request->hasFile('image') || $this->filePondUploads->isTempPath($request->input('image'))) {
+                $filePath = $this->filePondUploads->storeFromRequestField($request, 'image', 'categories', 's3');
                 $data['image'] = $filePath;
             }
 
@@ -70,10 +68,11 @@ class CategoryController extends Controller
             return redirect()->route('categories.index')
                 ->with('success', 'Kategori berhasil ditambahkan');
         } catch (\Exception $e) {
-            Log::error('Category Create Error: ' . $e->getMessage());
+            Log::error('Category Create Error: '.$e->getMessage());
+
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal menambahkan kategori: ' . $e->getMessage());
+                ->with('error', 'Gagal menambahkan kategori: '.$e->getMessage());
         }
     }
 
@@ -83,6 +82,7 @@ class CategoryController extends Controller
     public function show(Category $category)
     {
         $category->load(['creator', 'updater', 'deleter', 'products']);
+
         return view('categories.show', compact('category'));
     }
 
@@ -101,9 +101,16 @@ class CategoryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:categories,slug,' . $category->id,
+            'slug' => 'nullable|string|max:255|unique:categories,slug,'.$category->id,
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => [
+                'nullable',
+                $this->filePondUploads->imageUploadValidationRule(
+                    2048,
+                    ['jpeg', 'png', 'jpg', 'gif', 'webp'],
+                    [$category->image, $category->image_url]
+                ),
+            ],
             'is_active' => 'boolean',
             'sort_order' => 'nullable|integer',
         ]);
@@ -115,18 +122,13 @@ class CategoryController extends Controller
                 $data['slug'] = Str::slug($request->name);
             }
 
-            if ($request->hasFile('image')) {
-                // Delete old image from S3
+            if ($request->hasFile('image') || $this->filePondUploads->isTempPath($request->input('image'))) {
+                $filePath = $this->filePondUploads->storeFromRequestField($request, 'image', 'categories', 's3');
+
                 if ($category->image) {
                     Storage::disk('s3')->delete($category->image);
                 }
 
-                $file = $request->file('image');
-                $fileName = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-                $filePath = 'categories/' . $fileName;
-
-                // Upload new image to S3
-                Storage::disk('s3')->put($filePath, file_get_contents($file));
                 $data['image'] = $filePath;
             }
 
@@ -135,10 +137,11 @@ class CategoryController extends Controller
             return redirect()->route('categories.index')
                 ->with('success', 'Kategori berhasil diperbarui');
         } catch (\Exception $e) {
-            Log::error('Category Update Error: ' . $e->getMessage());
+            Log::error('Category Update Error: '.$e->getMessage());
+
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal memperbarui kategori: ' . $e->getMessage());
+                ->with('error', 'Gagal memperbarui kategori: '.$e->getMessage());
         }
     }
 
@@ -148,6 +151,7 @@ class CategoryController extends Controller
     public function destroy(Category $category)
     {
         $category->delete();
+
         return redirect()->route('categories.index')
             ->with('success', 'Kategori berhasil dihapus');
     }
@@ -191,8 +195,9 @@ class CategoryController extends Controller
             ->addIndexColumn()
             ->addColumn('image_preview', function ($category) {
                 if ($category->image) {
-                    return '<img src="' . Storage::disk('s3')->url($category->image) . '" alt="' . $category->name . '" style="max-width: 50px; max-height: 50px;">';
+                    return '<img src="'.Storage::disk('s3')->url($category->image).'" alt="'.$category->name.'" style="max-width: 50px; max-height: 50px;">';
                 }
+
                 return '<span class="text-muted">No Image</span>';
             })
             ->addColumn('status', function ($category) {

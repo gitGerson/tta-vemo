@@ -4,15 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductStoreRequest;
 use App\Http\Requests\ProductUpdateRequest;
-use App\Models\Product;
 use App\Models\Category;
+use App\Models\Product;
+use App\Services\FilePondUploadService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
+    public function __construct(protected FilePondUploadService $filePondUploads) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -35,6 +38,7 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::where('is_active', true)->orderBy('name')->get();
+
         return view('products.create', compact('categories'));
     }
 
@@ -45,18 +49,14 @@ class ProductController extends Controller
     {
         try {
             $data = $request->validated();
+            unset($data['image']);
 
             if (empty($data['slug'])) {
                 $data['slug'] = Str::slug($request->string('name'));
             }
 
-            if ($request->hasFile('image')) {
-                $file = $request->file('image');
-                $fileName = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-                $filePath = 'products/' . $fileName;
-
-                // Upload to S3
-                Storage::disk('s3')->put($filePath, file_get_contents($file));
+            if ($request->hasFile('image') || $this->filePondUploads->isTempPath($request->input('image'))) {
+                $filePath = $this->filePondUploads->storeFromRequestField($request, 'image', 'products', 's3');
                 $data['image'] = $filePath;
             }
 
@@ -65,10 +65,11 @@ class ProductController extends Controller
             return redirect()->route('products.index')
                 ->with('success', 'Produk berhasil ditambahkan');
         } catch (\Exception $e) {
-            Log::error('Product Create Error: ' . $e->getMessage());
+            Log::error('Product Create Error: '.$e->getMessage());
+
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal menambahkan produk: ' . $e->getMessage());
+                ->with('error', 'Gagal menambahkan produk: '.$e->getMessage());
         }
     }
 
@@ -78,6 +79,7 @@ class ProductController extends Controller
     public function show(Product $product)
     {
         $product->load(['category', 'creator', 'updater', 'deleter']);
+
         return view('products.show', compact('product'));
     }
 
@@ -87,6 +89,7 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = Category::where('is_active', true)->orderBy('name')->get();
+
         return view('products.edit', compact('product', 'categories'));
     }
 
@@ -97,23 +100,19 @@ class ProductController extends Controller
     {
         try {
             $data = $request->validated();
+            unset($data['image']);
 
             if (empty($data['slug'])) {
                 $data['slug'] = Str::slug($request->string('name'));
             }
 
-            if ($request->hasFile('image')) {
-                // Delete old image from S3
+            if ($request->hasFile('image') || $this->filePondUploads->isTempPath($request->input('image'))) {
+                $filePath = $this->filePondUploads->storeFromRequestField($request, 'image', 'products', 's3');
+
                 if ($product->image) {
                     Storage::disk('s3')->delete($product->image);
                 }
 
-                $file = $request->file('image');
-                $fileName = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-                $filePath = 'products/' . $fileName;
-
-                // Upload new image to S3
-                Storage::disk('s3')->put($filePath, file_get_contents($file));
                 $data['image'] = $filePath;
             }
 
@@ -122,10 +121,11 @@ class ProductController extends Controller
             return redirect()->route('products.index')
                 ->with('success', 'Produk berhasil diperbarui');
         } catch (\Exception $e) {
-            Log::error('Product Update Error: ' . $e->getMessage());
+            Log::error('Product Update Error: '.$e->getMessage());
+
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal memperbarui produk: ' . $e->getMessage());
+                ->with('error', 'Gagal memperbarui produk: '.$e->getMessage());
         }
     }
 
@@ -135,6 +135,7 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $product->delete();
+
         return redirect()->route('products.index')
             ->with('success', 'Produk berhasil dihapus');
     }
@@ -178,15 +179,16 @@ class ProductController extends Controller
             ->addIndexColumn()
             ->addColumn('image_preview', function ($product) {
                 if ($product->image) {
-                    return '<img src="' . Storage::disk('s3')->url($product->image) . '" alt="' . $product->name . '" style="max-width: 50px; max-height: 50px;">';
+                    return '<img src="'.Storage::disk('s3')->url($product->image).'" alt="'.$product->name.'" style="max-width: 50px; max-height: 50px;">';
                 }
+
                 return '<span class="text-muted">No Image</span>';
             })
             ->addColumn('category_name', function ($product) {
                 return $product->category ? $product->category->name : '-';
             })
             ->addColumn('formatted_price', function ($product) {
-                return 'Rp ' . number_format($product->price, 0, ',', '.');
+                return 'Rp '.number_format($product->price, 0, ',', '.');
             })
             ->addColumn('status', function ($product) {
                 return $product->is_active

@@ -46,22 +46,20 @@
                                 @enderror
                             </div>
 
-                            <div class="mb-3">
-                                <label for="image" class="form-label">Image File <span class="text-danger">*</span></label>
-                                <input type="file" class="form-control @error('image') is-invalid @enderror"
-                                       id="image" name="image" accept="image/*" required onchange="previewImage(event)">
-                                @error('image')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <div class="form-text">Supported formats: JPEG, PNG, JPG, GIF, WEBP. Max size: 10MB</div>
-                            </div>
-
-                            <div class="mb-3" id="image-preview-container" style="display: none;">
-                                <label class="form-label">Preview</label>
-                                <div>
-                                    <img id="image-preview" src="" alt="Preview" style="max-width: 100%; max-height: 300px; border-radius: 8px;">
-                                </div>
-                            </div>
+                            <x-form.file
+                                name="image"
+                                label="Image File"
+                                mode="filepond"
+                                accept="image/*"
+                                :acceptedFileTypes="['image/jpeg', 'image/png', 'image/gif', 'image/webp']"
+                                maxFileSize="10MB"
+                                :existingFiles="old('image') ? [[
+                                    'source' => old('image'),
+                                    'options' => ['type' => 'local'],
+                                ]] : []"
+                                :required="true"
+                                help="Supported formats: JPEG, PNG, JPG, GIF, WEBP. Max size: 10MB"
+                            />
 
                             <button type="submit" class="btn btn-primary">
                                 <i class="bx bx-upload me-1"></i> Upload
@@ -73,24 +71,3 @@
         </div>
     </div>
 @endsection
-
-@push('scripts')
-<script>
-function previewImage(event) {
-    const input = event.target;
-    const preview = document.getElementById('image-preview');
-    const container = document.getElementById('image-preview-container');
-
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-
-        reader.onload = function(e) {
-            preview.src = e.target.result;
-            container.style.display = 'block';
-        }
-
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-</script>
-@endpush

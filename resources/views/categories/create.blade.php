@@ -48,14 +48,19 @@
                         @enderror
                     </div>
 
-                    <div class="mb-3">
-                        <label for="image" class="form-label">Gambar</label>
-                        <input type="file" class="form-control @error('image') is-invalid @enderror" id="image" name="image" accept="image/*">
-                        @error('image')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <small class="text-muted">Format: JPG, PNG, GIF. Maks: 2MB</small>
-                    </div>
+                    <x-form.file
+                        name="image"
+                        label="Gambar"
+                        mode="filepond"
+                        accept="image/*"
+                        :acceptedFileTypes="['image/jpeg', 'image/png', 'image/gif', 'image/webp']"
+                        maxFileSize="2MB"
+                        :existingFiles="old('image') ? [[
+                            'source' => old('image'),
+                            'options' => ['type' => 'local'],
+                        ]] : []"
+                        help="Format: JPG, PNG, GIF, WEBP. Maks: 2MB"
+                    />
 
                     <div class="mb-3">
                         <label for="sort_order" class="form-label">Urutan</label>

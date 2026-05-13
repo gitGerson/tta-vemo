@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Image;
 use App\Models\UserLog;
+use App\Services\FilePondUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class ImageController extends Controller
 {
+    public function __construct(protected FilePondUploadService $filePondUploads) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -42,24 +44,23 @@ class ImageController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240', // 10MB max
+            'image' => ['required', $this->filePondUploads->imageUploadValidationRule(10240)],
         ]);
 
         try {
-            $file = $request->file('image');
-            $fileName = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-            $filePath = 'images/' . $fileName;
+            $filePath = $this->filePondUploads->storeFromRequestField($request, 'image', 'images', 's3');
 
-            // Upload to MinIO (S3)
-            Storage::disk('s3')->put($filePath, file_get_contents($file));
+            if (! $filePath) {
+                throw new \RuntimeException('File upload tidak ditemukan.');
+            }
 
             $image = Image::create([
                 'title' => $request->title,
                 'description' => $request->description,
-                'file_name' => $fileName,
+                'file_name' => basename($filePath),
                 'file_path' => $filePath,
-                'file_type' => $file->getClientMimeType(),
-                'file_size' => $file->getSize(),
+                'file_type' => Storage::disk('s3')->mimeType($filePath) ?: 'application/octet-stream',
+                'file_size' => Storage::disk('s3')->size($filePath),
             ]);
 
             return redirect()->route('images.index')
@@ -67,7 +68,7 @@ class ImageController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to upload image: ' . $e->getMessage());
+                ->with('error', 'Failed to upload image: '.$e->getMessage());
         }
     }
 
@@ -106,29 +107,33 @@ class ImageController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240', // 10MB max
+            'image' => [
+                'nullable',
+                $this->filePondUploads->imageUploadValidationRule(
+                    10240,
+                    ['jpeg', 'png', 'jpg', 'gif', 'webp'],
+                    [$image->url, $image->file_path]
+                ),
+            ],
         ]);
 
         try {
             $image->title = $request->title;
             $image->description = $request->description;
 
-            // If new image uploaded, replace the old one
-            if ($request->hasFile('image')) {
-                // Delete old image from MinIO
+            if ($request->hasFile('image') || $this->filePondUploads->isTempPath($request->input('image'))) {
+                $filePath = $this->filePondUploads->storeFromRequestField($request, 'image', 'images', 's3');
+
+                if (! $filePath) {
+                    throw new \RuntimeException('File upload tidak ditemukan.');
+                }
+
                 Storage::disk('s3')->delete($image->file_path);
 
-                $file = $request->file('image');
-                $fileName = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-                $filePath = 'images/' . $fileName;
-
-                // Upload new image to MinIO
-                Storage::disk('s3')->put($filePath, file_get_contents($file));
-
-                $image->file_name = $fileName;
+                $image->file_name = basename($filePath);
                 $image->file_path = $filePath;
-                $image->file_type = $file->getClientMimeType();
-                $image->file_size = $file->getSize();
+                $image->file_type = Storage::disk('s3')->mimeType($filePath) ?: 'application/octet-stream';
+                $image->file_size = Storage::disk('s3')->size($filePath);
             }
 
             $image->save();
@@ -138,7 +143,7 @@ class ImageController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to update image: ' . $e->getMessage());
+                ->with('error', 'Failed to update image: '.$e->getMessage());
         }
     }
 

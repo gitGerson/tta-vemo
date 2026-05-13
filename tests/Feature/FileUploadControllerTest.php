@@ -31,8 +31,12 @@ class FileUploadControllerTest extends TestCase
         Storage::disk('local')->assertExists($tempPath);
 
         $this->actingAs($user)
-            ->withBody($tempPath, 'text/plain')
-            ->delete(route('uploads.revert'))
+            ->call(
+                'DELETE',
+                route('uploads.revert'),
+                server: ['CONTENT_TYPE' => 'text/plain'],
+                content: $tempPath
+            )
             ->assertOk();
 
         Storage::disk('local')->assertMissing($tempPath);

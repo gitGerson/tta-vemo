@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\HasDiffrntHashId;
+use App\Services\FilePondUploadService;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,7 +15,7 @@ use Illuminate\Validation\Rule;
 
 class Product extends Model
 {
-    use HasFactory, SoftDeletes, Auditable, HasDiffrntHashId;
+    use Auditable, HasDiffrntHashId, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'category_id',
@@ -35,7 +37,7 @@ class Product extends Model
     ];
 
     /**
-     * @return array<string, array<int, \Illuminate\Contracts\Validation\ValidationRule|string>>
+     * @return array<string, array<int, ValidationRule|string>>
      */
     public static function validationRules(?self $product = null): array
     {
@@ -47,7 +49,14 @@ class Product extends Model
             'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
             'stock' => ['nullable', 'integer', 'min:0'],
-            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'image' => [
+                'nullable',
+                app(FilePondUploadService::class)->imageUploadValidationRule(
+                    2048,
+                    ['jpeg', 'png', 'jpg', 'gif', 'webp'],
+                    [$product?->image, $product?->image_url]
+                ),
+            ],
             'is_active' => ['boolean'],
         ];
     }
@@ -128,6 +137,7 @@ class Product extends Model
         if ($this->image) {
             return Storage::disk('s3')->url($this->image);
         }
+
         return null;
     }
 
@@ -136,6 +146,6 @@ class Product extends Model
      */
     public function getFormattedPriceAttribute()
     {
-        return 'Rp ' . number_format($this->price, 0, ',', '.');
+        return 'Rp '.number_format($this->price, 0, ',', '.');
     }
 }
