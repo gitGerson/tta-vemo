@@ -35,7 +35,8 @@ class UserRoleController extends Controller
             "Updated roles for user: {$user->name} ({$user->username})",
             $user,
             ['roles' => $oldRoles],
-            ['roles' => $newRoles]
+            ['roles' => $newRoles],
+            $user
         );
 
         return redirect()->route('users.roles', $user)->with('success', 'Role user berhasil diperbarui');
@@ -57,7 +58,8 @@ class UserRoleController extends Controller
                 "Assigned role '{$role->display_name}' to user: {$user->name} ({$user->username})",
                 $user,
                 null,
-                ['role' => $role->name]
+                ['role' => $role->name],
+                $user
             );
 
             return response()->json(['success' => true, 'message' => 'Role berhasil ditambahkan']);
@@ -82,7 +84,8 @@ class UserRoleController extends Controller
                 "Removed role '{$role->display_name}' from user: {$user->name} ({$user->username})",
                 $user,
                 ['role' => $role->name],
-                null
+                null,
+                $user
             );
 
             return response()->json(['success' => true, 'message' => 'Role berhasil dihapus']);

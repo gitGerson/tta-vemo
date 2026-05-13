@@ -9,6 +9,7 @@ use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use LdapRecord\Models\OpenLDAP\User as LdapUser;
 
 class UserController extends Controller
@@ -18,7 +19,11 @@ class UserController extends Controller
      */
     public function index()
     {
-        return view('users.index');
+        $roles = Role::where('is_active', true)
+            ->orderBy('display_name')
+            ->get();
+
+        return view('users.index', compact('roles'));
     }
 
     /**
@@ -34,7 +39,52 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('users.create');
+        $roles = Role::where('is_active', true)
+            ->orderBy('display_name')
+            ->get();
+
+        return view('users.create', compact('roles'));
+    }
+
+    public function verifyLdap(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string|max:255',
+        ]);
+
+        if (User::where('username', $request->username)->exists()) {
+            return response()->json([
+                'message' => 'User dengan username tersebut sudah ada di database.',
+            ], 422);
+        }
+
+        try {
+            $ldapUser = LdapUser::where('uid', $request->username)->first();
+
+            if (!$ldapUser) {
+                return response()->json([
+                    'message' => 'Username tidak ditemukan di LDAP. Pastikan username sudah terdaftar di sistem LDAP.',
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'User LDAP berhasil diverifikasi. Silakan pilih role.',
+                'user' => [
+                    'name' => $ldapUser->cn[0] ?? $ldapUser->displayname[0] ?? $ldapUser->uid[0] ?? $request->username,
+                    'username' => $request->username,
+                    'email' => $ldapUser->mail[0] ?? $request->username . '@tongtji.com',
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('LDAP User Verification Error: ' . $e->getMessage(), [
+                'username' => $request->username,
+                'exception' => $e,
+            ]);
+
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat menghubungi LDAP server. Silakan coba lagi atau hubungi administrator.',
+            ], 500);
+        }
     }
 
     /**
@@ -44,6 +94,10 @@ class UserController extends Controller
     {
         $request->validate([
             'username' => 'required|string|max:255|unique:users',
+            'role_id' => [
+                'required',
+                Rule::exists('roles', 'id')->where('is_active', true),
+            ],
         ]);
 
         try {
@@ -74,6 +128,9 @@ class UserController extends Controller
                 'guid' => $ldapUser->entryuuid[0] ?? null,
             ]);
 
+            $role = Role::findOrFail($request->role_id);
+            $user->assignRole($role);
+
             UserLog::log(
                 'CREATE_USER',
                 "Created user from LDAP sync: {$user->name} ({$user->username})",
@@ -83,11 +140,13 @@ class UserController extends Controller
                     'username' => $request->username,
                     'ldap_dn' => $ldapUser->getDn(),
                     'ldap_guid' => $ldapUser->entryuuid[0] ?? null,
-                ]
+                    'role' => $role->name,
+                ],
+                $user
             );
 
             return redirect()->route('users.index')
-                ->with('success', "User berhasil ditemukan di LDAP dan disinkronisasi ke database. User: {$user->name} ({$user->username})");
+                ->with('success', "User berhasil ditemukan di LDAP, disinkronisasi, dan diberi role {$role->display_name}. User: {$user->name} ({$user->username})");
         } catch (\Exception $e) {
             Log::error('LDAP User Sync Error: ' . $e->getMessage(), [
                 'username' => $request->username,
@@ -110,6 +169,9 @@ class UserController extends Controller
         UserLog::log(
             'VIEW_USER',
             "Viewed user: {$user->name} ({$user->username})",
+            $user,
+            null,
+            null,
             $user
         );
 
@@ -140,16 +202,7 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        $userName = $user->name;
-        $userUsername = $user->username;
-
         $user->delete();
-
-        UserLog::log(
-            'DELETE_USER',
-            "Soft deleted user: {$userName} ({$userUsername})",
-            $user
-        );
 
         return redirect()->route('users.index')->with('success', 'User berhasil dihapus');
     }
@@ -157,17 +210,10 @@ class UserController extends Controller
     /**
      * Restore soft deleted user.
      */
-    public function restore($id)
+    public function restore(User $user)
     {
-        $user = User::withTrashed()->findOrFail($id);
         $user->deleted_by = null;
         $user->restore();
-
-        UserLog::log(
-            'RESTORE_USER',
-            "Restored user: {$user->name} ({$user->username})",
-            $user
-        );
 
         return redirect()->route('users.trash')->with('success', 'User berhasil dipulihkan');
     }
@@ -175,18 +221,8 @@ class UserController extends Controller
     /**
      * Permanently delete user.
      */
-    public function forceDelete($id)
+    public function forceDelete(User $user)
     {
-        $user = User::withTrashed()->findOrFail($id);
-        $userName = $user->name;
-        $userUsername = $user->username;
-
-        UserLog::log(
-            'FORCE_DELETE_USER',
-            "Permanently deleted user: {$userName} ({$userUsername})",
-            $user
-        );
-
         $user->forceDelete();
 
         return redirect()->route('users.trash')->with('success', 'User berhasil dihapus permanen');
@@ -204,51 +240,11 @@ class UserController extends Controller
             ->addColumn('roles', function ($user) {
                 return $user->roles->pluck('display_name')->join(', ') ?: '-';
             })
+            ->addColumn('row_url', function ($user) {
+                return route('users.show', $user);
+            })
             ->addColumn('action', function ($user) {
-                $actions = '<div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                        <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">';
-
-                // View action - always available if user has users.view permission
-                if (auth()->user()->hasPermission('management.users.view')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('users.show', $user->id) . '">
-                        <i class="bx bx-show me-1"></i> Lihat
-                    </a>';
-                }
-
-                // Activity logs
-                if (auth()->user()->hasPermission('management.users.logs')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('users.user-logs', $user->id) . '">
-                        <i class="bx bx-history me-1"></i> Activity Log
-                    </a>';
-                }
-
-                // Edit action
-                if (auth()->user()->hasPermission('management.users.edit')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('users.edit', $user->id) . '">
-                        <i class="bx bx-edit-alt me-1"></i> Edit
-                    </a>';
-                    $actions .= '<a class="dropdown-item d-none" href="' . route('users.roles', $user->id) . '">
-                        <i class="bx bx-shield me-1"></i> Kelola Role
-                    </a>';
-                }
-
-                // Delete action
-                if (auth()->user()->hasPermission('management.users.delete')) {
-                    $actions .= '<form action="' . route('users.destroy', $user->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        ' . method_field('DELETE') . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Yakin ingin menghapus user ini?\')">
-                            <i class="bx bx-trash me-1"></i> Hapus
-                        </button>
-                    </form>';
-                }
-
-                $actions .= '</div></div>';
-
-                return $actions;
+                return view('datatable.actions.users', compact('user'))->render();
             })
             ->rawColumns(['action'])
             ->make(true);
@@ -274,36 +270,7 @@ class UserController extends Controller
                 return $user->deleter ? $user->deleter->name : '-';
             })
             ->addColumn('action', function ($user) {
-                $actions = '<div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                        <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">';
-
-                // Restore action
-                if (auth()->user()->hasPermission('management.users.restore')) {
-                    $actions .= '<form action="' . route('users.restore', $user->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Yakin ingin memulihkan user ini?\')">
-                            <i class="bx bx-refresh me-1"></i> Pulihkan
-                        </button>
-                    </form>';
-                }
-
-                // Force delete action
-                if (auth()->user()->hasPermission('management.users.force_delete')) {
-                    $actions .= '<form action="' . route('users.force-delete', $user->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        ' . method_field('DELETE') . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Yakin ingin menghapus permanen user ini? Data tidak dapat dipulihkan!\')">
-                            <i class="bx bx-trash me-1"></i> Hapus Permanen
-                        </button>
-                    </form>';
-                }
-
-                $actions .= '</div></div>';
-
-                return $actions;
+                return view('datatable.actions.users-trash', compact('user'))->render();
             })
             ->rawColumns(['action'])
             ->make(true);
@@ -344,6 +311,11 @@ class UserController extends Controller
                     'RESTORE_USER' => 'info',
                     'FORCE_DELETE_USER' => 'dark',
                     'VIEW_USER' => 'secondary',
+                    'MODEL_CREATED' => 'success',
+                    'MODEL_UPDATED' => 'warning',
+                    'MODEL_DELETED' => 'danger',
+                    'MODEL_RESTORED' => 'info',
+                    'MODEL_FORCE_DELETED' => 'dark',
                 ];
                 $badgeClass = $badges[$log->action] ?? 'primary';
                 return '<span class="badge bg-' . $badgeClass . '">' . str_replace('_', ' ', $log->action) . '</span>';
@@ -385,6 +357,11 @@ class UserController extends Controller
                     'RESTORE_USER' => 'info',
                     'FORCE_DELETE_USER' => 'dark',
                     'VIEW_USER' => 'secondary',
+                    'MODEL_CREATED' => 'success',
+                    'MODEL_UPDATED' => 'warning',
+                    'MODEL_DELETED' => 'danger',
+                    'MODEL_RESTORED' => 'info',
+                    'MODEL_FORCE_DELETED' => 'dark',
                 ];
                 $badgeClass = $badges[$log->action] ?? 'primary';
                 return '<span class="badge bg-' . $badgeClass . '">' . str_replace('_', ' ', $log->action) . '</span>';
@@ -443,12 +420,14 @@ class UserController extends Controller
             'UPDATE_USER_PERMISSIONS',
             "Updated permissions for user: {$user->name} ({$user->username})",
             $user,
-            $user,
             [
                 'previous_permissions' => $currentPermissions,
+            ],
+            [
                 'new_permissions' => $newPermissions,
                 'permissions_count' => count($newPermissions)
-            ]
+            ],
+            $user
         );
 
         return redirect()->route('users.edit', $user)
@@ -482,13 +461,18 @@ class UserController extends Controller
             'APPLY_ROLE_TEMPLATE',
             "Applied role template '{$roleTemplate->display_name}' to user: {$user->name} ({$user->username})",
             $user,
-            $user,
             [
                 'template_name' => $roleTemplate->display_name,
                 'template_id' => $roleTemplate->id,
                 'previous_permissions' => $currentPermissions,
                 'new_permissions' => $newPermissions
-            ]
+            ],
+            [
+                'template_name' => $roleTemplate->display_name,
+                'template_id' => $roleTemplate->id,
+                'new_permissions' => $newPermissions,
+            ],
+            $user
         );
 
         return redirect()->route('users.edit', $user)

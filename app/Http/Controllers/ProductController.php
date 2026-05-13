@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
+use App\Http\Requests\ProductStoreRequest;
+use App\Http\Requests\ProductUpdateRequest;
 use App\Models\Category;
+use App\Models\Product;
+use App\Services\FilePondUploadService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
+    public function __construct(protected FilePondUploadService $filePondUploads) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -33,40 +38,25 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::where('is_active', true)->orderBy('name')->get();
+
         return view('products.create', compact('categories'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ProductStoreRequest $request)
     {
-        $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:products',
-            'sku' => 'nullable|string|max:100|unique:products',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'nullable|integer|min:0',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'is_active' => 'boolean',
-        ]);
-
         try {
-            $data = $request->only(['category_id', 'name', 'slug', 'sku', 'description', 'price', 'stock', 'is_active']);
+            $data = $request->validated();
+            unset($data['image']);
 
             if (empty($data['slug'])) {
-                $data['slug'] = Str::slug($request->name);
+                $data['slug'] = Str::slug($request->string('name'));
             }
 
-            if ($request->hasFile('image')) {
-                $file = $request->file('image');
-                $fileName = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-                $filePath = 'products/' . $fileName;
-
-                // Upload to S3
-                Storage::disk('s3')->put($filePath, file_get_contents($file));
+            if ($request->hasFile('image') || $this->filePondUploads->isTempPath($request->input('image'))) {
+                $filePath = $this->filePondUploads->storeFromRequestField($request, 'image', 'products', 's3');
                 $data['image'] = $filePath;
             }
 
@@ -75,10 +65,11 @@ class ProductController extends Controller
             return redirect()->route('products.index')
                 ->with('success', 'Produk berhasil ditambahkan');
         } catch (\Exception $e) {
-            Log::error('Product Create Error: ' . $e->getMessage());
+            Log::error('Product Create Error: '.$e->getMessage());
+
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal menambahkan produk: ' . $e->getMessage());
+                ->with('error', 'Gagal menambahkan produk: '.$e->getMessage());
         }
     }
 
@@ -88,6 +79,7 @@ class ProductController extends Controller
     public function show(Product $product)
     {
         $product->load(['category', 'creator', 'updater', 'deleter']);
+
         return view('products.show', compact('product'));
     }
 
@@ -97,45 +89,30 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = Category::where('is_active', true)->orderBy('name')->get();
+
         return view('products.edit', compact('product', 'categories'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Product $product)
+    public function update(ProductUpdateRequest $request, Product $product)
     {
-        $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:products,slug,' . $product->id,
-            'sku' => 'nullable|string|max:100|unique:products,sku,' . $product->id,
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'nullable|integer|min:0',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'is_active' => 'boolean',
-        ]);
-
         try {
-            $data = $request->only(['category_id', 'name', 'slug', 'sku', 'description', 'price', 'stock', 'is_active']);
+            $data = $request->validated();
+            unset($data['image']);
 
             if (empty($data['slug'])) {
-                $data['slug'] = Str::slug($request->name);
+                $data['slug'] = Str::slug($request->string('name'));
             }
 
-            if ($request->hasFile('image')) {
-                // Delete old image from S3
+            if ($request->hasFile('image') || $this->filePondUploads->isTempPath($request->input('image'))) {
+                $filePath = $this->filePondUploads->storeFromRequestField($request, 'image', 'products', 's3');
+
                 if ($product->image) {
                     Storage::disk('s3')->delete($product->image);
                 }
 
-                $file = $request->file('image');
-                $fileName = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-                $filePath = 'products/' . $fileName;
-
-                // Upload new image to S3
-                Storage::disk('s3')->put($filePath, file_get_contents($file));
                 $data['image'] = $filePath;
             }
 
@@ -144,10 +121,11 @@ class ProductController extends Controller
             return redirect()->route('products.index')
                 ->with('success', 'Produk berhasil diperbarui');
         } catch (\Exception $e) {
-            Log::error('Product Update Error: ' . $e->getMessage());
+            Log::error('Product Update Error: '.$e->getMessage());
+
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal memperbarui produk: ' . $e->getMessage());
+                ->with('error', 'Gagal memperbarui produk: '.$e->getMessage());
         }
     }
 
@@ -157,6 +135,7 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $product->delete();
+
         return redirect()->route('products.index')
             ->with('success', 'Produk berhasil dihapus');
     }
@@ -164,9 +143,8 @@ class ProductController extends Controller
     /**
      * Restore soft deleted product.
      */
-    public function restore($id)
+    public function restore(Product $product)
     {
-        $product = Product::withTrashed()->findOrFail($id);
         $product->deleted_by = null;
         $product->restore();
 
@@ -177,10 +155,8 @@ class ProductController extends Controller
     /**
      * Permanently delete product.
      */
-    public function forceDelete($id)
+    public function forceDelete(Product $product)
     {
-        $product = Product::withTrashed()->findOrFail($id);
-
         // Delete image from S3
         if ($product->image) {
             Storage::disk('s3')->delete($product->image);
@@ -203,52 +179,27 @@ class ProductController extends Controller
             ->addIndexColumn()
             ->addColumn('image_preview', function ($product) {
                 if ($product->image) {
-                    return '<img src="' . Storage::disk('s3')->url($product->image) . '" alt="' . $product->name . '" style="max-width: 50px; max-height: 50px;">';
+                    return '<img src="'.Storage::disk('s3')->url($product->image).'" alt="'.$product->name.'" style="max-width: 50px; max-height: 50px;">';
                 }
+
                 return '<span class="text-muted">No Image</span>';
             })
             ->addColumn('category_name', function ($product) {
                 return $product->category ? $product->category->name : '-';
             })
             ->addColumn('formatted_price', function ($product) {
-                return 'Rp ' . number_format($product->price, 0, ',', '.');
+                return 'Rp '.number_format($product->price, 0, ',', '.');
             })
             ->addColumn('status', function ($product) {
                 return $product->is_active
                     ? '<span class="badge bg-success">Aktif</span>'
                     : '<span class="badge bg-secondary">Nonaktif</span>';
             })
+            ->addColumn('row_url', function ($product) {
+                return route('products.show', $product);
+            })
             ->addColumn('action', function ($product) {
-                $actions = '<div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                        <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">';
-
-                if (auth()->user()->hasPermission('master.products.view')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('products.show', $product->id) . '">
-                        <i class="bx bx-show me-1"></i> Lihat
-                    </a>';
-                }
-
-                if (auth()->user()->hasPermission('master.products.edit')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('products.edit', $product->id) . '">
-                        <i class="bx bx-edit-alt me-1"></i> Edit
-                    </a>';
-                }
-
-                if (auth()->user()->hasPermission('master.products.delete')) {
-                    $actions .= '<form action="' . route('products.destroy', $product->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        ' . method_field('DELETE') . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Yakin ingin menghapus produk ini?\')">
-                            <i class="bx bx-trash me-1"></i> Hapus
-                        </button>
-                    </form>';
-                }
-
-                $actions .= '</div></div>';
-                return $actions;
+                return view('datatable.actions.products', compact('product'))->render();
             })
             ->rawColumns(['image_preview', 'status', 'action'])
             ->make(true);
@@ -271,33 +222,7 @@ class ProductController extends Controller
                 return $product->deleter ? $product->deleter->name : '-';
             })
             ->addColumn('action', function ($product) {
-                $actions = '<div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                        <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">';
-
-                if (auth()->user()->hasPermission('master.products.restore')) {
-                    $actions .= '<form action="' . route('products.restore', $product->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Yakin ingin memulihkan produk ini?\')">
-                            <i class="bx bx-refresh me-1"></i> Pulihkan
-                        </button>
-                    </form>';
-                }
-
-                if (auth()->user()->hasPermission('master.products.force_delete')) {
-                    $actions .= '<form action="' . route('products.force-delete', $product->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        ' . method_field('DELETE') . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Yakin ingin menghapus permanen? Data tidak dapat dipulihkan!\')">
-                            <i class="bx bx-trash me-1"></i> Hapus Permanen
-                        </button>
-                    </form>';
-                }
-
-                $actions .= '</div></div>';
-                return $actions;
+                return view('datatable.actions.products-trash', compact('product'))->render();
             })
             ->rawColumns(['action'])
             ->make(true);

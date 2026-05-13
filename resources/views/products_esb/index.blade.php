@@ -58,31 +58,12 @@
             </div>
         </div>
 
-        <div class="card mt-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Daftar Product ESB</h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive text-nowrap">
-                    <table id="products-esb-table" class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Product ID</th>
-                                <th>Code</th>
-                                <th>Nama</th>
-                                <th>Kategori</th>
-                                <th>Requestable</th>
-                                <th>Purchasable</th>
-                                <th>Saleable</th>
-                                <th>Last Synced</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-            </div>
-        </div>
+        <x-datatable.card title="Daftar Product ESB" class="mt-4">
+            <x-datatable.table
+                id="products-esb-table"
+                :columns="['No', 'Product ID', 'Code', 'Nama', 'Kategori', 'Requestable', 'Purchasable', 'Saleable', 'Last Synced', 'Aksi']"
+            />
+        </x-datatable.card>
     </div>
 @endsection
 
@@ -155,35 +136,21 @@
             });
         });
     </script>
-
-    <script>
-        $(function() {
-            window.productsEsbTable = $('#products-esb-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: '{{ route('products-esb.data') }}',
-                columns: [
-                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-                    { data: 'product_id', name: 'product_id' },
-                    { data: 'product_code', name: 'product_code' },
-                    { data: 'product_name', name: 'product_name' },
-                    { data: 'category_info', name: 'category_name', orderable: false, searchable: false },
-                    { data: 'requestable_badge', name: 'requestable', orderable: false, searchable: false },
-                    { data: 'purchasable_badge', name: 'purchasable', orderable: false, searchable: false },
-                    { data: 'saleable_badge', name: 'saleable', orderable: false, searchable: false },
-                    { data: 'last_synced_at', name: 'last_synced_at' },
-                    { data: 'action', name: 'action', orderable: false, searchable: false }
-                ],
-                dom: 'lBfrtip',
-                buttons: [
-                    { extend: 'copy', exportOptions: { columns: ':not(:last-child)' } },
-                    { extend: 'csv', exportOptions: { columns: ':not(:last-child)' } },
-                    { extend: 'excel', exportOptions: { columns: ':not(:last-child)' } },
-                    { extend: 'pdf', exportOptions: { columns: ':not(:last-child)' } },
-                    { extend: 'print', exportOptions: { columns: ':not(:last-child)' } },
-                    'colvis'
-                ],
-            });
-        });
-    </script>
 @endpush
+
+<x-datatable.scripts
+    table-id="products-esb-table"
+    ajax="{{ route('products-esb.data') }}"
+    variable="productsEsbTable"
+>
+    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+    { data: 'product_id', name: 'product_id' },
+    { data: 'product_code', name: 'product_code' },
+    { data: 'product_name', name: 'product_name' },
+    { data: 'category_info', name: 'category_name', orderable: false, searchable: false },
+    { data: 'requestable_badge', name: 'requestable', orderable: false, searchable: false },
+    { data: 'purchasable_badge', name: 'purchasable', orderable: false, searchable: false },
+    { data: 'saleable_badge', name: 'saleable', orderable: false, searchable: false },
+    { data: 'last_synced_at', name: 'last_synced_at' },
+    { data: 'action', name: 'action', orderable: false, searchable: false }
+</x-datatable.scripts>

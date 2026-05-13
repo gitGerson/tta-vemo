@@ -17,10 +17,13 @@
         "laravel/ui": "^4.6",
         "laravolt/avatar": "^6.2",
         "league/flysystem-aws-s3-v3": "^3.0",
+        "vinkla/hashids": "^13.0",
         "yajra/laravel-datatables-oracle": "12.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
+        "fruitcake/laravel-debugbar": "^4.2",
+        "laravel/boost": "^2.4",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.13",
         "laravel/sail": "^1.41",
@@ -33,7 +36,10 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "files": [
+            "app/Helpers/CommonHelper.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

@@ -30,6 +30,21 @@
                                 <div class="form-text">Username akan digunakan untuk mengambil data dari LDAP</div>
                             </div>
 
+                            <div class="mb-3">
+                                <label for="role_id" class="form-label">Role</label>
+                                <select name="role_id" id="role_id" class="form-select @error('role_id') is-invalid @enderror" required>
+                                    <option value="">Pilih role...</option>
+                                    @foreach($roles as $role)
+                                        <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
+                                            {{ $role->display_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('role_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
                             <button type="submit" class="btn btn-primary">
                                 <i class="bx bx-save me-1"></i> Simpan
                             </button>

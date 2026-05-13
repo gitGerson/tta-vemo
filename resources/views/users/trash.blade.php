@@ -13,102 +13,33 @@
             </div>
         @endif
 
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Tempat Sampah User</h5>
+        <x-datatable.card title="Tempat Sampah User">
+            <x-slot:actions>
                 <a href="{{ route('users.index') }}" class="btn btn-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali ke Daftar User
                 </a>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive text-nowrap">
+            </x-slot:actions>
 
-                    <table id="trash-table" class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nama</th>
-                                <th>Username</th>
-                                <th>Email</th>
-                                <th>Dihapus</th>
-                                <th>Dihapus Oleh</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-            </div>
-        </div>
+            <x-datatable.table
+                id="trash-table"
+                :columns="['ID', 'Nama', 'Username', 'Email', 'Dihapus', 'Dihapus Oleh', 'Aksi']"
+            />
+        </x-datatable.card>
     </div>
 @endsection
 
-
-@push('scripts')
-    <script>
-        $(function() {
-            $('#trash-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: '{{ route('users.trash.data') }}',
-                columns: [{
-                        data: 'id',
-                        name: 'id'
-                    },
-                    {
-                        data: 'name',
-                        name: 'name'
-                    },
-                    {
-                        data: 'username',
-                        name: 'username'
-                    },
-                    {
-                        data: 'email',
-                        name: 'email'
-                    },
-                    {
-                        data: 'deleted_at',
-                        name: 'deleted_at',
-                        render: function(data, type, row) {
-                            return moment(data).format('DD MMM YYYY HH:mm');
-                        }
-                    },
-                    {
-                        data: 'deleted_by_name',
-                        name: 'deleted_by_name'
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false
-                    }
-                ],
-                dom: 'lBfrtip',
-                buttons: [
-                    {
-                        extend: 'copy',
-                        exportOptions: { columns: ':not(:last-child)' }
-                    },
-                    {
-                        extend: 'csv',
-                        exportOptions: { columns: ':not(:last-child)' }
-                    },
-                    {
-                        extend: 'excel',
-                        exportOptions: { columns: ':not(:last-child)' }
-                    },
-                    {
-                        extend: 'pdf',
-                        exportOptions: { columns: ':not(:last-child)' }
-                    },
-                    {
-                        extend: 'print',
-                        exportOptions: { columns: ':not(:last-child)' }
-                    },
-                    'colvis'
-                ],
-            });
-        });
-    </script>
-@endpush
+<x-datatable.scripts table-id="trash-table" ajax="{{ route('users.trash.data') }}">
+    { data: 'id', name: 'id' },
+    { data: 'name', name: 'name' },
+    { data: 'username', name: 'username' },
+    { data: 'email', name: 'email' },
+    {
+        data: 'deleted_at',
+        name: 'deleted_at',
+        render: function(data, type, row) {
+            return moment(data).format('DD MMM YYYY HH:mm');
+        }
+    },
+    { data: 'deleted_by_name', name: 'deleted_by_name' },
+    { data: 'action', name: 'action', orderable: false, searchable: false }
+</x-datatable.scripts>

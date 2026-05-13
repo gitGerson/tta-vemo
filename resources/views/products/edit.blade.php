@@ -101,19 +101,28 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="image" class="form-label">Gambar</label>
-                        @if($product->image)
-                            <div class="mb-2">
-                                <img src="{{ $product->image_url }}" alt="{{ $product->name }}" style="max-width: 150px; max-height: 150px;">
-                            </div>
-                        @endif
-                        <input type="file" class="form-control @error('image') is-invalid @enderror" id="image" name="image" accept="image/*">
-                        @error('image')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <small class="text-muted">Format: JPG, PNG, GIF. Maks: 2MB. Biarkan kosong jika tidak ingin mengubah gambar.</small>
-                    </div>
+                    @php
+                        $productImageSource = old('image') ?: $product->image_url;
+                    @endphp
+
+                    <x-form.file
+                        name="image"
+                        label="Gambar"
+                        mode="filepond"
+                        accept="image/*"
+                        :acceptedFileTypes="['image/jpeg', 'image/png', 'image/gif', 'image/webp']"
+                        maxFileSize="2MB"
+                        :existingFiles="$productImageSource ? [[
+                            'source' => $productImageSource,
+                            'options' => [
+                                'type' => 'local',
+                                'file' => [
+                                    'name' => basename((string) $productImageSource),
+                                ],
+                            ],
+                        ]] : []"
+                        help="Format: JPG, PNG, GIF, WEBP. Maks: 2MB. Biarkan kosong jika tidak ingin mengubah gambar."
+                    />
 
                     <div class="mb-3">
                         <div class="form-check form-switch">

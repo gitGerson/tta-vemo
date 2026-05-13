@@ -63,62 +63,78 @@
              </li>
 
              <!-- User -->
-             <li class="nav-item navbar-dropdown dropdown-user dropdown">
-                 <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);"
-                     data-bs-toggle="dropdown">
-                     <div class="avatar avatar-online">
-                         <img src="{{ Avatar::create(Auth::user()->name) }}" alt
-                             class="w-px-40 h-auto rounded-circle" />
-                     </div>
-                 </a>
-                 <ul class="dropdown-menu dropdown-menu-end">
+            <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                <button type="button" class="nav-link dropdown-toggle hide-arrow p-0 border-0 bg-transparent"
+                    id="navbar-user-dropdown" aria-expanded="false">
+                    <div class="avatar avatar-online">
+                        <img src="{{ Avatar::create(Auth::user()->name) }}" alt
+                            class="w-px-40 h-auto rounded-circle" />
+                    </div>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" id="navbar-user-menu"
+                    aria-labelledby="navbar-user-dropdown">
+                    @php
+                        $currentUser = auth()->user();
+                        $canViewProfile = $currentUser?->hasPermission('management.users.view') === true;
+                        $canEditProfile = $currentUser?->hasPermission('management.users.edit') === true;
+                    @endphp
                      <li>
-                         <a class="dropdown-item" href="#">
-                             <div class="d-flex">
-                                 <div class="flex-shrink-0 me-3">
-                                     <div class="avatar avatar-online">
-                                         <img src="{{ Avatar::create(Auth::user()->name) }}" alt
-                                             class="w-px-40 h-auto rounded-circle" />
+                         @if ($canViewProfile)
+                             <a class="dropdown-item" href="{{ route('users.show', $currentUser) }}">
+                                 <div class="d-flex">
+                                     <div class="flex-shrink-0 me-3">
+                                         <div class="avatar avatar-online">
+                                             <img src="{{ Avatar::create(Auth::user()->name) }}" alt
+                                                 class="w-px-40 h-auto rounded-circle" />
+                                         </div>
+                                     </div>
+                                     <div class="flex-grow-1">
+                                         <h6 class="mb-0">{{ Auth::user()->name }}</h6>
+                                         <small class="text-body-secondary">
+                                             @forelse (Auth::user()->roles as $role)
+                                                 <span class="badge bg-label-primary">{{ $role->display_name }}</span>
+                                                 <br>
+                                             @empty
+                                             @endforelse
+                                         </small>
                                      </div>
                                  </div>
-                                 <div class="flex-grow-1">
-                                     <h6 class="mb-0">{{ Auth::user()->name }}</h6>
-                                     <small class="text-body-secondary">
-                                         @forelse (Auth::user()->roles as $role)
-                                             <span class="badge bg-label-primary">{{ $role->display_name }}</span>
-                                             <br>
-                                         @empty
-                                         @endforelse
-                                     </small>
+                             </a>
+                         @else
+                             <div class="dropdown-item">
+                                 <div class="d-flex">
+                                     <div class="flex-shrink-0 me-3">
+                                         <div class="avatar avatar-online">
+                                             <img src="{{ Avatar::create(Auth::user()->name) }}" alt
+                                                 class="w-px-40 h-auto rounded-circle" />
+                                         </div>
+                                     </div>
+                                     <div class="flex-grow-1">
+                                         <h6 class="mb-0">{{ Auth::user()->name }}</h6>
+                                         <small class="text-body-secondary">
+                                             @forelse (Auth::user()->roles as $role)
+                                                 <span class="badge bg-label-primary">{{ $role->display_name }}</span>
+                                                 <br>
+                                             @empty
+                                             @endforelse
+                                         </small>
+                                     </div>
                                  </div>
                              </div>
-                         </a>
+                         @endif
                      </li>
-                     <li>
-                         <div class="dropdown-divider my-1"></div>
-                     </li>
-                     <li>
-                         <a class="dropdown-item d-none" href="#">
-                             <i class="icon-base bx bx-user icon-md me-3"></i><span>My Profile</span>
-                         </a>
-                     </li>
-                     <li>
-                         <a class="dropdown-item d-none" href="#">
-                             <i class="icon-base bx bx-cog icon-md me-3"></i><span>Settings</span>
-                         </a>
-                     </li>
-                     <li>
-                         <a class="dropdown-item d-none" href="#">
-                             <span class="d-flex align-items-center align-middle">
-                                 <i class="flex-shrink-0 icon-base bx bx-credit-card icon-md me-3"></i><span
-                                     class="flex-grow-1 align-middle">Billing Plan</span>
-                                 <span class="flex-shrink-0 badge rounded-pill bg-danger">4</span>
-                             </span>
-                         </a>
-                     </li>
-                     <li>
-                         <div class="dropdown-divider my-1 d-none"></div>
-                     </li>
+                     @if ($canViewProfile || $canEditProfile)
+                         <li>
+                             <div class="dropdown-divider my-1"></div>
+                         </li>
+                     @endif
+                     @if ($canViewProfile)
+                         <li>
+                             <a class="dropdown-item" href="{{ route('users.show', $currentUser) }}">
+                                 <i class="icon-base bx bx-user icon-md me-3"></i><span>My Profile</span>
+                             </a>
+                         </li>
+                     @endif
                      <li>
                          <a class="dropdown-item" href="{{ route('logout') }}"
                              onclick="event.preventDefault();

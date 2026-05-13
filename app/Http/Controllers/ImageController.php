@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Image;
 use App\Models\UserLog;
+use App\Services\FilePondUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class ImageController extends Controller
 {
+    public function __construct(protected FilePondUploadService $filePondUploads) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -42,44 +44,31 @@ class ImageController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240', // 10MB max
+            'image' => ['required', $this->filePondUploads->imageUploadValidationRule(10240)],
         ]);
 
         try {
-            $file = $request->file('image');
-            $fileName = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-            $filePath = 'images/' . $fileName;
+            $filePath = $this->filePondUploads->storeFromRequestField($request, 'image', 'images', 's3');
 
-            // Upload to MinIO (S3)
-            Storage::disk('s3')->put($filePath, file_get_contents($file));
+            if (! $filePath) {
+                throw new \RuntimeException('File upload tidak ditemukan.');
+            }
 
             $image = Image::create([
                 'title' => $request->title,
                 'description' => $request->description,
-                'file_name' => $fileName,
+                'file_name' => basename($filePath),
                 'file_path' => $filePath,
-                'file_type' => $file->getClientMimeType(),
-                'file_size' => $file->getSize(),
+                'file_type' => Storage::disk('s3')->mimeType($filePath) ?: 'application/octet-stream',
+                'file_size' => Storage::disk('s3')->size($filePath),
             ]);
-
-            UserLog::log(
-                'CREATE_IMAGE',
-                "Created image: {$image->title}",
-                null,
-                null,
-                [
-                    'image_id' => $image->id,
-                    'file_name' => $fileName,
-                    'file_size' => $file->getSize(),
-                ]
-            );
 
             return redirect()->route('images.index')
                 ->with('success', 'Image uploaded successfully');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to upload image: ' . $e->getMessage());
+                ->with('error', 'Failed to upload image: '.$e->getMessage());
         }
     }
 
@@ -95,7 +84,8 @@ class ImageController extends Controller
             "Viewed image: {$image->title}",
             null,
             null,
-            ['image_id' => $image->id]
+            ['image_id' => $image->id],
+            $image
         );
 
         return view('images.show', compact('image'));
@@ -117,61 +107,43 @@ class ImageController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240', // 10MB max
+            'image' => [
+                'nullable',
+                $this->filePondUploads->imageUploadValidationRule(
+                    10240,
+                    ['jpeg', 'png', 'jpg', 'gif', 'webp'],
+                    [$image->url, $image->file_path]
+                ),
+            ],
         ]);
 
         try {
-            $oldData = [
-                'title' => $image->title,
-                'description' => $image->description,
-                'file_name' => $image->file_name,
-            ];
-
             $image->title = $request->title;
             $image->description = $request->description;
 
-            // If new image uploaded, replace the old one
-            if ($request->hasFile('image')) {
-                // Delete old image from MinIO
+            if ($request->hasFile('image') || $this->filePondUploads->isTempPath($request->input('image'))) {
+                $filePath = $this->filePondUploads->storeFromRequestField($request, 'image', 'images', 's3');
+
+                if (! $filePath) {
+                    throw new \RuntimeException('File upload tidak ditemukan.');
+                }
+
                 Storage::disk('s3')->delete($image->file_path);
 
-                $file = $request->file('image');
-                $fileName = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-                $filePath = 'images/' . $fileName;
-
-                // Upload new image to MinIO
-                Storage::disk('s3')->put($filePath, file_get_contents($file));
-
-                $image->file_name = $fileName;
+                $image->file_name = basename($filePath);
                 $image->file_path = $filePath;
-                $image->file_type = $file->getClientMimeType();
-                $image->file_size = $file->getSize();
+                $image->file_type = Storage::disk('s3')->mimeType($filePath) ?: 'application/octet-stream';
+                $image->file_size = Storage::disk('s3')->size($filePath);
             }
 
             $image->save();
-
-            UserLog::log(
-                'UPDATE_IMAGE',
-                "Updated image: {$image->title}",
-                null,
-                null,
-                [
-                    'image_id' => $image->id,
-                    'old_data' => $oldData,
-                    'new_data' => [
-                        'title' => $image->title,
-                        'description' => $image->description,
-                        'file_name' => $image->file_name,
-                    ],
-                ]
-            );
 
             return redirect()->route('images.index')
                 ->with('success', 'Image updated successfully');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to update image: ' . $e->getMessage());
+                ->with('error', 'Failed to update image: '.$e->getMessage());
         }
     }
 
@@ -180,21 +152,7 @@ class ImageController extends Controller
      */
     public function destroy(Image $image)
     {
-        $imageTitle = $image->title;
-        $imageFileName = $image->file_name;
-
         $image->delete();
-
-        UserLog::log(
-            'DELETE_IMAGE',
-            "Soft deleted image: {$imageTitle}",
-            null,
-            null,
-            [
-                'image_id' => $image->id,
-                'file_name' => $imageFileName,
-            ]
-        );
 
         return redirect()->route('images.index')
             ->with('success', 'Image deleted successfully');
@@ -203,19 +161,10 @@ class ImageController extends Controller
     /**
      * Restore soft deleted image.
      */
-    public function restore($id)
+    public function restore(Image $image)
     {
-        $image = Image::withTrashed()->findOrFail($id);
         $image->deleted_by = null;
         $image->restore();
-
-        UserLog::log(
-            'RESTORE_IMAGE',
-            "Restored image: {$image->title}",
-            null,
-            null,
-            ['image_id' => $image->id]
-        );
 
         return redirect()->route('images.trash')
             ->with('success', 'Image restored successfully');
@@ -224,25 +173,10 @@ class ImageController extends Controller
     /**
      * Permanently delete image.
      */
-    public function forceDelete($id)
+    public function forceDelete(Image $image)
     {
-        $image = Image::withTrashed()->findOrFail($id);
-        $imageTitle = $image->title;
-        $imageFileName = $image->file_name;
-
         // Delete from MinIO
         Storage::disk('s3')->delete($image->file_path);
-
-        UserLog::log(
-            'FORCE_DELETE_IMAGE',
-            "Permanently deleted image: {$imageTitle}",
-            null,
-            null,
-            [
-                'image_id' => $image->id,
-                'file_name' => $imageFileName,
-            ]
-        );
 
         $image->forceDelete();
 
@@ -268,46 +202,11 @@ class ImageController extends Controller
             ->addColumn('formatted_date', function ($image) {
                 return $image->created_at->format('d M Y H:i');
             })
+            ->addColumn('row_url', function ($image) {
+                return route('images.show', $image);
+            })
             ->addColumn('action', function ($image) {
-                $actions = '<div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                        <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">';
-
-                // View action
-                if (auth()->user()->hasPermission('images.view')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('images.show', $image->id) . '">
-                        <i class="bx bx-show me-1"></i> View
-                    </a>';
-                }
-
-                // Edit action
-                if (auth()->user()->hasPermission('images.edit')) {
-                    $actions .= '<a class="dropdown-item" href="' . route('images.edit', $image->id) . '">
-                        <i class="bx bx-edit-alt me-1"></i> Edit
-                    </a>';
-                }
-
-                // Download action
-                $actions .= '<a class="dropdown-item" href="' . $image->url . '" download target="_blank">
-                    <i class="bx bx-download me-1"></i> Download
-                </a>';
-
-                // Delete action
-                if (auth()->user()->hasPermission('images.delete')) {
-                    $actions .= '<form action="' . route('images.destroy', $image->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        ' . method_field('DELETE') . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Are you sure you want to delete this image?\')">
-                            <i class="bx bx-trash me-1"></i> Delete
-                        </button>
-                    </form>';
-                }
-
-                $actions .= '</div></div>';
-
-                return $actions;
+                return view('datatable.actions.images', compact('image'))->render();
             })
             ->rawColumns(['action'])
             ->make(true);
@@ -336,36 +235,7 @@ class ImageController extends Controller
                 return $image->deleter ? $image->deleter->name : '-';
             })
             ->addColumn('action', function ($image) {
-                $actions = '<div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                        <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">';
-
-                // Restore action
-                if (auth()->user()->hasPermission('images.restore')) {
-                    $actions .= '<form action="' . route('images.restore', $image->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Are you sure you want to restore this image?\')">
-                            <i class="bx bx-refresh me-1"></i> Restore
-                        </button>
-                    </form>';
-                }
-
-                // Force delete action
-                if (auth()->user()->hasPermission('images.force_delete')) {
-                    $actions .= '<form action="' . route('images.force-delete', $image->id) . '" method="POST" style="display: inline;">
-                        ' . csrf_field() . '
-                        ' . method_field('DELETE') . '
-                        <button type="submit" class="dropdown-item" onclick="return confirm(\'Are you sure you want to permanently delete this image? This cannot be undone!\')">
-                            <i class="bx bx-trash me-1"></i> Delete Permanently
-                        </button>
-                    </form>';
-                }
-
-                $actions .= '</div></div>';
-
-                return $actions;
+                return view('datatable.actions.images-trash', compact('image'))->render();
             })
             ->rawColumns(['action'])
             ->make(true);

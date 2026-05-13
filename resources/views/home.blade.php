@@ -1,5 +1,9 @@
 @extends('layouts.sneat')
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/libs/apex-charts/apex-charts.css') }}" />
+@endpush
+
 @section('content')
     <!-- Content -->
     
@@ -523,3 +527,9 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('sneat/assets/vendor/libs/apex-charts/apexcharts.js') }}"></script>
+    <script src="{{ asset('sneat/assets/js/dashboards-analytics.js') }}"></script>
+    @vite('resources/js/modules/dashboard.js')
+@endpush

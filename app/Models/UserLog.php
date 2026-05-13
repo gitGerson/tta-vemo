@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class UserLog extends Model
 {
     protected $fillable = [
         'user_id',
         'target_user_id',
+        'auditable_type',
+        'auditable_id',
         'action',
         'description',
         'old_values',
@@ -34,13 +37,38 @@ class UserLog extends Model
         return $this->belongsTo(User::class, 'target_user_id');
     }
 
-    public static function log($action, $description, $targetUser = null, $oldValues = null, $newValues = null)
+    public function auditable(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    public static function log($action, $description, $targetUser = null, $oldValues = null, $newValues = null, $auditable = null)
     {
         return self::create([
             'user_id' => auth()->id(),
             'target_user_id' => $targetUser ? $targetUser->id : null,
+            'auditable_type' => $auditable ? $auditable->getMorphClass() : null,
+            'auditable_id' => $auditable?->getKey(),
             'action' => $action,
             'description' => $description,
+            'old_values' => $oldValues,
+            'new_values' => $newValues,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+    }
+
+    public static function logModelEvent(Model $auditable, string $action, ?array $oldValues = null, ?array $newValues = null): self
+    {
+        $targetUser = $auditable instanceof User ? $auditable : null;
+
+        return self::create([
+            'user_id' => auth()->id(),
+            'target_user_id' => $targetUser?->getKey(),
+            'auditable_type' => $auditable->getMorphClass(),
+            'auditable_id' => $auditable->getKey(),
+            'action' => $action,
+            'description' => self::buildModelDescription($auditable, $action),
             'old_values' => $oldValues,
             'new_values' => $newValues,
             'ip_address' => request()->ip(),
@@ -71,5 +99,16 @@ class UserLog extends Model
         }
 
         return implode(', ', $changes);
+    }
+
+    protected static function buildModelDescription(Model $auditable, string $action): string
+    {
+        $modelName = class_basename($auditable);
+        $label = $auditable->getAttribute('name')
+            ?? $auditable->getAttribute('title')
+            ?? $auditable->getAttribute('display_name')
+            ?? $auditable->getKey();
+
+        return "{$action} {$modelName}: {$label}";
     }
 }
