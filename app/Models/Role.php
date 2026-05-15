@@ -14,6 +14,7 @@ class Role extends Model
         'name',
         'display_name',
         'description',
+        'guard_name',
         'is_active',
         'created_by',
         'updated_by',
