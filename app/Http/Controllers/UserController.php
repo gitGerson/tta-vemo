@@ -194,7 +194,7 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        return redirect()->route('users.index')->with('success', 'User berhasil diperbarui');
+        return redirect()->route('users.edit', $user)->with('success', 'User berhasil diperbarui');
     }
 
     /**
