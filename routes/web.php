@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\UserRoleController;
 use App\Http\Controllers\MobileController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\CategoryController;
@@ -88,14 +87,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:management.roles.delete'])->group(function () {
         Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
-    });
-
-    // User role assignment routes
-    Route::middleware(['permission:management.users.edit'])->group(function () {
-        Route::get('/users/{user}/roles', [UserRoleController::class, 'show'])->name('users.roles');
-        Route::put('/users/{user}/roles', [UserRoleController::class, 'update'])->name('users.roles.update');
-        Route::post('/users/{user}/roles/assign', [UserRoleController::class, 'assignRole'])->name('users.roles.assign');
-        Route::delete('/users/{user}/roles/remove', [UserRoleController::class, 'removeRole'])->name('users.roles.remove');
     });
 
     // Image management routes with permissions

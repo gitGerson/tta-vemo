@@ -9,9 +9,6 @@
         <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-warning" title="Edit" aria-label="Edit">
             <i class="bx bx-edit-alt"></i>
         </a>
-        <a href="{{ route('users.roles', $user) }}" class="btn btn-sm btn-primary d-none" title="Kelola Role" aria-label="Kelola Role">
-            <i class="bx bx-shield"></i>
-        </a>
     @endif
 
     @if(auth()->user()->hasPermission('management.users.delete'))
