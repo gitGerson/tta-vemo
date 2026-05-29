@@ -68,6 +68,22 @@ return [
             'enabled' => true,
         ],
         [
+            'key' => 'drivers-index',
+            'label' => 'Driver',
+            'icon' => 'bx-id-card',
+            'route' => 'drivers.index',
+            'route_params' => [],
+            'active_patterns' => ['drivers.*'],
+            'permission' => 'master.drivers.view',
+            'section' => 'master-data',
+            'contexts' => ['desktop', 'search'],
+            'search' => [
+                'description' => 'Manage driver master data',
+                'keywords' => ['driver', 'drivers', 'supir', 'master'],
+            ],
+            'enabled' => true,
+        ],
+        [
             'key' => 'users-index',
             'label' => 'Users',
             'icon' => 'bx-user',

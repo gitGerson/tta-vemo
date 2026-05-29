@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DriverController;
 use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\FormDemoController;
 use App\Http\Controllers\HomeController;
@@ -82,6 +83,38 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:management.roles.delete'])->group(function () {
         Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
+    });
+
+    // Driver master data routes with permissions
+    Route::middleware(['permission:master.drivers.view'])->group(function () {
+        Route::get('/drivers', [DriverController::class, 'index'])->name('drivers.index');
+        Route::get('/drivers/data', [DriverController::class, 'getData'])->name('drivers.data');
+        Route::get('/drivers/emp-info', [DriverController::class, 'getEmpInfo'])->name('drivers.empInfo');
+    });
+
+    Route::middleware(['permission:master.drivers.create'])->group(function () {
+        Route::get('/drivers/create', [DriverController::class, 'create'])->name('drivers.create');
+        Route::post('/drivers', [DriverController::class, 'store'])->name('drivers.store');
+    });
+
+    Route::middleware(['permission:master.drivers.edit'])->group(function () {
+        Route::get('/drivers/{driver}/edit', [DriverController::class, 'edit'])->name('drivers.edit');
+        Route::put('/drivers/{driver}', [DriverController::class, 'update'])->name('drivers.update');
+    });
+
+    Route::middleware(['permission:master.drivers.delete'])->group(function () {
+        Route::get('/drivers/trash', [DriverController::class, 'trash'])->name('drivers.trash');
+        Route::get('/drivers/trash/data', [DriverController::class, 'getTrashData'])->name('drivers.trash.data');
+        Route::delete('/drivers/{driver}', [DriverController::class, 'destroy'])->name('drivers.destroy');
+        Route::delete('/drivers/{driver}/force-delete', [DriverController::class, 'forceDelete'])->withTrashed()->name('drivers.force-delete');
+    });
+
+    Route::middleware(['permission:master.drivers.restore'])->group(function () {
+        Route::post('/drivers/{driver}/restore', [DriverController::class, 'restore'])->withTrashed()->name('drivers.restore');
+    });
+
+    Route::middleware(['permission:master.drivers.view'])->group(function () {
+        Route::get('/drivers/{driver}', [DriverController::class, 'show'])->name('drivers.show');
     });
 
     // Generic FilePond routes

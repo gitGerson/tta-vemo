@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Http\Requests;
+
+use App\Models\Driver;
+use Illuminate\Contracts\Validation\ValidationRule;
+
+class DriverUpdateRequest extends DriverStoreRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return $this->user()?->hasPermission('master.drivers.edit') ?? false;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        $driver = $this->driver();
+
+        return Driver::validationRules($driver, $this->input('no_phone_1'));
+    }
+
+    public function messages(): array
+    {
+        return Driver::validationMessages($this->driver());
+    }
+
+    protected function driver(): ?Driver
+    {
+        $driver = $this->route('driver');
+
+        if ($driver instanceof Driver) {
+            return $driver;
+        }
+
+        return Driver::query()->find($driver);
+    }
+}

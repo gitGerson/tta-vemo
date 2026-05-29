@@ -40,4 +40,9 @@ return [
         'token' => env('PRODUCT_ESB_TOKEN'),
     ],
 
+    'jpayroll' => [
+        'url' => env('JPAYROLL_URL'),
+        'token' => env('JPAYROLL_TOKEN'),
+    ],
+
 ];

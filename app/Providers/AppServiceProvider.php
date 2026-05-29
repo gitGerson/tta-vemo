@@ -2,12 +2,13 @@
 
 namespace App\Providers;
 
-use App\Services\MenuService;
-use App\Services\DiffrntHashId;
 use App\Services\BreadcrumbService;
+use App\Services\DiffrntHashId;
+use App\Services\JPayrollService;
+use App\Services\MenuService;
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -17,6 +18,11 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(DiffrntHashId::class);
+
+        $this->app->singleton(JPayrollService::class, fn () => new JPayrollService(
+            url: config('services.jpayroll.url', ''),
+            token: config('services.jpayroll.token', ''),
+        ));
     }
 
     /**
