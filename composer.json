@@ -17,6 +17,7 @@
         "laravel/ui": "^4.6",
         "laravolt/avatar": "^6.2",
         "league/flysystem-aws-s3-v3": "^3.0",
+        "predis/predis": "^3.4",
         "vinkla/hashids": "^13.0",
         "yajra/laravel-datatables-oracle": "12.0"
     },
