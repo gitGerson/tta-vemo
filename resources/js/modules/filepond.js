@@ -87,7 +87,7 @@ function initFilePondInputs() {
 
         const labels = locale === 'id'
             ? {
-                labelIdle: '<span class="filepond--label-action">Klik untuk upload</span> atau tarik file ke sini',
+                labelIdle: '<span class="filepond--label-action">Upload file di sini</span>',
                 labelFileProcessing: 'Mengupload...',
                 labelFileProcessingComplete: 'Upload selesai',
                 labelTapToCancel: 'ketuk untuk batal',
@@ -143,10 +143,15 @@ function initFilePondInputs() {
         const originalFieldName = input.name;
         input.dataset.filepondFieldName = originalFieldName;
 
+        const imagePreviewHeight = input.dataset.filepondImagePreviewHeight
+            ? parseInt(input.dataset.filepondImagePreviewHeight, 10)
+            : null;
+
         window.FilePond.create(input, {
             allowMultiple: input.hasAttribute('multiple'),
             maxFileSize: input.dataset.filepondMaxFileSize || null,
             acceptedFileTypes: acceptedTypes.length ? acceptedTypes : null,
+            imagePreviewHeight,
             credits: false,
             files: existingFiles,
             server: serverConfig,

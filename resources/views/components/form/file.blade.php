@@ -14,6 +14,7 @@
     'filepondLoadUrl' => null,
     'existingFiles' => [],
     'locale' => 'id',
+    'imagePreviewHeight' => null,
     'inputClass' => null,
     'groupClass' => null,
 ])
@@ -51,6 +52,7 @@
         @if ($useFilePond) data-filepond-locale="{{ $locale }}" @endif
         @if ($useFilePond) data-filepond-accepted-file-types='{{ $acceptedTypesJson }}' @endif
         @if ($useFilePond) data-filepond-existing-files='{{ $existingFilesJson }}' @endif
+        @if ($useFilePond && $imagePreviewHeight) data-filepond-image-preview-height="{{ $imagePreviewHeight }}" @endif
         {{ $attributes->class([
             $useFilePond ? 'form-control js-filepond filepond' : 'form-control',
             $inputClass,
