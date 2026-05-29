@@ -15,6 +15,13 @@ class DriverFactory extends Factory
      *
      * @return array<string, mixed>
      */
+    public function withRandomImage(): static
+    {
+        return $this->state(fn () => [
+            'image' => 'https://i.pravatar.cc/300?img='.fake()->unique()->numberBetween(1, 70),
+        ]);
+    }
+
     public function definition(): array
     {
         return [

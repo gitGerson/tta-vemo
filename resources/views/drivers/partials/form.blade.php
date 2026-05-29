@@ -8,9 +8,7 @@
 
 <form method="POST" action="{{ $action }}" enctype="multipart/form-data">
     @csrf
-    @if($method !== 'POST')
-        @method($method)
-    @endif
+    <input type="hidden" name="_method" id="driver-form-method" value="{{ $method !== 'POST' ? $method : '' }}">
 
     <div class="row g-3">
         {{-- NIK first: user enters this to trigger employee prefill --}}
@@ -35,7 +33,7 @@
         <div class="col-12"></div>
 
         {{-- Photo beside prefilled identity fields --}}
-        <div class="col-md-2">
+        <div class="col-md-3">
             <x-form.file
                 name="image"
                 label="Foto"
@@ -48,7 +46,7 @@
             />
         </div>
 
-        <div class="col-md-10">
+        <div class="col-md-9">
             <div class="row g-3">
                 <div class="col-md-6">
                     <x-form.text name="name" label="Nama" :value="$driver?->name" required />
@@ -96,7 +94,7 @@
     </div>
 
     <div class="d-flex justify-content-end gap-2 mt-4">
-        <a href="{{ route('drivers.index') }}" class="btn btn-outline-secondary">Batal</a>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
         <button type="submit" class="btn btn-primary">{{ $submitLabel }}</button>
     </div>
 </form>

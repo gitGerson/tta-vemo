@@ -121,6 +121,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/uploads/process', [FileUploadController::class, 'process'])->name('uploads.process');
     Route::delete('/uploads/revert', [FileUploadController::class, 'revert'])->name('uploads.revert');
     Route::get('/uploads/load', [FileUploadController::class, 'load'])->name('uploads.load');
+    Route::get('/uploads/proxy', [FileUploadController::class, 'proxy'])->name('uploads.proxy');
 
     // Form demo routes
     Route::get('/form-demo', [FormDemoController::class, 'index'])->name('form-demo.index');

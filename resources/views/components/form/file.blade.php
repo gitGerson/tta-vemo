@@ -23,6 +23,7 @@
     $defaultProcessUrl = \Illuminate\Support\Facades\Route::has('uploads.process') ? route('uploads.process') : null;
     $defaultRevertUrl = \Illuminate\Support\Facades\Route::has('uploads.revert') ? route('uploads.revert') : null;
     $defaultLoadUrl = \Illuminate\Support\Facades\Route::has('uploads.load') ? route('uploads.load', ['source' => '']) : null;
+    $defaultProxyUrl = \Illuminate\Support\Facades\Route::has('uploads.proxy') ? route('uploads.proxy', ['source' => '']) : null;
     $resolvedProcessUrl = $filepondProcessUrl ?: $defaultProcessUrl;
     $resolvedRevertUrl = $filepondRevertUrl ?: $defaultRevertUrl;
     $resolvedLoadUrl = $filepondLoadUrl ?: $defaultLoadUrl;
@@ -53,6 +54,7 @@
         @if ($useFilePond) data-filepond-accepted-file-types='{{ $acceptedTypesJson }}' @endif
         @if ($useFilePond) data-filepond-existing-files='{{ $existingFilesJson }}' @endif
         @if ($useFilePond && $imagePreviewHeight) data-filepond-image-preview-height="{{ $imagePreviewHeight }}" @endif
+        @if ($useFilePond && $defaultProxyUrl) data-filepond-proxy-url="{{ $defaultProxyUrl }}" @endif
         {{ $attributes->class([
             $useFilePond ? 'form-control js-filepond filepond' : 'form-control',
             $inputClass,
@@ -124,6 +126,7 @@
                 .filepond--credits {
                     display: none !important;
                 }
+
 
                 [data-bs-theme="dark"] .filepond--panel-root,
                 .theme-dark .filepond--panel-root {

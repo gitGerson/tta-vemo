@@ -5,12 +5,11 @@ namespace App\Http\Controllers;
 use App\Services\FilePondUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Http;
 
 class FileUploadController extends Controller
 {
-    public function __construct(protected FilePondUploadService $filePondUploads)
-    {
-    }
+    public function __construct(protected FilePondUploadService $filePondUploads) {}
 
     public function process(Request $request): Response
     {
@@ -34,6 +33,24 @@ class FileUploadController extends Controller
         $this->filePondUploads->deleteTemporaryUpload(trim($request->getContent()));
 
         return response('', 200);
+    }
+
+    public function proxy(Request $request): Response
+    {
+        $url = (string) $request->query('source', '');
+
+        abort_unless(str_starts_with($url, 'https://'), 400);
+
+        try {
+            $upstream = Http::timeout(15)->get($url);
+            abort_unless($upstream->successful(), 404);
+
+            return response($upstream->body(), 200)
+                ->header('Content-Type', $upstream->header('Content-Type') ?: 'image/jpeg')
+                ->header('Cache-Control', 'private, max-age=3600');
+        } catch (\Exception) {
+            abort(404);
+        }
     }
 
     public function load(Request $request): Response

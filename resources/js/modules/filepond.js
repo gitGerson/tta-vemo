@@ -33,6 +33,7 @@ function normalizeExistingFiles(files) {
                     type: 'local',
                     metadata: {
                         poster: file,
+                        originalSource: file,
                     },
                 },
             };
@@ -50,6 +51,7 @@ function normalizeExistingFiles(files) {
                 metadata: {
                     ...(file.options?.metadata || {}),
                     poster: file.options?.metadata?.poster || file.source,
+                    originalSource: file.source,
                 },
             },
         };
@@ -57,7 +59,7 @@ function normalizeExistingFiles(files) {
 }
 
 function resolveFileSourceValue(file) {
-    return file.serverId || file.source || null;
+    return file.serverId || file.getMetadata?.('originalSource') || file.source || null;
 }
 
 function initFilePondInputs() {
@@ -109,10 +111,17 @@ function initFilePondInputs() {
 
         if (input.dataset.filepondLoadUrl) {
             const loadUrl = input.dataset.filepondLoadUrl;
+            const proxyUrl = input.dataset.filepondProxyUrl || null;
             serverConfig.load = (source, load, error, progress, abort, headers) => {
-                const requestUrl = /^(https?:)?\/\//.test(source) || source.startsWith('/')
-                    ? source
-                    : `${loadUrl}${encodeURIComponent(source)}`;
+                // Route external URLs (CDN/S3) through the server-side proxy to avoid CORS.
+                const requestUrl = /^https?:\/\//.test(source)
+                    ? (proxyUrl ? `${proxyUrl}${encodeURIComponent(source)}` : null)
+                    : source.startsWith('/') ? source : `${loadUrl}${encodeURIComponent(source)}`;
+
+                if (!requestUrl) {
+                    error('No proxy configured for external URL');
+                    return { abort: () => {} };
+                }
 
                 const request = new XMLHttpRequest();
                 request.open('GET', requestUrl);

@@ -4,9 +4,27 @@
     </a>
 
     @if($canEdit)
-        <a href="{{ route('drivers.edit', $driver) }}" class="btn btn-sm btn-warning" title="Edit" aria-label="Edit">
+        <button
+            type="button"
+            class="btn btn-sm btn-warning btn-edit-driver"
+            title="Edit"
+            aria-label="Edit"
+            data-update-url="{{ route('drivers.update', $driver) }}"
+            data-name="{{ $driver->name }}"
+            data-nik="{{ $driver->nik }}"
+            data-no-identity="{{ $driver->no_identity }}"
+            data-residence="{{ $driver->residence }}"
+            data-date-birth="{{ $driver->date_birth?->format('Y-m-d') }}"
+            data-no-phone-1="{{ $driver->no_phone_1 }}"
+            data-no-phone-2="{{ $driver->no_phone_2 }}"
+            data-address="{{ $driver->address }}"
+            data-entry-date="{{ $driver->entry_date?->format('Y-m-d') }}"
+            data-out-date="{{ $driver->out_date?->format('Y-m-d') }}"
+            data-status="{{ $driver->status }}"
+            data-image-url="{{ $driver->imageUrl() }}"
+        >
             <i class="bx bx-edit-alt"></i>
-        </a>
+        </button>
     @endif
 
     @if($canDelete)

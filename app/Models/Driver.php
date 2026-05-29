@@ -78,6 +78,14 @@ class Driver extends Model
 
     public function imageUrl(): ?string
     {
-        return $this->image ? Storage::disk('public')->url($this->image) : null;
+        if (! $this->image) {
+            return null;
+        }
+
+        if (str_starts_with($this->image, 'http')) {
+            return $this->image;
+        }
+
+        return Storage::disk('s3')->url($this->image);
     }
 }
