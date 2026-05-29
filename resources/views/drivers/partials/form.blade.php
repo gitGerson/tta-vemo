@@ -17,7 +17,11 @@
             <x-form.file
                 name="image"
                 label="Foto"
+                mode="filepond"
                 accept="image/*"
+                :acceptedFileTypes="['image/jpeg', 'image/png', 'image/gif', 'image/webp']"
+                maxFileSize="2MB"
+                :existingFiles="$driver?->imageUrl() ? [$driver->imageUrl()] : []"
             />
         </div>
 

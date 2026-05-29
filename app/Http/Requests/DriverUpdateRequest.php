@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Driver;
+use App\Services\FilePondUploadService;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 class DriverUpdateRequest extends DriverStoreRequest
@@ -23,8 +24,12 @@ class DriverUpdateRequest extends DriverStoreRequest
     public function rules(): array
     {
         $driver = $this->driver();
+        $rules = Driver::validationRules($driver, $this->input('no_phone_1'));
+        $rules['image'] = ['nullable', app(FilePondUploadService::class)->imageUploadValidationRule(
+            existingReferences: array_filter([$driver?->imageUrl()]),
+        )];
 
-        return Driver::validationRules($driver, $this->input('no_phone_1'));
+        return $rules;
     }
 
     public function messages(): array

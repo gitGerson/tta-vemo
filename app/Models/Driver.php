@@ -6,6 +6,7 @@ use App\Rules\DifferentPhoneNumbers;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class Driver extends Model
@@ -77,6 +78,6 @@ class Driver extends Model
 
     public function imageUrl(): ?string
     {
-        return $this->image ? asset('profile_images/'.$this->image) : null;
+        return $this->image ? Storage::disk('public')->url($this->image) : null;
     }
 }

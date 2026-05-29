@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Driver;
+use App\Services\FilePondUploadService;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -23,7 +24,10 @@ class DriverStoreRequest extends FormRequest
      */
     public function rules(): array
     {
-        return Driver::validationRules(firstPhoneNumber: $this->input('no_phone_1'));
+        $rules = Driver::validationRules(firstPhoneNumber: $this->input('no_phone_1'));
+        $rules['image'] = ['nullable', app(FilePondUploadService::class)->imageUploadValidationRule()];
+
+        return $rules;
     }
 
     public function messages(): array
