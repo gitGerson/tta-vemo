@@ -15,6 +15,8 @@
     'existingFiles' => [],
     'locale' => 'id',
     'imagePreviewHeight' => null,
+    'framePreviewHeight' => null,
+    'itemPanelAspectRatio' => null,
     'inputClass' => null,
     'groupClass' => null,
 ])
@@ -35,9 +37,10 @@
     $acceptedTypesJson = json_encode($acceptedFileTypes ?? []);
     $existingFilesJson = json_encode($existingFiles ?? []);
     $useFilePond = $mode === 'filepond' && filled($resolvedProcessUrl) && filled($resolvedRevertUrl);
+    $groupStyle = $useFilePond && $framePreviewHeight ? '--fp-frame-height: '.(int) $framePreviewHeight.'px' : null;
 @endphp
 
-<x-form.group :name="$baseFieldName" :label="$label" :required="$required" :help="$help" :for="$fieldId" :class="$groupClass">
+<x-form.group :name="$baseFieldName" :label="$label" :required="$required" :help="$help" :for="$fieldId" :class="$groupClass" :style="$groupStyle">
     <input
         type="file"
         id="{{ $fieldId }}"
@@ -54,6 +57,7 @@
         @if ($useFilePond) data-filepond-accepted-file-types='{{ $acceptedTypesJson }}' @endif
         @if ($useFilePond) data-filepond-existing-files='{{ $existingFilesJson }}' @endif
         @if ($useFilePond && $imagePreviewHeight) data-filepond-image-preview-height="{{ $imagePreviewHeight }}" @endif
+        @if ($useFilePond && $itemPanelAspectRatio) data-filepond-item-panel-aspect-ratio="{{ $itemPanelAspectRatio }}" @endif
         @if ($useFilePond && $defaultProxyUrl) data-filepond-proxy-url="{{ $defaultProxyUrl }}" @endif
         {{ $attributes->class([
             $useFilePond ? 'form-control js-filepond filepond' : 'form-control',
@@ -72,6 +76,10 @@
             <style>
                 .filepond--root {
                     margin-bottom: 0;
+                    /* framePreviewHeight: inherits --fp-frame-height from the form-group
+                       wrapper. min-height beats FilePond's inline height, so the box keeps
+                       a fixed height even when empty. Defaults to 0 (no effect) when unset. */
+                    min-height: var(--fp-frame-height, 0px);
                 }
 
                 .filepond--panel-root {

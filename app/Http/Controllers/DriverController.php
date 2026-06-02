@@ -22,11 +22,6 @@ class DriverController extends Controller
         return view('drivers.index');
     }
 
-    public function create()
-    {
-        return view('drivers.create');
-    }
-
     public function store(DriverStoreRequest $request)
     {
         $data = $request->validated();
@@ -46,11 +41,6 @@ class DriverController extends Controller
     public function show(Driver $driver)
     {
         return view('drivers.show', compact('driver'));
-    }
-
-    public function edit(Driver $driver)
-    {
-        return view('drivers.edit', compact('driver'));
     }
 
     public function update(Driver $driver, DriverUpdateRequest $request)

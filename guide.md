@@ -312,47 +312,39 @@ Do not default to DataTables for every module.
 
 ### Clickable Row Pattern
 
-When a DataTable listing should navigate to a detail page on row click, use the shared `dtRowLink` helper instead of writing per-module CSS/JS.
+When a DataTable listing should navigate to a detail page on row click, enable it through the shared `<x-datatable.scripts>` component instead of writing per-module CSS/JS. The component owns the hover style, the `createdRow` callback, and the delegated click/keyboard handlers.
 
-Shared assets (already registered in the Sneat layout and Vite):
-- `resources/css/layout/datatables.css` — provides the `.dt-row-link` hover style
-- `resources/js/modules/dt-row-link.js` — exposes `window.dtRowLink` with `createdRow` and `bind`
+Two steps to enable clickable rows on any module:
 
-Three steps to enable clickable rows on any module:
-
-1. In the controller's DataTable response, expose the detail URL as `show_url`:
+1. In the controller's DataTable response, expose the detail URL as `row_url` (the component's default field):
 
 ```php
-return DataTables::eloquent($query)
-    ->addColumn('show_url', fn ($record) => route('module.show', $record))
+return DataTables::of($query)
+    ->addColumn('row_url', fn ($record) => route('module.show', $record))
     ->make(true);
 ```
 
-2. In the view's DataTable config, wire the `createdRow` callback:
+2. Add the `clickable-rows` attribute to the module's `<x-datatable.scripts>` block:
 
-```js
-const table = $('#module-table').DataTable({
-    // ...existing options...
-    createdRow: window.dtRowLink.createdRow,
-});
+```blade
+<x-datatable.scripts table-id="module-table" ajax="{{ route('module.data') }}" clickable-rows>
+    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+    { data: 'name', name: 'name' },
+    { data: 'action', name: 'action', orderable: false, searchable: false }
+</x-datatable.scripts>
 ```
 
-3. After DataTable init, bind the click handler once:
-
-```js
-window.dtRowLink.bind('#module-table');
-```
+If the URL column is named something other than `row_url`, pass `:row-url-field="'show_url'"` to the component.
 
 Rules:
-- Do not copy the CSS into the view — the hover style is global via the shared stylesheet.
-- Do not write a per-module click handler — `dtRowLink.bind` delegates to the `tr.dt-row-link` selector and ignores clicks on `a`, `button`, `form`, `input`, `select`, `textarea`, and `label` children.
-- Rows without a `show_url` in the row data remain non-interactive, so the pattern is safe for mixed result sets.
-- Permission-gate the `show_url` in the controller when only some users should see the detail page.
+- Do not copy the CSS or write a click handler into the view — both live in the component (the hover style is pushed once via `@once`, and the handler delegates to `tr.datatable-clickable-row`, ignoring clicks on `a`, `button`, `form`, `input`, `select`, `textarea`, and `label` children).
+- Rows whose data has no `row_url` value stay non-interactive, so the pattern is safe for mixed result sets.
+- Permission-gate the `row_url` in the controller when only some users should see the detail page.
 
 Behavior:
-- Hover applies a subtle primary-tinted background, top/bottom borders, and a 3px left accent on the first cell.
-- Click anywhere on the row (except interactive children) navigates to `show_url`.
-- Cursor becomes `pointer` only on rows that have a `show_url`.
+- Hover applies a subtle primary-tinted background, an inset left accent, and a small horizontal shift.
+- Click (or Enter while focused) anywhere on the row except interactive children navigates to the `row_url`.
+- Only rows that carry a `row_url` get the pointer cursor and `tabindex`.
 
 ## Detail Page Components
 

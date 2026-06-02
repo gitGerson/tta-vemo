@@ -105,6 +105,7 @@ class DriverModuleTest extends TestCase
             'master.drivers.edit',
             'master.drivers.delete',
             'master.drivers.restore',
+            'master.drivers.force_delete',
         ])->each(function (string $name) use ($role): void {
             $permission = Permission::create([
                 'name' => $name,

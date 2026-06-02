@@ -201,6 +201,7 @@ return [
                 'master.drivers.edit',
                 'master.drivers.delete',
                 'master.drivers.restore',
+                'master.drivers.force_delete',
             ],
         ],
         [

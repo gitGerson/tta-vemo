@@ -95,6 +95,7 @@
         form.reset();
         form.action = createUrl;
         document.getElementById('driver-form-method').value = '';
+        document.getElementById('driver-form-action').value = createUrl;
         document.getElementById('driver-modal-title').textContent = 'Tambah Driver';
         form.querySelector('[type="submit"]').textContent = createLabel;
         getPond()?.removeFiles();
@@ -106,6 +107,7 @@
         const form = getForm();
         form.action = d.updateUrl;
         document.getElementById('driver-form-method').value = 'PUT';
+        document.getElementById('driver-form-action').value = d.updateUrl;
         document.getElementById('driver-modal-title').textContent = 'Edit Driver: ' + d.name;
         form.querySelector('[type="submit"]').textContent = 'Perbarui';
 
@@ -171,9 +173,21 @@
         bootstrap.Modal.getOrCreateInstance(modalEl).show();
     });
 
-    // ── reopen on validation failure (create only) ────────────────────────────
+    // ── reopen on validation failure (create or edit) ─────────────────────────
+    // Fields are already repopulated by Blade old(); we only restore the
+    // create/edit chrome (action, method, title, submit label) before showing.
 
     @if($errors->any())
+        @if(old('_method') === 'PUT')
+            (function () {
+                const form = getForm();
+                form.action = @json(old('_form_action'));
+                document.getElementById('driver-form-method').value = 'PUT';
+                document.getElementById('driver-modal-title').textContent = 'Edit Driver: ' + @json(old('name'));
+                form.querySelector('[type="submit"]').textContent = 'Perbarui';
+            })();
+        @endif
+
         bootstrap.Modal.getOrCreateInstance(modalEl).show();
     @endif
 })();

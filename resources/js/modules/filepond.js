@@ -156,11 +156,18 @@ function initFilePondInputs() {
             ? parseInt(input.dataset.filepondImagePreviewHeight, 10)
             : null;
 
+        // framePreviewHeight is handled purely in CSS (see x-form.file): it sets a
+        // --fp-frame-height custom property on the form-group wrapper which the
+        // .filepond--root min-height inherits. CSS is timing-independent, so it
+        // works even though FilePond builds its root lazily inside a hidden modal.
+        const itemPanelAspectRatio = input.dataset.filepondItemPanelAspectRatio || null;
+
         window.FilePond.create(input, {
             allowMultiple: input.hasAttribute('multiple'),
             maxFileSize: input.dataset.filepondMaxFileSize || null,
             acceptedFileTypes: acceptedTypes.length ? acceptedTypes : null,
             imagePreviewHeight,
+            styleItemPanelAspectRatio: itemPanelAspectRatio,
             credits: false,
             files: existingFiles,
             server: serverConfig,

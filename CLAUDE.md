@@ -20,7 +20,7 @@ php artisan test --compact --filter=testName
 vendor/bin/pint --dirty --format agent
 
 # Sync permissions, role templates, and staging superadmin from config
-php artisan db:seed --class=PermissionSeeder
+php artisan db:seed --class=RolePermissionSeeder
 
 # Clear caches
 php artisan route:clear && php artisan config:clear && php artisan view:clear
@@ -39,7 +39,7 @@ For development without LDAP, a local superadmin is seeded: **username** `stagin
 Custom implementation — no Spatie package.
 
 - **`config/permission.php`** is the single source of truth for all permissions and role templates.
-- **`PermissionSyncService`** reads this config and upserts `Permission` and `Role` records. It also prunes permissions removed from config. Run via `db:seed --class=PermissionSeeder`.
+- **`PermissionSyncService`** reads this config and upserts `Permission` and `Role` records. It also prunes permissions removed from config. Run via `db:seed --class=RolePermissionSeeder`.
 - **`CheckPermission` middleware** is registered as `permission` alias in `bootstrap/app.php`.
 - Routes are protected with `permission:module.resource.action` syntax (e.g. `permission:master.drivers.view`).
 - Users have direct permissions (not just roles). The `users.edit` page has a permission editor using role templates as presets.
@@ -52,7 +52,7 @@ Custom implementation — no Spatie package.
 
 **Adding permissions for a new module:**
 1. Add entries to `config/permission.php` under `permissions` and optionally `role_templates`
-2. Run `php artisan db:seed --class=PermissionSeeder`
+2. Run `php artisan db:seed --class=RolePermissionSeeder`
 3. Protect routes with `permission:module.feature.action`
 4. Add menu entry to `config/menu.php`
 
@@ -80,7 +80,7 @@ Action column views live in `resources/views/datatable/actions/`. There are `dri
 
 ### File Uploads (FilePond)
 
-`FileUploadController` + `FilePondUploadService` handle generic chunked uploads. Routes: `POST /uploads/process`, `DELETE /uploads/revert`, `GET /uploads/load`. Driver images are stored in `public/profile_images/`.
+`FileUploadController` + `FilePondUploadService` handle generic chunked uploads. Routes: `POST /uploads/process`, `DELETE /uploads/revert`, `GET /uploads/load`. `FilePondUploadService::storeFromRequestField($request, $field, $dir, $disk)` persists a submitted file to the given disk. Driver images are stored on the **S3** disk under `profile_images/`.
 
 ### Form Blade Components
 
@@ -88,7 +88,7 @@ Reusable form field components in `resources/views/components/form/`: `input`, `
 
 ### External HR API
 
-`DriverController` validates NIK against an internal HR payroll API (`http://19.38.40.20/jpayroll/...`). `getEmpInfo` is the lookup endpoint; `validateNikWithApi` is the internal guard used on store/update. This API is only reachable on the internal network.
+`JPayrollService` wraps the internal HR payroll API (`http://19.38.40.20/jpayroll/...`). `fetchEmployeeByNik` looks up an employee (used by `DriverController::getEmpInfo` to prefill the form); `validateNik` is the internal guard `DriverController` calls on store/update. This API is only reachable on the internal network.
 
 ## Module Pattern
 
@@ -108,7 +108,7 @@ The Driver module is the canonical example of a full module:
 Key driver model patterns to follow:
 - Validation rules defined as static methods on the model (`validationRules`, `validationMessages`)
 - `casts()` method rather than `$casts` property
-- `imageUrl()` helper method for asset URLs
+- `imageUrl()` helper method for asset URLs (resolves via `Storage::disk('s3')->url()`)
 - SoftDeletes: `destroy` sets status to `PASSIVE` before deleting; `restore` reverts
 
 ## Route Organization

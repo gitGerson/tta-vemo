@@ -10,11 +10,6 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Detail Driver: {{ $driver->name }}</h5>
                 <div class="d-flex gap-2">
-                    @if(auth()->user()->hasPermission('master.drivers.edit'))
-                        <a href="{{ route('drivers.edit', $driver) }}" class="btn btn-warning">
-                            <i class="bx bx-edit me-1"></i> Edit
-                        </a>
-                    @endif
                     <a href="{{ route('drivers.index') }}" class="btn btn-secondary">Kembali</a>
                 </div>
             </div>

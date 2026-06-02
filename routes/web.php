@@ -93,12 +93,10 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::middleware(['permission:master.drivers.create'])->group(function () {
-        Route::get('/drivers/create', [DriverController::class, 'create'])->name('drivers.create');
         Route::post('/drivers', [DriverController::class, 'store'])->name('drivers.store');
     });
 
     Route::middleware(['permission:master.drivers.edit'])->group(function () {
-        Route::get('/drivers/{driver}/edit', [DriverController::class, 'edit'])->name('drivers.edit');
         Route::put('/drivers/{driver}', [DriverController::class, 'update'])->name('drivers.update');
     });
 
@@ -106,11 +104,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/drivers/trash', [DriverController::class, 'trash'])->name('drivers.trash');
         Route::get('/drivers/trash/data', [DriverController::class, 'getTrashData'])->name('drivers.trash.data');
         Route::delete('/drivers/{driver}', [DriverController::class, 'destroy'])->name('drivers.destroy');
-        Route::delete('/drivers/{driver}/force-delete', [DriverController::class, 'forceDelete'])->withTrashed()->name('drivers.force-delete');
     });
 
     Route::middleware(['permission:master.drivers.restore'])->group(function () {
         Route::post('/drivers/{driver}/restore', [DriverController::class, 'restore'])->withTrashed()->name('drivers.restore');
+    });
+
+    Route::middleware(['permission:master.drivers.force_delete'])->group(function () {
+        Route::delete('/drivers/{driver}/force-delete', [DriverController::class, 'forceDelete'])->withTrashed()->name('drivers.force-delete');
     });
 
     Route::middleware(['permission:master.drivers.view'])->group(function () {
