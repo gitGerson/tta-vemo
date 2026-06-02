@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\DestinationController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\FormDemoController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\TypeMaintenanceController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VehicleController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -136,6 +139,103 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:master.companies.delete'])->group(function () {
         Route::delete('/companies/{company}', [CompanyController::class, 'destroy'])->name('companies.destroy');
+    });
+
+    // Vehicle master data routes with permissions
+    Route::middleware(['permission:master.vehicles.view'])->group(function () {
+        Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles.index');
+        Route::get('/vehicles/data', [VehicleController::class, 'getData'])->name('vehicles.data');
+    });
+
+    Route::middleware(['permission:master.vehicles.create'])->group(function () {
+        Route::post('/vehicles', [VehicleController::class, 'store'])->name('vehicles.store');
+    });
+
+    Route::middleware(['permission:master.vehicles.edit'])->group(function () {
+        Route::put('/vehicles/{vehicle}', [VehicleController::class, 'update'])->name('vehicles.update');
+    });
+
+    Route::middleware(['permission:master.vehicles.delete'])->group(function () {
+        Route::get('/vehicles/trash', [VehicleController::class, 'trash'])->name('vehicles.trash');
+        Route::get('/vehicles/trash/data', [VehicleController::class, 'getTrashData'])->name('vehicles.trash.data');
+        Route::delete('/vehicles/{vehicle}', [VehicleController::class, 'destroy'])->name('vehicles.destroy');
+    });
+
+    Route::middleware(['permission:master.vehicles.restore'])->group(function () {
+        Route::post('/vehicles/{vehicle}/restore', [VehicleController::class, 'restore'])->withTrashed()->name('vehicles.restore');
+    });
+
+    Route::middleware(['permission:master.vehicles.force_delete'])->group(function () {
+        Route::delete('/vehicles/{vehicle}/force-delete', [VehicleController::class, 'forceDelete'])->withTrashed()->name('vehicles.force-delete');
+    });
+
+    Route::middleware(['permission:master.vehicles.view'])->group(function () {
+        Route::get('/vehicles/{vehicle}', [VehicleController::class, 'show'])->name('vehicles.show');
+    });
+
+    // Destination master data routes with permissions
+    Route::middleware(['permission:master.destinations.view'])->group(function () {
+        Route::get('/destinations', [DestinationController::class, 'index'])->name('destinations.index');
+        Route::get('/destinations/data', [DestinationController::class, 'getData'])->name('destinations.data');
+    });
+
+    Route::middleware(['permission:master.destinations.create'])->group(function () {
+        Route::post('/destinations', [DestinationController::class, 'store'])->name('destinations.store');
+    });
+
+    Route::middleware(['permission:master.destinations.edit'])->group(function () {
+        Route::put('/destinations/{destination}', [DestinationController::class, 'update'])->name('destinations.update');
+    });
+
+    Route::middleware(['permission:master.destinations.delete'])->group(function () {
+        Route::get('/destinations/trash', [DestinationController::class, 'trash'])->name('destinations.trash');
+        Route::get('/destinations/trash/data', [DestinationController::class, 'getTrashData'])->name('destinations.trash.data');
+        Route::delete('/destinations/{destination}', [DestinationController::class, 'destroy'])->name('destinations.destroy');
+    });
+
+    Route::middleware(['permission:master.destinations.restore'])->group(function () {
+        Route::post('/destinations/{destination}/restore', [DestinationController::class, 'restore'])->withTrashed()->name('destinations.restore');
+    });
+
+    Route::middleware(['permission:master.destinations.force_delete'])->group(function () {
+        Route::delete('/destinations/{destination}/force-delete', [DestinationController::class, 'forceDelete'])->withTrashed()->name('destinations.force-delete');
+    });
+
+    Route::middleware(['permission:master.destinations.view'])->group(function () {
+        Route::get('/destinations/{destination}', [DestinationController::class, 'show'])->name('destinations.show');
+    });
+
+    // Type maintenance master data routes with permissions
+    Route::middleware(['permission:master.type_maintenances.view'])->group(function () {
+        Route::get('/type-maintenances', [TypeMaintenanceController::class, 'index'])->name('type-maintenances.index');
+        Route::get('/type-maintenances/data', [TypeMaintenanceController::class, 'getData'])->name('type-maintenances.data');
+    });
+
+    Route::middleware(['permission:master.type_maintenances.create'])->group(function () {
+        Route::post('/type-maintenances', [TypeMaintenanceController::class, 'store'])->name('type-maintenances.store');
+        Route::post('/type-maintenances/import', [TypeMaintenanceController::class, 'import'])->name('type-maintenances.import');
+    });
+
+    Route::middleware(['permission:master.type_maintenances.edit'])->group(function () {
+        Route::put('/type-maintenances/{typeMaintenance}', [TypeMaintenanceController::class, 'update'])->name('type-maintenances.update');
+    });
+
+    Route::middleware(['permission:master.type_maintenances.delete'])->group(function () {
+        Route::get('/type-maintenances/trash', [TypeMaintenanceController::class, 'trash'])->name('type-maintenances.trash');
+        Route::get('/type-maintenances/trash/data', [TypeMaintenanceController::class, 'getTrashData'])->name('type-maintenances.trash.data');
+        Route::delete('/type-maintenances/{typeMaintenance}', [TypeMaintenanceController::class, 'destroy'])->name('type-maintenances.destroy');
+    });
+
+    Route::middleware(['permission:master.type_maintenances.restore'])->group(function () {
+        Route::post('/type-maintenances/{typeMaintenance}/restore', [TypeMaintenanceController::class, 'restore'])->withTrashed()->name('type-maintenances.restore');
+    });
+
+    Route::middleware(['permission:master.type_maintenances.force_delete'])->group(function () {
+        Route::delete('/type-maintenances/{typeMaintenance}/force-delete', [TypeMaintenanceController::class, 'forceDelete'])->withTrashed()->name('type-maintenances.force-delete');
+    });
+
+    Route::middleware(['permission:master.type_maintenances.view'])->group(function () {
+        Route::get('/type-maintenances/{typeMaintenance}', [TypeMaintenanceController::class, 'show'])->name('type-maintenances.show');
     });
 
     // Generic FilePond routes
