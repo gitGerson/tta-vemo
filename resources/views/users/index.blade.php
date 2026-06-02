@@ -96,22 +96,22 @@
                                 @enderror
                             </div>
 
-                            <div class="mb-3">
-                                <label for="companyIds" class="form-label">Perusahaan</label>
-                                <select name="company_ids[]" id="companyIds" class="form-select @error('company_ids') is-invalid @enderror @error('company_ids.*') is-invalid @enderror" multiple>
-                                    @foreach($companies as $company)
-                                        <option value="{{ $company->id }}" @selected(in_array($company->id, old('company_ids', [])))>
-                                            {{ $company->name }} ({{ $company->code }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('company_ids')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                @error('company_ids.*')
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
-                            </div>
+                            <x-form.select
+                                name="company_ids"
+                                id="companyIds"
+                                label="Perusahaan"
+                                mode="select2"
+                                multiple
+                                placeholder="Pilih perusahaan..."
+                                :inputClass="$errors->has('company_ids.*') ? 'is-invalid' : null"
+                            >
+                                @foreach($companies as $company)
+                                    <option value="{{ $company->id }}" @selected(in_array($company->id, old('company_ids', [])))>
+                                        {{ $company->name }} ({{ $company->code }})
+                                    </option>
+                                @endforeach
+                            </x-form.select>
+                            <x-form.error name="company_ids.*" />
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -311,6 +311,7 @@
                         }
 
                         addUserForm.reset();
+                        $('#companyIds').val(null).trigger('change');
                         resetVerifiedState();
                     });
 

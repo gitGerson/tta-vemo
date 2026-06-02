@@ -90,9 +90,12 @@
     }
 
     function setMultiField(name, values) {
-        getForm().querySelectorAll(`[name="${name}[]"] option`).forEach(option => {
+        const select = getForm().querySelector(`[name="${name}[]"]`);
+        if (!select) return;
+        select.querySelectorAll('option').forEach(option => {
             option.selected = values.includes(option.value);
         });
+        window.jQuery && window.jQuery(select).trigger('change');
     }
 
     // ── create mode ──────────────────────────────────────────────────────────
@@ -100,6 +103,7 @@
     function resetToCreate() {
         const form = getForm();
         form.reset();
+        window.jQuery && window.jQuery(form).find('[name="company_ids[]"]').val(null).trigger('change');
         form.action = createUrl;
         document.getElementById('driver-form-method').value = '';
         document.getElementById('driver-form-action').value = createUrl;
