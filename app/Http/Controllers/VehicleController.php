@@ -2,175 +2,71 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTables\VehicleDataTable;
+use App\DataTables\VehicleTrashDataTable;
+use App\Http\Requests\VehicleStoreRequest;
+use App\Http\Requests\VehicleUpdateRequest;
 use App\Models\Vehicle;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class VehicleController extends Controller
 {
     public function index()
     {
-        return view('pages.vehicle.index');
+        return view('vehicles.index', ['table' => new VehicleDataTable]);
     }
 
-    public function store(Request $request)
+    public function store(VehicleStoreRequest $request)
     {
-        $request->validate([
-            'type' => ['required', 'string'],
-            'entry_year' => ['required', 'string'],
-            'mileage' => ['nullable', 'string'],
-            'plat_new' => ['required', 'string', Rule::unique('vehicles', 'plat_new')],
-            'plat_old' => ['nullable', 'string', Rule::unique('vehicles', 'plat_old')],
-            'status' => ['required', Rule::in(['ACTIVE', 'PASSIVE'])],
-            'mtc' => ['required', Rule::in(['YES', 'NO'])],
-            'desc' => ['nullable', 'string'],
-            'isprivate' => ['required', 'boolean'],
-        ]);
+        Vehicle::create($request->validated());
 
-        $vehicleData = $request->only([
-            'type',
-            'entry_year',
-            'mileage',
-            'plat_new',
-            'plat_old',
-            'status',
-            'mtc',
-            'desc',
-            'isprivate',
-        ]);
-
-        $vehicleData['mileage'] = blank($vehicleData['mileage']) ? '0' : $vehicleData['mileage'];
-
-        $created = Vehicle::create($vehicleData);
-
-        if (! $created) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat menambahkan kendaraan');
-        }
-
-        return redirect()->route('vehicle.index')->with('success', 'Kendaraan berhasil ditambahkan');
+        return redirect()->route('vehicles.index')->with('success', 'Kendaraan berhasil ditambahkan.');
     }
 
-    public function update(Request $request, string $id)
+    public function show(Vehicle $vehicle)
     {
-        $vehicle = Vehicle::findOrFail($id);
-
-        $request->validate([
-            'type' => ['required', 'string'],
-            'entry_year' => ['required', 'string'],
-            'mileage' => ['nullable', 'string'],
-            'plat_new' => ['required', 'string', Rule::unique('vehicles', 'plat_new')->ignore($vehicle->id)],
-            'plat_old' => ['nullable', 'string', Rule::unique('vehicles', 'plat_old')->ignore($vehicle->id)],
-            'status' => ['required', Rule::in(['ACTIVE', 'PASSIVE'])],
-            'mtc' => ['required', Rule::in(['YES', 'NO'])],
-            'desc' => ['nullable', 'string'],
-            'isprivate' => ['required', 'boolean'],
-        ]);
-
-        $vehicleData = $request->only([
-            'type',
-            'entry_year',
-            'mileage',
-            'plat_new',
-            'plat_old',
-            'status',
-            'mtc',
-            'desc',
-            'isprivate',
-        ]);
-
-        $vehicleData['mileage'] = blank($vehicleData['mileage']) ? '0' : $vehicleData['mileage'];
-
-        $updated = $vehicle->update($vehicleData);
-
-        if (! $updated) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat memperbarui kendaraan');
-        }
-
-        return redirect()->route('vehicle.index')->with('success', 'Kendaraan berhasil diperbarui');
+        return view('vehicles.partials.show', compact('vehicle'));
     }
 
-    public function destroy(string $id)
+    public function update(Vehicle $vehicle, VehicleUpdateRequest $request)
     {
-        $vehicle = Vehicle::findOrFail($id);
+        $vehicle->update($request->validated());
 
-        if (! $vehicle->delete()) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat menghapus kendaraan');
-        }
-
-        return redirect()->route('vehicle.index')->with('success', 'Kendaraan berhasil dihapus');
+        return redirect()->route('vehicles.index')->with('success', 'Kendaraan berhasil diperbarui.');
     }
 
-    public function getData(Request $request)
+    public function destroy(Vehicle $vehicle)
     {
-        $vehicles = Vehicle::select([
-            'id',
-            'type',
-            'entry_year',
-            'mileage',
-            'plat_new',
-            'plat_old',
-            'status',
-            'mtc',
-            'desc',
-            'isprivate',
-        ]);
+        $vehicle->delete();
 
-        return datatables()->of($vehicles)
-            ->addIndexColumn()
-            ->addColumn('isprivate_label', function ($vehicle) {
-                return $vehicle->isprivate ? 'Yes' : 'No';
-            })
-            ->addColumn('action', function ($vehicle) {
-                $canEdit = auth()->user()->hasPermission('master.vehicles.edit');
-                $canDelete = auth()->user()->hasPermission('master.vehicles.delete');
+        return redirect()->route('vehicles.index')->with('success', 'Kendaraan berhasil disimpan di sampah.');
+    }
 
-                $attrs = [
-                    'type' => e($vehicle->type),
-                    'entry_year' => e($vehicle->entry_year),
-                    'mileage' => e($vehicle->mileage),
-                    'plat_new' => e($vehicle->plat_new),
-                    'plat_old' => e($vehicle->plat_old),
-                    'status' => e($vehicle->status),
-                    'mtc' => e($vehicle->mtc),
-                    'desc' => e($vehicle->desc),
-                    'isprivate' => $vehicle->isprivate,
-                ];
+    public function trash()
+    {
+        return view('vehicles.trash', ['table' => new VehicleTrashDataTable]);
+    }
 
-                $actions = '<div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                        <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">';
-                if ($canEdit) {
-                    $actions .= '<a class="dropdown-item btn-edit-vehicle"
-                            href="#"
-                            data-update-url="'.route('vehicle.update', $vehicle->id).'"
-                            data-type="'.$attrs['type'].'"
-                            data-entry_year="'.$attrs['entry_year'].'"
-                            data-mileage="'.$attrs['mileage'].'"
-                            data-plat_new="'.$attrs['plat_new'].'"
-                            data-plat_old="'.$attrs['plat_old'].'"
-                            data-status="'.$attrs['status'].'"
-                            data-mtc="'.$attrs['mtc'].'"
-                            data-desc="'.e($vehicle->desc ?? '').'"
-                            data-isprivate="'.($attrs['isprivate'] ? 1 : 0).'">
-                            <i class="bx bx-edit-alt me-1"></i> Edit
-                        </a>';
-                }
-                if ($canDelete) {
-                    $actions .= '<form action="'.route('vehicle.destroy', $vehicle->id).'" method="POST" style="display: inline;">
-                            '.csrf_field().'
-                            '.method_field('DELETE').'
-                            <button type="submit" class="dropdown-item text-danger" onclick="return confirm(\'Yakin ingin menghapus kendaraan ini?\')">
-                                <i class="bx bx-trash me-1"></i> Hapus
-                            </button>
-                        </form>';
-                }
-                $actions .= '</div></div>';
+    public function restore(Vehicle $vehicle)
+    {
+        $vehicle->restore();
 
-                return $actions;
-            })
-            ->rawColumns(['action'])
-            ->make(true);
+        return redirect()->route('vehicles.trash')->with('success', 'Kendaraan berhasil dipulihkan.');
+    }
+
+    public function forceDelete(Vehicle $vehicle)
+    {
+        $vehicle->forceDelete();
+
+        return redirect()->route('vehicles.trash')->with('success', 'Kendaraan berhasil dihapus permanen.');
+    }
+
+    public function getData()
+    {
+        return (new VehicleDataTable)->response();
+    }
+
+    public function getTrashData()
+    {
+        return (new VehicleTrashDataTable)->response();
     }
 }
