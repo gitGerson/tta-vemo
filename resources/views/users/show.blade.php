@@ -74,6 +74,12 @@
                             </div>
                             <div class="col-md-6 col-xl-4">
                                 <div class="border rounded p-3 h-100">
+                                    <small class="text-muted text-uppercase fw-semibold d-block mb-1">Perusahaan</small>
+                                    <div>{{ $user->companies->pluck('name')->join(', ') ?: '-' }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-xl-4">
+                                <div class="border rounded p-3 h-100">
                                     <small class="text-muted text-uppercase fw-semibold d-block mb-1">Domain</small>
                                     <div>{{ $user->domain ?? '-' }}</div>
                                 </div>

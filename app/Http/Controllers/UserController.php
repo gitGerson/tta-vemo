@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
 use App\Models\UserLog;
-use App\Models\Role;
-use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -22,8 +23,9 @@ class UserController extends Controller
         $roles = Role::where('is_active', true)
             ->orderBy('display_name')
             ->get();
+        $companies = Company::query()->orderBy('name')->get(['id', 'name', 'code']);
 
-        return view('users.index', compact('roles'));
+        return view('users.index', compact('companies', 'roles'));
     }
 
     /**
@@ -42,8 +44,9 @@ class UserController extends Controller
         $roles = Role::where('is_active', true)
             ->orderBy('display_name')
             ->get();
+        $companies = Company::query()->orderBy('name')->get(['id', 'name', 'code']);
 
-        return view('users.create', compact('roles'));
+        return view('users.create', compact('companies', 'roles'));
     }
 
     public function verifyLdap(Request $request)
@@ -61,7 +64,7 @@ class UserController extends Controller
         try {
             $ldapUser = LdapUser::where('uid', $request->username)->first();
 
-            if (!$ldapUser) {
+            if (! $ldapUser) {
                 return response()->json([
                     'message' => 'Username tidak ditemukan di LDAP. Pastikan username sudah terdaftar di sistem LDAP.',
                 ], 404);
@@ -72,11 +75,11 @@ class UserController extends Controller
                 'user' => [
                     'name' => $ldapUser->cn[0] ?? $ldapUser->displayname[0] ?? $ldapUser->uid[0] ?? $request->username,
                     'username' => $request->username,
-                    'email' => $ldapUser->mail[0] ?? $request->username . '@tongtji.com',
+                    'email' => $ldapUser->mail[0] ?? $request->username.'@tongtji.com',
                 ],
             ]);
         } catch (\Exception $e) {
-            Log::error('LDAP User Verification Error: ' . $e->getMessage(), [
+            Log::error('LDAP User Verification Error: '.$e->getMessage(), [
                 'username' => $request->username,
                 'exception' => $e,
             ]);
@@ -98,13 +101,15 @@ class UserController extends Controller
                 'required',
                 Rule::exists('roles', 'id')->where('is_active', true),
             ],
+            'company_ids' => ['nullable', 'array'],
+            'company_ids.*' => ['integer', Rule::exists('company', 'id')],
         ]);
 
         try {
             // Query LDAP untuk mencari user berdasarkan username (sesuai format: uid=username)
             $ldapUser = LdapUser::where('uid', $request->username)->first();
 
-            if (!$ldapUser) {
+            if (! $ldapUser) {
                 return redirect()->back()
                     ->withInput()
                     ->with('error', 'Username tidak ditemukan di LDAP. Pastikan username sudah terdaftar di sistem LDAP.');
@@ -122,7 +127,7 @@ class UserController extends Controller
             $user = User::create([
                 'name' => $ldapUser->cn[0] ?? $ldapUser->displayname[0] ?? $ldapUser->uid[0] ?? $request->username,
                 'username' => $request->username,
-                'email' => $ldapUser->mail[0] ?? $request->username . '@tongtji.com',
+                'email' => $ldapUser->mail[0] ?? $request->username.'@tongtji.com',
                 'password' => Hash::make(str()->random(32)), // Random password since we use LDAP auth
                 'domain' => $ldapUser->getDn(),
                 'guid' => $ldapUser->entryuuid[0] ?? null,
@@ -130,6 +135,7 @@ class UserController extends Controller
 
             $role = Role::findOrFail($request->role_id);
             $user->assignRole($role);
+            $user->companies()->sync($request->input('company_ids', []));
 
             UserLog::log(
                 'CREATE_USER',
@@ -148,9 +154,9 @@ class UserController extends Controller
             return redirect()->route('users.index')
                 ->with('success', "User berhasil ditemukan di LDAP, disinkronisasi, dan diberi role {$role->display_name}. User: {$user->name} ({$user->username})");
         } catch (\Exception $e) {
-            Log::error('LDAP User Sync Error: ' . $e->getMessage(), [
+            Log::error('LDAP User Sync Error: '.$e->getMessage(), [
                 'username' => $request->username,
-                'exception' => $e
+                'exception' => $e,
             ]);
 
             return redirect()->back()
@@ -164,7 +170,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $user->load(['creator', 'updater', 'deleter', 'roles']);
+        $user->load(['companies', 'creator', 'updater', 'deleter', 'roles']);
 
         UserLog::log(
             'VIEW_USER',
@@ -185,8 +191,10 @@ class UserController extends Controller
     {
         $permissions = Permission::all();
         $roleTemplates = Role::where('name', 'like', '%_template')->get();
+        $companies = Company::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $user->load('companies');
 
-        return view('users.edit', compact('user', 'permissions', 'roleTemplates'));
+        return view('users.edit', compact('companies', 'user', 'permissions', 'roleTemplates'));
     }
 
     /**
@@ -194,6 +202,13 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        $validated = $request->validate([
+            'company_ids' => ['nullable', 'array'],
+            'company_ids.*' => ['integer', Rule::exists('company', 'id')],
+        ]);
+
+        $user->companies()->sync($validated['company_ids'] ?? []);
+
         return redirect()->route('users.edit', $user)->with('success', 'User berhasil diperbarui');
     }
 
@@ -233,12 +248,15 @@ class UserController extends Controller
      */
     public function getData(Request $request)
     {
-        $users = User::with('roles')->select(['id', 'name', 'email', 'username']);
+        $users = User::with(['companies', 'roles'])->select(['id', 'name', 'email', 'username']);
 
         return datatables()->of($users)
             ->addIndexColumn()
             ->addColumn('roles', function ($user) {
                 return $user->roles->pluck('display_name')->join(', ') ?: '-';
+            })
+            ->addColumn('companies', function ($user) {
+                return $user->companies->pluck('name')->join(', ') ?: '-';
             })
             ->addColumn('row_url', function ($user) {
                 return route('users.show', $user);
@@ -318,7 +336,8 @@ class UserController extends Controller
                     'MODEL_FORCE_DELETED' => 'dark',
                 ];
                 $badgeClass = $badges[$log->action] ?? 'primary';
-                return '<span class="badge bg-' . $badgeClass . '">' . str_replace('_', ' ', $log->action) . '</span>';
+
+                return '<span class="badge bg-'.$badgeClass.'">'.str_replace('_', ' ', $log->action).'</span>';
             })
             ->rawColumns(['action_badge'])
             ->make(true);
@@ -364,7 +383,8 @@ class UserController extends Controller
                     'MODEL_FORCE_DELETED' => 'dark',
                 ];
                 $badgeClass = $badges[$log->action] ?? 'primary';
-                return '<span class="badge bg-' . $badgeClass . '">' . str_replace('_', ' ', $log->action) . '</span>';
+
+                return '<span class="badge bg-'.$badgeClass.'">'.str_replace('_', ' ', $log->action).'</span>';
             })
             ->rawColumns(['action_badge'])
             ->make(true);
@@ -377,7 +397,7 @@ class UserController extends Controller
     {
         $request->validate([
             'permissions' => 'array',
-            'permissions.*' => 'exists:permissions,id'
+            'permissions.*' => 'exists:permissions,id',
         ]);
 
         // Get current permissions for logging
@@ -393,12 +413,12 @@ class UserController extends Controller
 
         if ($selectedPermissions->count() > 0) {
             // Create a dynamic role for this user with selected permissions
-            $dynamicRoleName = 'user_' . $user->id . '_permissions';
+            $dynamicRoleName = 'user_'.$user->id.'_permissions';
             $dynamicRole = Role::updateOrCreate(
                 ['name' => $dynamicRoleName],
                 [
-                    'display_name' => 'Custom Permissions for ' . $user->name,
-                    'description' => 'Dynamic role with custom permissions for user ' . $user->username
+                    'display_name' => 'Custom Permissions for '.$user->name,
+                    'description' => 'Dynamic role with custom permissions for user '.$user->username,
                 ]
             );
 
@@ -425,7 +445,7 @@ class UserController extends Controller
             ],
             [
                 'new_permissions' => $newPermissions,
-                'permissions_count' => count($newPermissions)
+                'permissions_count' => count($newPermissions),
             ],
             $user
         );
@@ -440,7 +460,7 @@ class UserController extends Controller
     public function applyTemplate(Request $request, User $user)
     {
         $request->validate([
-            'role_template' => 'required|exists:roles,id'
+            'role_template' => 'required|exists:roles,id',
         ]);
 
         $roleTemplate = Role::findOrFail($request->role_template);
@@ -465,7 +485,7 @@ class UserController extends Controller
                 'template_name' => $roleTemplate->display_name,
                 'template_id' => $roleTemplate->id,
                 'previous_permissions' => $currentPermissions,
-                'new_permissions' => $newPermissions
+                'new_permissions' => $newPermissions,
             ],
             [
                 'template_name' => $roleTemplate->display_name,
@@ -488,7 +508,7 @@ class UserController extends Controller
 
         return response()->json([
             'success' => true,
-            'permission_ids' => $permissionIds
+            'permission_ids' => $permissionIds,
         ]);
     }
 }

@@ -1,5 +1,6 @@
 <table class="table table-sm mb-0">
     <tr><th class="w-25">Tipe</th><td>{{ $vehicle->type }}</td></tr>
+    <tr><th>Perusahaan</th><td>{{ $vehicle->company?->name ?? '-' }}</td></tr>
     <tr><th>Tahun Masuk</th><td>{{ $vehicle->entry_year }}</td></tr>
     <tr><th>Plat Baru</th><td>{{ $vehicle->plat_new }}</td></tr>
     <tr><th>Plat Lama</th><td>{{ $vehicle->plat_old ?: '-' }}</td></tr>

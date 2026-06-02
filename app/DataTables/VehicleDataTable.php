@@ -9,8 +9,9 @@ class VehicleDataTable extends DataTable
 {
     public function query(): Builder
     {
-        return Vehicle::query()->select([
+        return Vehicle::query()->with('company')->select([
             'id',
+            'company_id',
             'type',
             'entry_year',
             'mileage',
@@ -29,6 +30,9 @@ class VehicleDataTable extends DataTable
         return [
             Column::index(),
             Column::make('type', 'Tipe'),
+            Column::computed('company_name', 'Perusahaan', fn (Vehicle $vehicle): string => $vehicle->company?->name ?? '-')
+                ->orderable(false)
+                ->searchable(false),
             Column::make('plat_new', 'Plat Baru'),
             Column::make('plat_old', 'Plat Lama'),
             Column::make('status', 'Status'),
@@ -85,6 +89,7 @@ class VehicleDataTable extends DataTable
                     'mtc' => $row->mtc,
                     'isprivate' => $row->isprivate ? 1 : 0,
                     'desc' => $row->desc,
+                    'company-id' => $row->company_id,
                 ],
             ],
             [

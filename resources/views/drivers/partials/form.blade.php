@@ -4,6 +4,9 @@
         'ACTIVE' => 'ACTIVE',
         'PASSIVE' => 'PASSIVE',
     ];
+    $selectedCompanyIds = collect(old('company_ids', $driver?->companies?->pluck('id')->all() ?? []))
+        ->map(fn ($id) => (string) $id)
+        ->all();
 @endphp
 
 <form method="POST" action="{{ $action }}" enctype="multipart/form-data">
@@ -75,6 +78,18 @@
 
                 <div class="col-md-4">
                     <x-form.select name="status" label="Status" :options="$statusOptions" :value="$driver?->status ?? 'ACTIVE'" inputClass="form-select-sm" required />
+                </div>
+
+                <div class="col-md-8">
+                    <x-form.group name="company_ids" label="Perusahaan">
+                        <select name="company_ids[]" class="form-select form-select-sm @error('company_ids') is-invalid @enderror @error('company_ids.*') is-invalid @enderror" multiple>
+                            @foreach(($companies ?? collect()) as $company)
+                                <option value="{{ $company->id }}" @selected(in_array((string) $company->id, $selectedCompanyIds, true))>
+                                    {{ $company->name }} ({{ $company->code }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </x-form.group>
                 </div>
             </div>
         </div>

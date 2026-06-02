@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Rules\DifferentPhoneNumbers;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -64,6 +65,8 @@ class Driver extends Model
             'entry_date' => ['required', 'date'],
             'out_date' => ['nullable', 'date', 'after_or_equal:entry_date'],
             'status' => ['required', Rule::in(['ACTIVE', 'PASSIVE'])],
+            'company_ids' => ['nullable', 'array'],
+            'company_ids.*' => ['integer', Rule::exists('company', 'id')],
         ];
     }
 
@@ -87,5 +90,10 @@ class Driver extends Model
         }
 
         return Storage::disk('s3')->url($this->image);
+    }
+
+    public function companies(): BelongsToMany
+    {
+        return $this->belongsToMany(Company::class, 'company_driver')->withTimestamps();
     }
 }

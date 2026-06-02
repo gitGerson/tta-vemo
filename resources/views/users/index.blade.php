@@ -45,7 +45,7 @@
 
             <x-datatable.table
                 id="users-table"
-                :columns="['No', 'Nama', 'Username', 'Email', 'Role', 'Aksi']"
+                :columns="['No', 'Nama', 'Username', 'Email', 'Perusahaan', 'Role', 'Aksi']"
             />
         </x-datatable.card>
     </div>
@@ -93,6 +93,23 @@
                                 </select>
                                 @error('role_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="companyIds" class="form-label">Perusahaan</label>
+                                <select name="company_ids[]" id="companyIds" class="form-select @error('company_ids') is-invalid @enderror @error('company_ids.*') is-invalid @enderror" multiple>
+                                    @foreach($companies as $company)
+                                        <option value="{{ $company->id }}" @selected(in_array($company->id, old('company_ids', [])))>
+                                            {{ $company->name }} ({{ $company->code }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('company_ids')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                @error('company_ids.*')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
@@ -158,6 +175,7 @@
     { data: 'name', name: 'name' },
     { data: 'username', name: 'username' },
     { data: 'email', name: 'email' },
+    { data: 'companies', name: 'companies', orderable: false, searchable: false },
     { data: 'roles', name: 'roles', orderable: false, searchable: false },
     { data: 'action', name: 'action', orderable: false, searchable: false }
 </x-datatable.scripts>

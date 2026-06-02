@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Company;
 use App\Models\Driver;
 use App\Models\Permission;
 use App\Models\Role;
@@ -33,6 +34,7 @@ class DriverModuleTest extends TestCase
     public function test_authorized_user_can_create_driver(): void
     {
         $this->actingAs($this->userWithDriverPermissions());
+        $company = Company::factory()->create();
 
         $payload = Driver::factory()->make([
             'nik' => null,
@@ -40,6 +42,7 @@ class DriverModuleTest extends TestCase
             'no_phone_1' => '081234567890',
             'no_phone_2' => '089876543210',
         ])->toArray();
+        $payload['company_ids'] = [$company->id];
 
         $this->post(route('drivers.store'), $payload)
             ->assertRedirect(route('drivers.index'));
@@ -48,12 +51,16 @@ class DriverModuleTest extends TestCase
             'name' => $payload['name'],
             'no_identity' => '1234567890123456',
         ]);
+        $this->assertDatabaseHas('company_driver', [
+            'company_id' => $company->id,
+        ]);
     }
 
     public function test_authorized_user_can_update_driver(): void
     {
         $this->actingAs($this->userWithDriverPermissions());
         $driver = Driver::factory()->create(['nik' => null]);
+        $company = Company::factory()->create();
 
         $payload = Driver::factory()->make([
             'nik' => null,
@@ -62,6 +69,7 @@ class DriverModuleTest extends TestCase
             'no_phone_1' => $driver->no_phone_1,
             'no_phone_2' => $driver->no_phone_2,
         ])->toArray();
+        $payload['company_ids'] = [$company->id];
 
         $this->put(route('drivers.update', $driver), $payload)
             ->assertRedirect(route('drivers.index'));
@@ -69,6 +77,10 @@ class DriverModuleTest extends TestCase
         $this->assertDatabaseHas('drivers', [
             'id' => $driver->id,
             'name' => 'Updated Driver',
+        ]);
+        $this->assertDatabaseHas('company_driver', [
+            'company_id' => $company->id,
+            'driver_id' => $driver->id,
         ]);
     }
 

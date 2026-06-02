@@ -6,10 +6,12 @@ use App\DataTables\DriverDataTable;
 use App\DataTables\DriverTrashDataTable;
 use App\Http\Requests\DriverStoreRequest;
 use App\Http\Requests\DriverUpdateRequest;
+use App\Models\Company;
 use App\Models\Driver;
 use App\Services\FilePondUploadService;
 use App\Services\JPayrollService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
 class DriverController extends Controller
 {
@@ -20,12 +22,16 @@ class DriverController extends Controller
 
     public function index()
     {
-        return view('drivers.index', ['table' => new DriverDataTable]);
+        return view('drivers.index', [
+            'companies' => Company::query()->orderBy('name')->get(['id', 'name', 'code']),
+            'table' => new DriverDataTable,
+        ]);
     }
 
     public function store(DriverStoreRequest $request)
     {
         $data = $request->validated();
+        $companyIds = Arr::pull($data, 'company_ids', []);
         $nik = $data['nik'] ?? null;
 
         if ($nik && ! $this->jpayroll->validateNik($nik)) {
@@ -34,13 +40,16 @@ class DriverController extends Controller
 
         $data['image'] = $this->filePond->storeFromRequestField($request, 'image', 'profile_images', 's3');
 
-        Driver::create($data);
+        $driver = Driver::create($data);
+        $driver->companies()->sync($companyIds);
 
         return redirect()->route('drivers.index')->with('success', 'Driver berhasil ditambahkan.');
     }
 
     public function show(Driver $driver)
     {
+        $driver->load('companies');
+
         // Detail is rendered inside a modal on the index via AJAX; return the
         // partial fragment that the modal body loads.
         return view('drivers.partials.show', compact('driver'));
@@ -49,6 +58,7 @@ class DriverController extends Controller
     public function update(Driver $driver, DriverUpdateRequest $request)
     {
         $data = $request->validated();
+        $companyIds = Arr::pull($data, 'company_ids', []);
         $nik = $data['nik'] ?? null;
 
         if ($nik && $nik !== $driver->nik && ! $this->jpayroll->validateNik($nik)) {
@@ -58,6 +68,7 @@ class DriverController extends Controller
         $data['image'] = $this->filePond->storeFromRequestField($request, 'image', 'profile_images', 's3') ?? $driver->image;
 
         $driver->update($data);
+        $driver->companies()->sync($companyIds);
 
         return redirect()->route('drivers.index')->with('success', 'Driver berhasil diperbarui.');
     }

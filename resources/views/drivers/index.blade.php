@@ -89,6 +89,12 @@
         if (el) el.value = value ?? '';
     }
 
+    function setMultiField(name, values) {
+        getForm().querySelectorAll(`[name="${name}[]"] option`).forEach(option => {
+            option.selected = values.includes(option.value);
+        });
+    }
+
     // ── create mode ──────────────────────────────────────────────────────────
 
     function resetToCreate() {
@@ -123,6 +129,7 @@
         setField('entry_date',  d.entryDate);
         setField('out_date',    d.outDate);
         setField('status',      d.status);
+        setMultiField('company_ids', d.companyIds);
 
         const pond = getPond();
         if (pond) {
@@ -169,6 +176,7 @@
             outDate:    btn.dataset.outDate,
             status:     btn.dataset.status,
             imageUrl:   btn.dataset.imageUrl,
+            companyIds: (btn.dataset.companyIds || '').split(',').filter(Boolean),
         };
 
         bootstrap.Modal.getOrCreateInstance(modalEl).show();

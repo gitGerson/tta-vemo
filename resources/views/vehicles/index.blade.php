@@ -109,6 +109,7 @@
 
         setField('type', d.type);
         setField('entry_year', d.entryYear);
+        setField('company_id', d.companyId);
         setField('mileage', d.mileage);
         setField('plat_new', d.platNew);
         setField('plat_old', d.platOld);
@@ -138,6 +139,7 @@
             updateUrl: btn.dataset.updateUrl,
             type: btn.dataset.type,
             entryYear: btn.dataset.entryYear,
+            companyId: btn.dataset.companyId,
             mileage: btn.dataset.mileage,
             platNew: btn.dataset.platNew,
             platOld: btn.dataset.platOld,

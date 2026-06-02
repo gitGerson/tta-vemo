@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Company;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -35,8 +36,10 @@ class VehicleModuleTest extends TestCase
     public function test_authorized_user_can_create_vehicle(): void
     {
         $this->actingAs($this->userWithVehiclePermissions());
+        $company = Company::factory()->create();
 
         $payload = Vehicle::factory()->make([
+            'company_id' => $company->id,
             'type' => 'Box',
             'entry_year' => '2026',
             'plat_new' => 'H 1234 TT',
@@ -49,6 +52,7 @@ class VehicleModuleTest extends TestCase
             ->assertRedirect(route('vehicles.index'));
 
         $this->assertDatabaseHas('vehicles', [
+            'company_id' => $company->id,
             'type' => 'Box',
             'plat_new' => 'H 1234 TT',
             'fuel_type' => 'BBM',
@@ -60,8 +64,10 @@ class VehicleModuleTest extends TestCase
     {
         $this->actingAs($this->userWithVehiclePermissions());
         $vehicle = Vehicle::factory()->create();
+        $company = Company::factory()->create();
 
         $payload = Vehicle::factory()->make([
+            'company_id' => $company->id,
             'type' => 'Updated Truck',
             'plat_new' => $vehicle->plat_new,
             'plat_old' => $vehicle->plat_old,
@@ -73,6 +79,7 @@ class VehicleModuleTest extends TestCase
 
         $this->assertDatabaseHas('vehicles', [
             'id' => $vehicle->id,
+            'company_id' => $company->id,
             'type' => 'Updated Truck',
             'fuel_type' => 'Solar',
         ]);

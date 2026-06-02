@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Validation\Rule;
 
@@ -14,6 +15,7 @@ class Vehicle extends Model
     protected $table = 'vehicles';
 
     protected $fillable = [
+        'company_id',
         'type',
         'entry_year',
         'mileage',
@@ -49,6 +51,7 @@ class Vehicle extends Model
             'mtc' => ['required', Rule::in(['YES', 'NO'])],
             'desc' => ['nullable', 'string'],
             'isprivate' => ['required', 'boolean'],
+            'company_id' => ['nullable', 'integer', Rule::exists('company', 'id')],
         ];
     }
 
@@ -63,5 +66,10 @@ class Vehicle extends Model
     public static function getByNoPol(string $plat): ?self
     {
         return static::where('plat_new', $plat)->orWhere('plat_old', $plat)->first();
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 }

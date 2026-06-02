@@ -6,13 +6,17 @@ use App\DataTables\VehicleDataTable;
 use App\DataTables\VehicleTrashDataTable;
 use App\Http\Requests\VehicleStoreRequest;
 use App\Http\Requests\VehicleUpdateRequest;
+use App\Models\Company;
 use App\Models\Vehicle;
 
 class VehicleController extends Controller
 {
     public function index()
     {
-        return view('vehicles.index', ['table' => new VehicleDataTable]);
+        return view('vehicles.index', [
+            'companies' => Company::query()->orderBy('name')->get(['id', 'name', 'code']),
+            'table' => new VehicleDataTable,
+        ]);
     }
 
     public function store(VehicleStoreRequest $request)
@@ -24,6 +28,8 @@ class VehicleController extends Controller
 
     public function show(Vehicle $vehicle)
     {
+        $vehicle->load('company');
+
         return view('vehicles.partials.show', compact('vehicle'));
     }
 

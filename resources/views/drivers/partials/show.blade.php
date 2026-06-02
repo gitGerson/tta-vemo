@@ -10,6 +10,7 @@
         <table class="table table-sm mb-0">
             <tr><th class="w-25">Nama</th><td>{{ $driver->name }}</td></tr>
             <tr><th>NIK</th><td>{{ $driver->nik ?: '-' }}</td></tr>
+            <tr><th>Perusahaan</th><td>{{ $driver->companies->pluck('name')->join(', ') ?: '-' }}</td></tr>
             <tr><th>No Identitas</th><td>{{ $driver->no_identity }}</td></tr>
             <tr><th>Alamat</th><td>{{ $driver->address }}</td></tr>
             <tr><th>Tempat</th><td>{{ $driver->residence }}</td></tr>

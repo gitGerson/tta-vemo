@@ -61,6 +61,32 @@
                                 </button>
                             </form>
                         </div>
+
+                        <form action="{{ route('users.update', $user) }}" method="POST" class="mt-4">
+                            @csrf
+                            @method('PUT')
+
+                            <div class="mb-3">
+                                <label for="company_ids" class="form-label">Perusahaan</label>
+                                <select name="company_ids[]" id="company_ids" class="form-select @error('company_ids') is-invalid @enderror @error('company_ids.*') is-invalid @enderror" multiple>
+                                    @foreach($companies as $company)
+                                        <option value="{{ $company->id }}" @selected(in_array($company->id, old('company_ids', $user->companies->pluck('id')->all())))>
+                                            {{ $company->name }} ({{ $company->code }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('company_ids')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                @error('company_ids.*')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bx bx-save me-1"></i> Update Perusahaan
+                            </button>
+                        </form>
                     </div>
                 </div>
 

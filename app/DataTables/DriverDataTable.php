@@ -9,7 +9,7 @@ class DriverDataTable extends DataTable
 {
     public function query(): Builder
     {
-        return Driver::query()->select([
+        return Driver::query()->with('companies')->select([
             'id',
             'name',
             'address',
@@ -31,6 +31,9 @@ class DriverDataTable extends DataTable
         return [
             Column::index(),
             Column::make('name', 'Nama'),
+            Column::computed('companies_label', 'Perusahaan', fn (Driver $driver): string => $driver->companies->pluck('name')->join(', ') ?: '-')
+                ->orderable(false)
+                ->searchable(false),
             Column::make('no_identity', 'No Identitas'),
             Column::make('no_phone_1', 'No Telepon'),
             Column::make('status', 'Status'),
@@ -84,6 +87,7 @@ class DriverDataTable extends DataTable
                     'out-date' => $row->out_date?->format('Y-m-d'),
                     'status' => $row->status,
                     'image-url' => $row->imageUrl(),
+                    'company-ids' => $row->companies->pluck('id')->join(','),
                 ],
             ],
             [

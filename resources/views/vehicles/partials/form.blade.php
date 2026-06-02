@@ -12,6 +12,9 @@
         '0' => 'No',
         '1' => 'Yes',
     ];
+    $companyOptions = ($companies ?? collect())->mapWithKeys(fn ($company) => [
+        $company->id => "{$company->name} ({$company->code})",
+    ])->all();
 @endphp
 
 <form method="POST" action="{{ $action }}">
@@ -26,6 +29,10 @@
 
         <div class="col-md-6">
             <x-form.text name="entry_year" label="Tahun Masuk" :value="$vehicle?->entry_year" inputClass="form-control-sm" required maxlength="5" />
+        </div>
+
+        <div class="col-md-6">
+            <x-form.select name="company_id" label="Perusahaan" :options="$companyOptions" :value="$vehicle?->company_id" placeholder="Pilih perusahaan..." inputClass="form-select-sm" />
         </div>
 
         <div class="col-md-6">
