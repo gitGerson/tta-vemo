@@ -41,7 +41,9 @@ class DriverController extends Controller
 
     public function show(Driver $driver)
     {
-        return view('drivers.show', compact('driver'));
+        // Detail is rendered inside a modal on the index via AJAX; return the
+        // partial fragment that the modal body loads.
+        return view('drivers.partials.show', compact('driver'));
     }
 
     public function update(Driver $driver, DriverUpdateRequest $request)

@@ -53,11 +53,16 @@ class DriverDataTable extends DataTable
         return 'drivers.show';
     }
 
+    public function detailModal(): ?string
+    {
+        return 'driver-detail-modal';
+    }
+
     public function actions(mixed $row): array
     {
         return [
             [
-                'type' => 'view',
+                'type' => 'detail-modal',
                 'url' => route('drivers.show', $row),
                 'permission' => 'master.drivers.view',
             ],

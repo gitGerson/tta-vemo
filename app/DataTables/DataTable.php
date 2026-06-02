@@ -48,6 +48,21 @@ abstract class DataTable
     }
 
     /**
+     * DOM id of a detail modal. When set (and the table is clickable), a row
+     * click / detail-modal action fetches row_url and loads the response HTML
+     * into that modal instead of navigating to it.
+     */
+    public function detailModal(): ?string
+    {
+        return null;
+    }
+
+    public function hasDetailModal(): bool
+    {
+        return $this->detailModal() !== null;
+    }
+
+    /**
      * Action descriptors for one row, consumed by <x-datatable.actions>.
      * Override when the table declares Column::action().
      *

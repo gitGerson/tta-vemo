@@ -19,6 +19,12 @@
                 </a>
                 @break
 
+            @case('detail-modal')
+                <button type="button" class="btn btn-sm btn-info btn-detail-modal" data-url="{{ $action['url'] }}" title="{{ $action['label'] ?? 'Lihat' }}" aria-label="{{ $action['label'] ?? 'Lihat' }}">
+                    <i class="bx {{ $action['icon'] ?? 'bx-show' }}"></i>
+                </button>
+                @break
+
             @case('edit-link')
                 <a href="{{ $action['url'] }}" class="btn btn-sm btn-warning" title="{{ $action['label'] ?? 'Edit' }}" aria-label="{{ $action['label'] ?? 'Edit' }}">
                     <i class="bx {{ $action['icon'] ?? 'bx-edit-alt' }}"></i>

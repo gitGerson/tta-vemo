@@ -401,6 +401,30 @@ column, the hover style, and the delegated click/Enter handlers (which ignore
 clicks on `a`, `button`, `form`, `input`, `select`, `textarea`, `label`). Rows
 without a `row_url` stay non-interactive, so it is safe for mixed result sets.
 
+#### Detail in a modal (instead of a separate show page)
+
+To show a record's detail in a modal on the index rather than navigating to a
+standalone page, also override `detailModal()` to return a modal DOM id:
+
+```php
+public function clickableRoute(): ?string { return 'drivers.show'; }
+public function detailModal(): ?string { return 'driver-detail-modal'; }
+```
+
+With both set, `<x-datatable>` makes a row click (and any `detail-modal` action
+button) **fetch `row_url` over AJAX and inject the response HTML into that
+modal's `.modal-body`** instead of navigating. Wire it up:
+
+- The `show()` controller returns a **partial fragment** (no layout), e.g.
+  `view('drivers.partials.show', compact('driver'))` — it is loaded into the
+  modal body. There is no standalone show page.
+- The index view contains an empty modal with that id and a `.modal-body`.
+- The detail/eye action uses `['type' => 'detail-modal', 'url' => route('module.show', $row)]`
+  so the eye button opens the same modal (the row carries `row_url` for row-click).
+
+This keeps one source of detail markup, avoids bloating the DataTables payload,
+and any module gets a detail-modal by implementing `detailModal()`.
+
 > Legacy note: the older `<x-datatable.card>` / `<x-datatable.table>` /
 > `<x-datatable.scripts>` trio (with hand-written JS column slots and per-module
 > `datatable/actions/*.blade.php` views) still exists for unmigrated modules

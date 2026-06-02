@@ -49,6 +49,21 @@
             </div>
         </div>
     </div>
+
+    {{-- Detail modal: body is loaded via AJAX from drivers.show by <x-datatable> --}}
+    <div class="modal fade" id="driver-detail-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detail Driver</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {{-- AJAX-loaded detail fragment --}}
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -147,8 +162,8 @@
             noIdentity: btn.dataset.noIdentity,
             residence:  btn.dataset.residence,
             dateBirth:  btn.dataset.dateBirth,
-            noPhone1:   btn.dataset.noPhone1,
-            noPhone2:   btn.dataset.noPhone2,
+            noPhone1:   btn.getAttribute('data-no-phone-1'),
+            noPhone2:   btn.getAttribute('data-no-phone-2'),
             address:    btn.dataset.address,
             entryDate:  btn.dataset.entryDate,
             outDate:    btn.dataset.outDate,

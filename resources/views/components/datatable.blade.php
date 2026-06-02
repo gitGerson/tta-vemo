@@ -91,21 +91,58 @@
             });
 
             @if ($clickable)
-                $(tableSelector).on('click', 'tbody tr.datatable-clickable-row', function (event) {
-                    if ($(event.target).closest('a, button, form, input, select, textarea, label').length) {
-                        return;
-                    }
+                @if ($table->hasDetailModal())
+                    const detailModalEl = document.getElementById(@json($table->detailModal()));
 
-                    window.location.href = this.dataset.href;
-                });
+                    const openDetailModal = (url) => {
+                        if (!detailModalEl || !url) {
+                            return;
+                        }
 
-                $(tableSelector).on('keydown', 'tbody tr.datatable-clickable-row', function (event) {
-                    if (event.key !== 'Enter') {
-                        return;
-                    }
+                        const body = detailModalEl.querySelector('.modal-body');
+                        body.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>';
+                        bootstrap.Modal.getOrCreateInstance(detailModalEl).show();
 
-                    window.location.href = this.dataset.href;
-                });
+                        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' } })
+                            .then((response) => response.ok ? response.text() : Promise.reject(response.status))
+                            .then((html) => { body.innerHTML = html; })
+                            .catch(() => { body.innerHTML = '<div class="alert alert-danger m-3 mb-0">Gagal memuat detail.</div>'; });
+                    };
+
+                    $(tableSelector).on('click', 'tbody tr.datatable-clickable-row', function (event) {
+                        if ($(event.target).closest('a, button, form, input, select, textarea, label').length) {
+                            return;
+                        }
+
+                        openDetailModal(this.dataset.href);
+                    });
+
+                    $(tableSelector).on('keydown', 'tbody tr.datatable-clickable-row', function (event) {
+                        if (event.key === 'Enter') {
+                            openDetailModal(this.dataset.href);
+                        }
+                    });
+
+                    $(tableSelector).on('click', '.btn-detail-modal', function () {
+                        openDetailModal(this.dataset.url);
+                    });
+                @else
+                    $(tableSelector).on('click', 'tbody tr.datatable-clickable-row', function (event) {
+                        if ($(event.target).closest('a, button, form, input, select, textarea, label').length) {
+                            return;
+                        }
+
+                        window.location.href = this.dataset.href;
+                    });
+
+                    $(tableSelector).on('keydown', 'tbody tr.datatable-clickable-row', function (event) {
+                        if (event.key !== 'Enter') {
+                            return;
+                        }
+
+                        window.location.href = this.dataset.href;
+                    });
+                @endif
             @endif
         });
     </script>
