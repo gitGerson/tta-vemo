@@ -84,6 +84,22 @@ return [
             'enabled' => true,
         ],
         [
+            'key' => 'companies-index',
+            'label' => 'Company',
+            'icon' => 'bx-buildings',
+            'route' => 'companies.index',
+            'route_params' => [],
+            'active_patterns' => ['companies.*'],
+            'permission' => 'master.companies.view',
+            'section' => 'master-data',
+            'contexts' => ['desktop', 'search'],
+            'search' => [
+                'description' => 'Manage company master data',
+                'keywords' => ['company', 'companies', 'perusahaan', 'master'],
+            ],
+            'enabled' => true,
+        ],
+        [
             'key' => 'users-index',
             'label' => 'Users',
             'icon' => 'bx-user',

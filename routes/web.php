@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\FormDemoController;
@@ -116,6 +117,25 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:master.drivers.view'])->group(function () {
         Route::get('/drivers/{driver}', [DriverController::class, 'show'])->name('drivers.show');
+    });
+
+    // Company master data routes with permissions
+    Route::middleware(['permission:master.companies.view'])->group(function () {
+        Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
+        Route::get('/companies/data', [CompanyController::class, 'getData'])->name('companies.data');
+        Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
+    });
+
+    Route::middleware(['permission:master.companies.create'])->group(function () {
+        Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
+    });
+
+    Route::middleware(['permission:master.companies.edit'])->group(function () {
+        Route::put('/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
+    });
+
+    Route::middleware(['permission:master.companies.delete'])->group(function () {
+        Route::delete('/companies/{company}', [CompanyController::class, 'destroy'])->name('companies.destroy');
     });
 
     // Generic FilePond routes

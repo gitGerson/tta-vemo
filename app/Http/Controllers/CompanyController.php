@@ -2,151 +2,46 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTables\CompanyDataTable;
+use App\Http\Requests\CompanyStoreRequest;
+use App\Http\Requests\CompanyUpdateRequest;
 use App\Models\Company;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class CompanyController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        return view('pages.company.index');
+        return view('companies.index', ['table' => new CompanyDataTable]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(CompanyStoreRequest $request)
     {
-        //
+        Company::create($request->validated());
+
+        return redirect()->route('companies.index')->with('success', 'Perusahaan berhasil ditambahkan.');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function show(Company $company)
     {
-        $request->validate([
-            'code' => ['required', 'string', Rule::unique('company', 'code')],
-            'name' => ['required', 'string'],
-            'desc' => ['nullable', 'string'],
-        ]);
-
-        $created = Company::create([
-            'code' => $request->input('code'),
-            'name' => $request->input('name'),
-            'desc' => $request->input('desc'),
-        ]);
-
-        if (! $created) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat menambahkan perusahaan');
-        }
-
-        return redirect()->route('company.index')->with('success', 'Perusahaan Berhasil Ditambahkan');
+        return view('companies.partials.show', compact('company'));
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(Company $company, CompanyUpdateRequest $request)
     {
-        //
+        $company->update($request->validated());
+
+        return redirect()->route('companies.index')->with('success', 'Perusahaan berhasil diperbarui.');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function destroy(Company $company)
     {
-        //
+        $company->delete();
+
+        return redirect()->route('companies.index')->with('success', 'Perusahaan berhasil dihapus.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function getData()
     {
-        $company = Company::findOrFail($id);
-
-        $request->validate([
-            'code' => ['required', 'string', Rule::unique('company', 'code')->ignore($company->id)],
-            'name' => ['required', 'string'],
-            'desc' => ['nullable', 'string'],
-        ]);
-
-        $updated = $company->update([
-            'code' => $request->input('code'),
-            'name' => $request->input('name'),
-            'desc' => $request->input('desc'),
-        ]);
-
-        if (! $updated) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat memperbarui perusahaan');
-        }
-
-        return redirect()->route('company.index')->with('success', 'Perusahaan Berhasil Diperbarui');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        $company = Company::findOrFail($id);
-
-        if (! $company->delete()) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat menghapus perusahaan');
-        }
-
-        return redirect()->route('company.index')->with('success', 'Perusahaan Berhasil Dihapus');
-    }
-
-    public function getData(Request $request)
-    {
-        $companies = Company::select(['id', 'name', 'code', 'desc']);
-
-        return datatables()->of($companies)
-            ->addIndexColumn()
-            ->addColumn('action', function ($company) {
-                $canEdit = auth()->user()->hasPermission('master.companies.edit');
-                $canDelete = auth()->user()->hasPermission('master.companies.delete');
-
-                $name = e($company->name);
-                $code = e($company->code);
-                $desc = e($company->desc ?? '');
-
-                $actions = '<div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                        <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">';
-                if ($canEdit) {
-                    $actions .= '<a class="dropdown-item btn-edit-company"
-                            href="#"
-                            data-update-url="'.route('company.update', $company->id).'"
-                            data-code="'.$code.'"
-                            data-name="'.$name.'"
-                            data-desc="'.$desc.'">
-                            <i class="bx bx-edit-alt me-1"></i> Edit
-                        </a>';
-                }
-                if ($canDelete) {
-                    $actions .= '<form action="'.route('company.destroy', $company->id).'" method="POST" style="display: inline;">
-                            '.csrf_field().'
-                            '.method_field('DELETE').'
-                            <button type="submit" class="dropdown-item text-danger" onclick="return confirm(\'Yakin ingin menghapus perusahaan ini?\')">
-                                <i class="bx bx-trash me-1"></i> Hapus
-                            </button>
-                        </form>';
-                }
-                $actions .= '</div></div>';
-
-                return $actions;
-            })
-            ->rawColumns(['action'])
-            ->make(true);
+        return (new CompanyDataTable)->response();
     }
 }
