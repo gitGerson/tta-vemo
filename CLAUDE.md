@@ -70,13 +70,25 @@ Custom implementation — no Spatie package.
 
 ### DataTables
 
-Server-side via `yajra/laravel-datatables-oracle`. Three reusable Blade components wrap the boilerplate:
+Server-side via `yajra/laravel-datatables-oracle`.
 
-- `<x-datatable.card title="...">` — card wrapper with export buttons
-- `<x-datatable.table>` — the `<table>` element
-- `<x-datatable.scripts>` — JS init block
+**Canonical (config-driven):** a table is defined once in a `DataTable` subclass
+under `app/DataTables/{Model}DataTable.php` and reused by both the controller
+data endpoint (`(new XDataTable)->response()`) and the view
+(`<x-datatable :table="$table" />`). Columns are declared once via `columns()`
+(returning `App\DataTables\Column` objects); the base class derives the `<thead>`
+headers, the client JS column config, the yajra response, and the export column
+indexes from that single definition. The action column is rendered by the generic
+`<x-datatable.actions>` component from an `actions($row)` descriptor array
+(permission-gated; types: view/edit-link/edit-modal/delete/force-delete/restore) —
+no controller HTML and no per-module action view. Clickable rows are enabled by
+`clickableRoute()`. `app/DataTables/DriverDataTable.php` (+ `DriverTrashDataTable`)
+is the reference.
 
-Action column views live in `resources/views/datatable/actions/`. There are `drivers.blade.php` and `drivers-trash.blade.php` as reference examples.
+**Legacy:** the older `<x-datatable.card>` / `<x-datatable.table>` /
+`<x-datatable.scripts>` components (hand-written JS column slot + per-module
+`resources/views/datatable/actions/*.blade.php`) remain in use by the users and
+roles modules. Prefer the config-driven `<x-datatable>` for new work.
 
 ### File Uploads (FilePond)
 
@@ -102,7 +114,7 @@ The Driver module is the canonical example of a full module:
 | Factory | `database/factories/DriverFactory.php` |
 | Seeder | `database/seeders/DriverSeeder.php` |
 | Views | `resources/views/drivers/` (index, create, edit, show, trash, partials/form) |
-| Datatable actions | `resources/views/datatable/actions/drivers.blade.php`, `drivers-trash.blade.php` |
+| DataTable definition | `app/DataTables/DriverDataTable.php`, `DriverTrashDataTable.php` (columns + actions, config-driven) |
 | Tests | `tests/Feature/DriverModuleTest.php` |
 
 Key driver model patterns to follow:

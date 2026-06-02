@@ -310,41 +310,102 @@ Use when:
 
 Do not default to DataTables for every module.
 
-### Clickable Row Pattern
+### Config-Driven DataTable (canonical)
 
-When a DataTable listing should navigate to a detail page on row click, enable it through the shared `<x-datatable.scripts>` component instead of writing per-module CSS/JS. The component owns the hover style, the `createdRow` callback, and the delegated click/keyboard handlers.
+A server-side DataTable is defined **once** in a PHP class and reused by the
+controller data endpoint, the table headers, the client column config, and the
+exports. A column is never re-declared across header markup, JS, and the
+controller. This is the canonical pattern for new tables.
 
-Two steps to enable clickable rows on any module:
+Three pieces:
 
-1. In the controller's DataTable response, expose the detail URL as `row_url` (the component's default field):
+1. **A `DataTable` subclass** in `app/DataTables/{Model}DataTable.php` — the single
+   source of truth. Define `query()`, `columns()` (the `Column[]`), `id()`,
+   `ajax()`, optionally `order()`, `clickableRoute()`, and `actions($row)`:
 
 ```php
-return DataTables::of($query)
-    ->addColumn('row_url', fn ($record) => route('module.show', $record))
-    ->make(true);
+class DriverDataTable extends DataTable
+{
+    public function query(): Builder
+    {
+        return Driver::query()->select(['id', 'name', 'no_identity', 'no_phone_1', 'status']);
+    }
+
+    public function columns(): array
+    {
+        return [
+            Column::index(),
+            Column::make('name', 'Nama'),
+            Column::make('no_identity', 'No Identitas'),
+            Column::make('status', 'Status'),
+            Column::action(),
+        ];
+    }
+
+    public function id(): string { return 'drivers-table'; }
+    public function ajax(): string { return route('drivers.data'); }
+    public function clickableRoute(): ?string { return 'drivers.show'; }
+
+    public function actions(mixed $row): array
+    {
+        return [
+            ['type' => 'view', 'url' => route('drivers.show', $row), 'permission' => 'master.drivers.view'],
+            ['type' => 'edit-modal', 'permission' => 'master.drivers.edit', 'class' => 'btn-edit-driver',
+                'data' => ['update-url' => route('drivers.update', $row), 'name' => $row->name /* ... */]],
+            ['type' => 'delete', 'url' => route('drivers.destroy', $row), 'permission' => 'master.drivers.delete',
+                'confirm' => 'Yakin ingin menghapus driver ini?'],
+        ];
+    }
+}
 ```
 
-2. Add the `clickable-rows` attribute to the module's `<x-datatable.scripts>` block:
+   `Column` factories: `Column::make($key, $label)`, `Column::index()`,
+   `Column::computed($key, $label, fn ($row) => ...)`, `Column::action()`. Fluent
+   modifiers: `->orderable(false)`, `->searchable(false)`, `->className(...)`,
+   `->raw()`, `->notExportable()`.
+
+2. **The controller** uses the same class for both entry points:
+
+```php
+public function index() { return view('drivers.index', ['table' => new DriverDataTable]); }
+public function getData() { return (new DriverDataTable)->response(); }
+```
+
+3. **The view** renders everything with one component:
 
 ```blade
-<x-datatable.scripts table-id="module-table" ajax="{{ route('module.data') }}" clickable-rows>
-    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-    { data: 'name', name: 'name' },
-    { data: 'action', name: 'action', orderable: false, searchable: false }
-</x-datatable.scripts>
+<x-datatable :table="$table" title="Daftar Driver">
+    <x-slot:actions>{{-- toolbar: create button, trash link --}}</x-slot:actions>
+</x-datatable>
 ```
 
-If the URL column is named something other than `row_url`, pass `:row-url-field="'show_url'"` to the component.
+`<x-datatable>` renders the card, the `<thead>` from `headers()`, and the
+DataTables init from `jsColumns()` / `ajax()` / `order()`, wiring clickable rows
+when `clickableRoute()` is set and excluding non-exportable columns from exports
+via explicit column indexes (no positional `:not(:last-child)` guesswork).
 
-Rules:
-- Do not copy the CSS or write a click handler into the view — both live in the component (the hover style is pushed once via `@once`, and the handler delegates to `tr.datatable-clickable-row`, ignoring clicks on `a`, `button`, `form`, `input`, `select`, `textarea`, and `label` children).
-- Rows whose data has no `row_url` value stay non-interactive, so the pattern is safe for mixed result sets.
-- Permission-gate the `row_url` in the controller when only some users should see the detail page.
+#### Action column
 
-Behavior:
-- Hover applies a subtle primary-tinted background, an inset left accent, and a small horizontal shift.
-- Click (or Enter while focused) anywhere on the row except interactive children navigates to the `row_url`.
-- Only rows that carry a `row_url` get the pointer cursor and `tabindex`.
+The action column (`Column::action()`) is rendered by `<x-datatable.actions>`,
+driven by the `actions($row)` descriptor array. Supported `type`s: `view`,
+`edit-link`, `edit-modal` (button with `data-*` for modal population), `delete`,
+`force-delete`, `restore`. Each descriptor is permission-gated via its
+`permission` key. Do **not** build action HTML in the controller and do **not**
+add a per-module `datatable/actions/*.blade.php` for new tables — declare
+descriptors in `actions()` instead.
+
+#### Clickable rows
+
+Set `clickableRoute()` on the DataTable class; `<x-datatable>` adds the `row_url`
+column, the hover style, and the delegated click/Enter handlers (which ignore
+clicks on `a`, `button`, `form`, `input`, `select`, `textarea`, `label`). Rows
+without a `row_url` stay non-interactive, so it is safe for mixed result sets.
+
+> Legacy note: the older `<x-datatable.card>` / `<x-datatable.table>` /
+> `<x-datatable.scripts>` trio (with hand-written JS column slots and per-module
+> `datatable/actions/*.blade.php` views) still exists for unmigrated modules
+> (users, roles). Prefer the config-driven `<x-datatable>` for new work and when
+> migrating.
 
 ## Detail Page Components
 

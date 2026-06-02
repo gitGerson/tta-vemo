@@ -1,0 +1,136 @@
+<?php
+
+namespace App\DataTables;
+
+use Closure;
+
+/**
+ * Immutable-ish descriptor for a single DataTable column.
+ *
+ * One Column definition is the single source of truth for: the <thead> header
+ * label, the client-side JS column config, whether the value is server-rendered
+ * (computed), whether it is a raw HTML column, and whether it is exportable.
+ */
+class Column
+{
+    public bool $orderable = true;
+
+    public bool $searchable = true;
+
+    public bool $exportable = true;
+
+    public bool $raw = false;
+
+    public bool $isIndex = false;
+
+    public bool $isAction = false;
+
+    public ?string $className = null;
+
+    public ?Closure $renderUsing = null;
+
+    private function __construct(
+        public string $key,
+        public string $label,
+    ) {}
+
+    /** A plain DB-backed column. */
+    public static function make(string $key, string $label): self
+    {
+        return new self($key, $label);
+    }
+
+    /** The DT_RowIndex "No" counter column (maps to addIndexColumn()). */
+    public static function index(string $label = 'No'): self
+    {
+        $column = new self('DT_RowIndex', $label);
+        $column->isIndex = true;
+        $column->orderable = false;
+        $column->searchable = false;
+        $column->exportable = false;
+
+        return $column;
+    }
+
+    /** A server-rendered value column: fn($row): string. */
+    public static function computed(string $key, string $label, Closure $renderUsing): self
+    {
+        $column = self::make($key, $label);
+        $column->renderUsing = $renderUsing;
+
+        return $column;
+    }
+
+    /** The raw HTML action column. */
+    public static function action(string $label = 'Aksi'): self
+    {
+        $column = new self('action', $label);
+        $column->isAction = true;
+        $column->raw = true;
+        $column->orderable = false;
+        $column->searchable = false;
+        $column->exportable = false;
+
+        return $column;
+    }
+
+    public function orderable(bool $orderable = true): self
+    {
+        $this->orderable = $orderable;
+
+        return $this;
+    }
+
+    public function searchable(bool $searchable = true): self
+    {
+        $this->searchable = $searchable;
+
+        return $this;
+    }
+
+    public function className(string $className): self
+    {
+        $this->className = $className;
+
+        return $this;
+    }
+
+    /** Mark the column as raw HTML (added to rawColumns()). */
+    public function raw(bool $raw = true): self
+    {
+        $this->raw = $raw;
+
+        return $this;
+    }
+
+    public function notExportable(): self
+    {
+        $this->exportable = false;
+
+        return $this;
+    }
+
+    public function render(Closure $renderUsing): self
+    {
+        $this->renderUsing = $renderUsing;
+
+        return $this;
+    }
+
+    /** Client-side column config object. */
+    public function toJs(): array
+    {
+        $config = [
+            'data' => $this->key,
+            'name' => $this->key,
+            'orderable' => $this->orderable,
+            'searchable' => $this->searchable,
+        ];
+
+        if ($this->className !== null) {
+            $config['className'] = $this->className;
+        }
+
+        return $config;
+    }
+}

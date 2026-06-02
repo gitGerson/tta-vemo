@@ -13,7 +13,7 @@
             </div>
         @endif
 
-        <x-datatable.card title="Daftar Driver">
+        <x-datatable :table="$table" title="Daftar Driver">
             <x-slot:actions>
                 <div class="d-flex gap-2">
                     @if(auth()->user()->hasPermission('master.drivers.delete'))
@@ -29,12 +29,7 @@
                     @endif
                 </div>
             </x-slot:actions>
-
-            <x-datatable.table
-                id="drivers-table"
-                :columns="['No', 'Nama', 'No Identitas', 'No Telepon', 'Status', 'Aksi']"
-            />
-        </x-datatable.card>
+        </x-datatable>
     </div>
 
     <div class="modal fade" id="driver-modal" tabindex="-1" aria-hidden="true">
@@ -55,15 +50,6 @@
         </div>
     </div>
 @endsection
-
-<x-datatable.scripts table-id="drivers-table" ajax="{{ route('drivers.data') }}" clickable-rows>
-    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-    { data: 'name', name: 'name' },
-    { data: 'no_identity', name: 'no_identity' },
-    { data: 'no_phone_1', name: 'no_phone_1' },
-    { data: 'status', name: 'status' },
-    { data: 'action', name: 'action', orderable: false, searchable: false }
-</x-datatable.scripts>
 
 @push('scripts')
 <script>
