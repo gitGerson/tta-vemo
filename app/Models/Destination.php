@@ -12,5 +12,23 @@ class Destination extends Model
 
     protected $table = 'destinations';
 
-    protected $guarded = [''];
+    protected $fillable = [
+        'destination',
+        'desc',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'deleted_at' => 'datetime',
+        ];
+    }
+
+    public static function validationRules(): array
+    {
+        return [
+            'destination' => ['required', 'string', 'max:50'],
+            'desc' => ['nullable', 'string'],
+        ];
+    }
 }
