@@ -79,8 +79,6 @@
                 <!-- Content wrapper -->
                 <div class="content-wrapper">
 
-                    @include('layouts.components.breadcrumbs')
-
                     @yield('content')
                     <!-- / Content -->
 

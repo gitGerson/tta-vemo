@@ -2,7 +2,7 @@
     'table',
     'title' => null,
     'tableClass' => 'table table-striped',
-    'responsiveClass' => 'table-responsive text-nowrap',
+    'responsiveClass' => '',
 ])
 
 @php
@@ -69,6 +69,7 @@
             $(tableSelector).DataTable({
                 processing: true,
                 serverSide: true,
+                autoWidth: false,
                 ajax: @json($table->ajax()),
                 columns: @json($table->jsColumns()),
                 @if ($table->order() !== null)

@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Services\BreadcrumbService;
 use App\Services\DiffrntHashId;
 use App\Services\JPayrollService;
 use App\Services\MenuService;
@@ -39,7 +38,6 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('layouts.sneat', function ($view): void {
             $menuService = app(MenuService::class);
-            $breadcrumbService = app(BreadcrumbService::class);
             $user = auth()->user();
 
             $view->with(
@@ -50,11 +48,6 @@ class AppServiceProvider extends ServiceProvider
             $view->with(
                 'sidebarMenuSections',
                 $menuService->sectionsForContext('desktop', $user)
-            );
-
-            $view->with(
-                'breadcrumbs',
-                $breadcrumbService->forCurrentRoute($user)
             );
         });
     }
