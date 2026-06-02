@@ -4,6 +4,7 @@ namespace App\Imports;
 
 use App\Models\TypeMaintenances;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
@@ -14,15 +15,20 @@ class TypeMaintenancesImport implements ToModel, WithHeadingRow
      */
     public function model(array $row)
     {
+        $name = isset($row['name']) ? Str::upper(trim((string) $row['name'])) : '';
 
-        $existingRecord = TypeMaintenances::where('name', $row['name'])->first();
+        if ($name === '') {
+            return null;
+        }
+
+        $existingRecord = TypeMaintenances::where('name', $name)->first();
 
         if ($existingRecord) {
             return null;
         }
 
         $data = [
-            'name' => $row['name'] ?? '',
+            'name' => $name,
         ];
 
         return new TypeMaintenances($data);
