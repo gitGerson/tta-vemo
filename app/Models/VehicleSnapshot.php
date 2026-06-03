@@ -21,6 +21,14 @@ class VehicleSnapshot extends Model
         'mtc',
         'isprivate',
         'desc',
+        'machine_number',
+        'vin_number',
+        'bpkb_image',
+        'stnk_image',
+        'purchase_price',
+        'selling_price',
+        'purchase_date',
+        'sale_date',
         'changed_by',
     ];
 
@@ -28,6 +36,12 @@ class VehicleSnapshot extends Model
     {
         return [
             'isprivate' => 'boolean',
+            'bpkb_image' => 'array',
+            'stnk_image' => 'array',
+            'purchase_price' => 'decimal:2',
+            'selling_price' => 'decimal:2',
+            'purchase_date' => 'date',
+            'sale_date' => 'date',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
@@ -58,6 +72,14 @@ class VehicleSnapshot extends Model
             'mtc' => $vehicle->mtc,
             'isprivate' => $vehicle->isprivate,
             'desc' => $vehicle->desc,
+            'machine_number' => $vehicle->machine_number,
+            'vin_number' => $vehicle->vin_number,
+            'bpkb_image' => $vehicle->bpkb_image,
+            'stnk_image' => $vehicle->stnk_image,
+            'purchase_price' => $vehicle->purchase_price,
+            'selling_price' => $vehicle->selling_price,
+            'purchase_date' => $vehicle->purchase_date,
+            'sale_date' => $vehicle->sale_date,
             'changed_by' => auth()->id(),
         ]);
     }

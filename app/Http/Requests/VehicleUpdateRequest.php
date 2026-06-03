@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Vehicle;
+use App\Services\FilePondUploadService;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 class VehicleUpdateRequest extends VehicleStoreRequest
@@ -22,7 +23,14 @@ class VehicleUpdateRequest extends VehicleStoreRequest
      */
     public function rules(): array
     {
-        return Vehicle::validationRules($this->vehicle());
+        $vehicle = $this->vehicle();
+        $rules = Vehicle::validationRules($vehicle);
+
+        $filePond = app(FilePondUploadService::class);
+        $rules['bpkb_image.*'] = [$filePond->imageUploadValidationRule(existingReferences: $vehicle?->bpkbImageUrls() ?? [])];
+        $rules['stnk_image.*'] = [$filePond->imageUploadValidationRule(existingReferences: $vehicle?->stnkImageUrls() ?? [])];
+
+        return $rules;
     }
 
     protected function vehicle(): ?Vehicle

@@ -71,6 +71,20 @@
         if (el) el.value = value ?? '';
     }
 
+    function getPond(name) {
+        const input = getForm().querySelector(`input[name="${name}"]`);
+        return input ? window.FilePond?.find(input) : null;
+    }
+
+    function setPondImages(name, urls) {
+        const pond = getPond(name);
+        if (!pond) return;
+        pond.removeFiles();
+        (urls || []).forEach(function (url) {
+            pond.addFile(url, { type: 'local', metadata: { poster: url, originalSource: url } });
+        });
+    }
+
     function resetToCreate() {
         const form = getForm();
         form.reset();
@@ -84,6 +98,8 @@
         setField('status', 'ACTIVE');
         setField('mtc', 'NO');
         setField('isprivate', '0');
+        getPond('bpkb_image[]')?.removeFiles();
+        getPond('stnk_image[]')?.removeFiles();
     }
 
     function applyEdit(d) {
@@ -104,6 +120,14 @@
         setField('mtc', d.mtc);
         setField('isprivate', d.isprivate);
         setField('desc', d.desc);
+        setField('machine_number', d.machineNumber);
+        setField('vin_number', d.vinNumber);
+        setField('purchase_price', d.purchasePrice);
+        setField('selling_price', d.sellingPrice);
+        setField('purchase_date', d.purchaseDate);
+        setField('sale_date', d.saleDate);
+        setPondImages('bpkb_image[]', d.bpkbImages);
+        setPondImages('stnk_image[]', d.stnkImages);
     }
 
     modalEl.addEventListener('shown.bs.modal', function () {
@@ -133,6 +157,14 @@
             mtc: btn.dataset.mtc,
             isprivate: btn.dataset.isprivate,
             desc: btn.dataset.desc,
+            machineNumber: btn.dataset.machineNumber,
+            vinNumber: btn.dataset.vinNumber,
+            purchasePrice: btn.dataset.purchasePrice,
+            sellingPrice: btn.dataset.sellingPrice,
+            purchaseDate: btn.dataset.purchaseDate,
+            saleDate: btn.dataset.saleDate,
+            bpkbImages: JSON.parse(btn.dataset.bpkbImages || '[]'),
+            stnkImages: JSON.parse(btn.dataset.stnkImages || '[]'),
         };
 
         bootstrap.Modal.getOrCreateInstance(modalEl).show();

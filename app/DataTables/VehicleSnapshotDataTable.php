@@ -48,6 +48,16 @@ class VehicleSnapshotDataTable extends DataTable
                 ->orderable(false)
                 ->searchable(false)
                 ->raw(),
+            Column::make('machine_number', 'No. Mesin'),
+            Column::make('vin_number', 'VIN'),
+            Column::computed('purchase_price_label', 'Harga Beli', fn (VehicleSnapshot $snapshot): string => $snapshot->purchase_price !== null ? 'Rp '.number_format((float) $snapshot->purchase_price, 0, ',', '.') : '-')
+                ->searchable(false),
+            Column::computed('selling_price_label', 'Harga Jual', fn (VehicleSnapshot $snapshot): string => $snapshot->selling_price !== null ? 'Rp '.number_format((float) $snapshot->selling_price, 0, ',', '.') : '-')
+                ->searchable(false),
+            Column::computed('purchase_date_label', 'Tgl Beli', fn (VehicleSnapshot $snapshot): string => $snapshot->purchase_date?->format('d M Y') ?? '-')
+                ->searchable(false),
+            Column::computed('sale_date_label', 'Tgl Jual', fn (VehicleSnapshot $snapshot): string => $snapshot->sale_date?->format('d M Y') ?? '-')
+                ->searchable(false),
             Column::computed('changed_by_name', 'Oleh', fn (VehicleSnapshot $snapshot): string => $snapshot->changedBy?->name ?? '-')
                 ->searchable(false),
         ];

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class Vehicle extends Model
@@ -32,12 +33,26 @@ class Vehicle extends Model
         'mtc',
         'desc',
         'isprivate',
+        'machine_number',
+        'vin_number',
+        'bpkb_image',
+        'stnk_image',
+        'purchase_price',
+        'selling_price',
+        'purchase_date',
+        'sale_date',
     ];
 
     protected function casts(): array
     {
         return [
             'isprivate' => 'boolean',
+            'bpkb_image' => 'array',
+            'stnk_image' => 'array',
+            'purchase_price' => 'decimal:2',
+            'selling_price' => 'decimal:2',
+            'purchase_date' => 'date',
+            'sale_date' => 'date',
             'deleted_at' => 'datetime',
         ];
     }
@@ -57,6 +72,14 @@ class Vehicle extends Model
             'desc' => ['nullable', 'string'],
             'isprivate' => ['required', 'boolean'],
             'company_id' => ['nullable', 'integer', Rule::exists(Company::class, 'id')],
+            'machine_number' => ['nullable', 'string', 'max:100'],
+            'vin_number' => ['nullable', 'string', 'max:100'],
+            'purchase_price' => ['nullable', 'numeric', 'min:0'],
+            'selling_price' => ['nullable', 'numeric', 'min:0'],
+            'purchase_date' => ['nullable', 'date'],
+            'sale_date' => ['nullable', 'date'],
+            'bpkb_image' => ['nullable', 'array'],
+            'stnk_image' => ['nullable', 'array'],
         ];
     }
 
@@ -80,5 +103,30 @@ class Vehicle extends Model
     public function snapshots(): HasMany
     {
         return $this->hasMany(VehicleSnapshot::class)->latest();
+    }
+
+    /** @return array<int, string> */
+    public function bpkbImageUrls(): array
+    {
+        return $this->documentImageUrls($this->bpkb_image);
+    }
+
+    /** @return array<int, string> */
+    public function stnkImageUrls(): array
+    {
+        return $this->documentImageUrls($this->stnk_image);
+    }
+
+    /**
+     * @param  array<int, string>|null  $paths
+     * @return array<int, string>
+     */
+    protected function documentImageUrls(?array $paths): array
+    {
+        return collect($paths ?? [])
+            ->filter()
+            ->map(fn (string $path): string => str_starts_with($path, 'http') ? $path : Storage::disk('s3')->url($path))
+            ->values()
+            ->all();
     }
 }

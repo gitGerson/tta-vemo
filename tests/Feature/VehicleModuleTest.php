@@ -11,6 +11,8 @@ use App\Services\MenuService;
 use App\Services\PermissionSyncService;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class VehicleModuleTest extends TestCase
@@ -150,6 +152,75 @@ class VehicleModuleTest extends TestCase
         $this->assertDatabaseHas('permissions', ['name' => 'master.vehicles.delete']);
         $this->assertDatabaseHas('permissions', ['name' => 'master.vehicles.restore']);
         $this->assertDatabaseHas('permissions', ['name' => 'master.vehicles.force_delete']);
+    }
+
+    public function test_create_vehicle_with_documents_and_financials(): void
+    {
+        Storage::fake('local');
+        Storage::fake('s3');
+        $this->actingAs($this->userWithVehiclePermissions());
+
+        Storage::disk('local')->put('tmp/filepond/a.jpg', $this->fakeImageContents());
+        Storage::disk('local')->put('tmp/filepond/b.jpg', $this->fakeImageContents());
+
+        $payload = array_merge(Vehicle::factory()->make()->toArray(), [
+            'machine_number' => 'MCH-001',
+            'vin_number' => 'VIN-001',
+            'purchase_price' => '150000000',
+            'selling_price' => '170000000',
+            'purchase_date' => '2024-01-15',
+            'sale_date' => '2026-02-20',
+            'bpkb_image' => ['tmp/filepond/a.jpg', 'tmp/filepond/b.jpg'],
+            'stnk_image' => [],
+        ]);
+
+        $this->post(route('vehicles.store'), $payload)->assertRedirect(route('vehicles.index'));
+
+        $vehicle = Vehicle::where('machine_number', 'MCH-001')->firstOrFail();
+        $this->assertSame('VIN-001', $vehicle->vin_number);
+        $this->assertCount(2, $vehicle->bpkb_image);
+
+        foreach ($vehicle->bpkb_image as $path) {
+            $this->assertStringStartsWith('vehicle_documents/', $path);
+            Storage::disk('s3')->assertExists($path);
+        }
+
+        // The baseline snapshot captured the new fields too.
+        $snapshot = $vehicle->snapshots()->first();
+        $this->assertSame('MCH-001', $snapshot->machine_number);
+        $this->assertCount(2, $snapshot->bpkb_image);
+    }
+
+    public function test_update_keeps_existing_and_adds_new_documents(): void
+    {
+        config(['filesystems.disks.s3.url' => 'https://cdn.test']);
+        Storage::fake('local');
+        Storage::fake('s3');
+        $this->actingAs($this->userWithVehiclePermissions());
+
+        Storage::disk('s3')->put('vehicle_documents/existing.jpg', 'old');
+        $vehicle = Vehicle::factory()->create(['bpkb_image' => ['vehicle_documents/existing.jpg']]);
+
+        Storage::disk('local')->put('tmp/filepond/new.jpg', $this->fakeImageContents());
+
+        $payload = array_merge(Vehicle::factory()->make()->toArray(), [
+            'plat_new' => $vehicle->plat_new,
+            'bpkb_image' => [$vehicle->bpkbImageUrls()[0], 'tmp/filepond/new.jpg'],
+            'stnk_image' => [],
+        ]);
+
+        $this->put(route('vehicles.update', $vehicle), $payload)->assertRedirect(route('vehicles.index'));
+
+        $vehicle->refresh();
+        $this->assertCount(2, $vehicle->bpkb_image);
+        $this->assertContains('vehicle_documents/existing.jpg', $vehicle->bpkb_image);
+    }
+
+    private function fakeImageContents(): string
+    {
+        $file = UploadedFile::fake()->image('doc.jpg', 20, 20);
+
+        return (string) file_get_contents($file->getRealPath());
     }
 
     private function userWithVehiclePermissions(): User

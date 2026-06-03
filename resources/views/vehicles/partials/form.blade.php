@@ -65,6 +65,42 @@
         <div class="col-12">
             <x-form.textarea name="desc" label="Keterangan" :value="$vehicle?->desc" rows="3" inputClass="form-control-sm" />
         </div>
+
+        <div class="col-md-6">
+            <x-form.text name="machine_number" label="Nomor Mesin" :value="$vehicle?->machine_number" inputClass="form-control-sm" maxlength="100" />
+        </div>
+
+        <div class="col-md-6">
+            <x-form.text name="vin_number" label="Nomor Rangka (VIN)" :value="$vehicle?->vin_number" inputClass="form-control-sm" maxlength="100" />
+        </div>
+
+        <div class="col-md-3">
+            <x-form.number name="purchase_price" label="Harga Beli" :value="$vehicle?->purchase_price" min="0" step="0.01" inputClass="form-control-sm" />
+        </div>
+
+        <div class="col-md-3">
+            <x-form.number name="selling_price" label="Harga Jual" :value="$vehicle?->selling_price" min="0" step="0.01" inputClass="form-control-sm" />
+        </div>
+
+        <div class="col-md-3">
+            <x-form.date name="purchase_date" label="Tanggal Beli" :value="$vehicle?->purchase_date?->format('Y-m-d')" inputClass="form-control-sm" />
+        </div>
+
+        <div class="col-md-3">
+            <x-form.date name="sale_date" label="Tanggal Jual" :value="$vehicle?->sale_date?->format('Y-m-d')" inputClass="form-control-sm" />
+        </div>
+
+        <div class="col-md-6">
+            <x-form.file name="bpkb_image" label="Foto BPKB" mode="filepond" multiple accept="image/*"
+                :acceptedFileTypes="['image/jpeg', 'image/png', 'image/gif', 'image/webp']" maxFileSize="2MB"
+                :existingFiles="$vehicle?->bpkbImageUrls() ?? []" />
+        </div>
+
+        <div class="col-md-6">
+            <x-form.file name="stnk_image" label="Foto STNK" mode="filepond" multiple accept="image/*"
+                :acceptedFileTypes="['image/jpeg', 'image/png', 'image/gif', 'image/webp']" maxFileSize="2MB"
+                :existingFiles="$vehicle?->stnkImageUrls() ?? []" />
+        </div>
     </div>
 
     <div class="d-flex justify-content-end gap-2 mt-4">

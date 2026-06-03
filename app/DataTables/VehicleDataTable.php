@@ -21,6 +21,14 @@ class VehicleDataTable extends DataTable
             'mtc',
             'desc',
             'isprivate',
+            'machine_number',
+            'vin_number',
+            'bpkb_image',
+            'stnk_image',
+            'purchase_price',
+            'selling_price',
+            'purchase_date',
+            'sale_date',
         ]);
     }
 
@@ -33,7 +41,17 @@ class VehicleDataTable extends DataTable
                 ->orderable(false)
                 ->searchable(false),
             Column::make('plat_new', 'Plat Nomor'),
+            Column::make('machine_number', 'No. Mesin'),
+            Column::make('vin_number', 'VIN'),
             Column::make('fuel_type', 'Bahan Bakar'),
+            Column::computed('purchase_price_label', 'Harga Beli', fn (Vehicle $vehicle): string => $vehicle->purchase_price !== null ? 'Rp '.number_format((float) $vehicle->purchase_price, 0, ',', '.') : '-')
+                ->searchable(false),
+            Column::computed('selling_price_label', 'Harga Jual', fn (Vehicle $vehicle): string => $vehicle->selling_price !== null ? 'Rp '.number_format((float) $vehicle->selling_price, 0, ',', '.') : '-')
+                ->searchable(false),
+            Column::computed('purchase_date_label', 'Tgl Beli', fn (Vehicle $vehicle): string => $vehicle->purchase_date?->format('d M Y') ?? '-')
+                ->searchable(false),
+            Column::computed('sale_date_label', 'Tgl Jual', fn (Vehicle $vehicle): string => $vehicle->sale_date?->format('d M Y') ?? '-')
+                ->searchable(false),
             Column::computed('status_badges', 'Status', function (Vehicle $vehicle): string {
                 $statusClass = $vehicle->status === 'ACTIVE'
                     ? 'bg-label-success text-success'
@@ -97,6 +115,14 @@ class VehicleDataTable extends DataTable
                     'isprivate' => $row->isprivate ? 1 : 0,
                     'desc' => $row->desc,
                     'company-id' => $row->company_id,
+                    'machine-number' => $row->machine_number,
+                    'vin-number' => $row->vin_number,
+                    'purchase-price' => $row->purchase_price,
+                    'selling-price' => $row->selling_price,
+                    'purchase-date' => $row->purchase_date?->format('Y-m-d'),
+                    'sale-date' => $row->sale_date?->format('Y-m-d'),
+                    'bpkb-images' => json_encode($row->bpkbImageUrls()),
+                    'stnk-images' => json_encode($row->stnkImageUrls()),
                 ],
             ],
             [
