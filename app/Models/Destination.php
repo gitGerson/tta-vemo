@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Validation\Rule;
+use Laravolt\Indonesia\Models\Province;
 
 class Destination extends Model
 {
@@ -27,6 +29,11 @@ class Destination extends Model
     public function getDescAttribute(): ?string
     {
         return $this->meta;
+    }
+
+    public function province(): BelongsTo
+    {
+        return $this->belongsTo(Province::class, 'province_code', 'code');
     }
 
     public static function validationRules(): array

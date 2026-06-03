@@ -86,12 +86,18 @@ class DestinationModuleTest extends TestCase
         $destination = Destination::factory()->create([
             'code' => '3171',
             'name' => 'Detail Destination',
+            'meta' => '{"lat":"-6.1753924","long":"106.8271528"}',
         ]);
 
         $this->get(route('destinations.show', $destination))
             ->assertOk()
             ->assertSee('3171')
-            ->assertSee('Detail Destination');
+            ->assertSee('Detail Destination')
+            ->assertSee('DKI Jakarta')
+            ->assertDontSee('Kode Provinsi')
+            ->assertSee('destination-map-preview')
+            ->assertSee('data-latitude="-6.1753924"', false)
+            ->assertSee('data-longitude="106.8271528"', false);
     }
 
     public function test_destination_data_endpoint_returns_rows_with_actions(): void
@@ -107,6 +113,7 @@ class DestinationModuleTest extends TestCase
             ->assertOk()
             ->assertJsonFragment(['code' => '3171'])
             ->assertJsonFragment(['name' => 'Data Destination'])
+            ->assertJsonFragment(['province_name' => 'DKI Jakarta'])
             ->assertDontSee('btn-edit-destination', false);
     }
 

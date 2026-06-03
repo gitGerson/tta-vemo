@@ -9,13 +9,15 @@ class DestinationDataTable extends DataTable
 {
     public function query(): Builder
     {
-        return Destination::query()->select([
-            'id',
-            'code',
-            'province_code',
-            'name',
-            'meta',
-        ]);
+        return Destination::query()
+            ->with('province:code,name')
+            ->select([
+                'id',
+                'code',
+                'province_code',
+                'name',
+                'meta',
+            ]);
     }
 
     public function columns(): array
@@ -24,7 +26,9 @@ class DestinationDataTable extends DataTable
             Column::index(),
             Column::make('code', 'Kode'),
             Column::make('name', 'Kota/Kabupaten'),
-            Column::make('province_code', 'Kode Provinsi'),
+            Column::computed('province_name', 'Provinsi', fn (Destination $destination): string => $destination->province?->name ?? '-')
+                ->orderable(false)
+                ->searchable(false),
             Column::action(),
         ];
     }

@@ -22,6 +22,8 @@ class DestinationController extends Controller
 
     public function show(Destination $destination)
     {
+        $destination->loadMissing('province');
+
         return view('destinations.partials.show', compact('destination'));
     }
 
