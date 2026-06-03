@@ -35,6 +35,15 @@ class VehicleModuleTest extends TestCase
             ->assertSee('Daftar Kendaraan');
     }
 
+    public function test_create_and_edit_pages_render(): void
+    {
+        $this->actingAs($this->userWithVehiclePermissions());
+        $vehicle = Vehicle::factory()->create();
+
+        $this->get(route('vehicles.create'))->assertOk()->assertSee('Tambah Kendaraan');
+        $this->get(route('vehicles.edit', $vehicle))->assertOk()->assertSee('Edit Kendaraan');
+    }
+
     public function test_authorized_user_can_create_vehicle(): void
     {
         $this->actingAs($this->userWithVehiclePermissions());
@@ -110,7 +119,7 @@ class VehicleModuleTest extends TestCase
         $this->get(route('vehicles.data'))
             ->assertOk()
             ->assertJsonFragment(['plat_new' => 'H 1235 DT'])
-            ->assertSee('btn-edit-vehicle', false);
+            ->assertSee('Yakin ingin menghapus kendaraan ini?', false);
     }
 
     public function test_authorized_user_can_soft_delete_and_restore_vehicle(): void

@@ -25,6 +25,13 @@ class VehicleController extends Controller
         ]);
     }
 
+    public function create()
+    {
+        return view('vehicles.create', [
+            'companies' => Company::query()->orderBy('name')->get(['id', 'name', 'code']),
+        ]);
+    }
+
     public function store(VehicleStoreRequest $request)
     {
         $data = $request->validated();
@@ -43,6 +50,14 @@ class VehicleController extends Controller
         return view('vehicles.show', [
             'vehicle' => $vehicle,
             'snapshotTable' => new VehicleSnapshotDataTable($vehicle),
+        ]);
+    }
+
+    public function edit(Vehicle $vehicle)
+    {
+        return view('vehicles.edit', [
+            'vehicle' => $vehicle->load('company'),
+            'companies' => Company::query()->orderBy('name')->get(['id', 'name', 'code']),
         ]);
     }
 

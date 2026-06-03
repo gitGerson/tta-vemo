@@ -22,9 +22,11 @@
 
 <form method="POST" action="{{ $action }}">
     @csrf
-    <input type="hidden" name="_method" id="vehicle-form-method" value="{{ $method !== 'POST' ? $method : '' }}">
-    <input type="hidden" name="_form_action" id="vehicle-form-action" value="{{ $action }}">
+    @if ($method !== 'POST')
+        @method($method)
+    @endif
 
+    <h6 class="fw-semibold mb-3"><i class="bx bx-car me-1 text-primary"></i> Informasi Kendaraan</h6>
     <div class="row g-3">
         <div class="col-md-6">
             <x-form.text name="type" label="Tipe" :value="$vehicle?->type" inputClass="form-control-sm" required maxlength="50" />
@@ -49,7 +51,12 @@
         <div class="col-md-6">
             <x-form.text name="fuel_type" label="Bahan Bakar" :value="$vehicle?->fuel_type ?? 'BBM'" inputClass="form-control-sm" required />
         </div>
+    </div>
 
+    <hr class="my-4 border-2 opacity-50">
+
+    <h6 class="fw-semibold mb-3"><i class="bx bx-toggle-right me-1 text-primary"></i> Status &amp; Operasional</h6>
+    <div class="row g-3">
         <div class="col-md-4">
             <x-form.select name="status" label="Status" :options="$statusOptions" :value="$vehicle?->status ?? 'ACTIVE'" inputClass="form-select-sm" required />
         </div>
@@ -61,11 +68,12 @@
         <div class="col-md-4">
             <x-form.select name="isprivate" label="Private" :options="$privateOptions" option-value="value" option-label="label" :value="(string) (int) ($vehicle?->isprivate ?? false)" inputClass="form-select-sm" required />
         </div>
+    </div>
 
-        <div class="col-12">
-            <x-form.textarea name="desc" label="Keterangan" :value="$vehicle?->desc" rows="3" inputClass="form-control-sm" />
-        </div>
+    <hr class="my-4 border-2 opacity-50">
 
+    <h6 class="fw-semibold mb-3"><i class="bx bx-barcode me-1 text-primary"></i> Identitas Mesin</h6>
+    <div class="row g-3">
         <div class="col-md-6">
             <x-form.text name="machine_number" label="Nomor Mesin" :value="$vehicle?->machine_number" inputClass="form-control-sm" maxlength="100" />
         </div>
@@ -73,7 +81,12 @@
         <div class="col-md-6">
             <x-form.text name="vin_number" label="Nomor Rangka (VIN)" :value="$vehicle?->vin_number" inputClass="form-control-sm" maxlength="100" />
         </div>
+    </div>
 
+    <hr class="my-4 border-2 opacity-50">
+
+    <h6 class="fw-semibold mb-3"><i class="bx bx-money me-1 text-primary"></i> Keuangan</h6>
+    <div class="row g-3">
         <div class="col-md-3">
             <x-form.number name="purchase_price" label="Harga Beli" :value="$vehicle?->purchase_price" min="0" step="0.01" inputClass="form-control-sm" />
         </div>
@@ -89,7 +102,12 @@
         <div class="col-md-3">
             <x-form.date name="sale_date" label="Tanggal Jual" :value="$vehicle?->sale_date?->format('Y-m-d')" inputClass="form-control-sm" />
         </div>
+    </div>
 
+    <hr class="my-4 border-2 opacity-50">
+
+    <h6 class="fw-semibold mb-3"><i class="bx bx-file me-1 text-primary"></i> Dokumen</h6>
+    <div class="row g-3">
         <div class="col-md-6">
             <x-form.file name="bpkb_image" label="Foto BPKB" mode="filepond" multiple accept="image/*"
                 :acceptedFileTypes="['image/jpeg', 'image/png', 'image/gif', 'image/webp']" maxFileSize="2MB"
@@ -103,8 +121,17 @@
         </div>
     </div>
 
+    <hr class="my-4 border-2 opacity-50">
+
+    <h6 class="fw-semibold mb-3"><i class="bx bx-note me-1 text-primary"></i> Keterangan</h6>
+    <div class="row g-3">
+        <div class="col-12">
+            <x-form.textarea name="desc" label="Keterangan" :value="$vehicle?->desc" rows="3" inputClass="form-control-sm" />
+        </div>
+    </div>
+
     <div class="d-flex justify-content-end gap-2 mt-4">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+        <a href="{{ route('vehicles.index') }}" class="btn btn-outline-secondary">Batal</a>
         <button type="submit" class="btn btn-primary">{{ $submitLabel }}</button>
     </div>
 </form>
