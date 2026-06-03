@@ -66,7 +66,7 @@ class Driver extends Model
             'out_date' => ['nullable', 'date', 'after_or_equal:entry_date'],
             'status' => ['required', Rule::in(['ACTIVE', 'PASSIVE'])],
             'company_ids' => ['nullable', 'array'],
-            'company_ids.*' => ['integer', Rule::exists('company', 'id')],
+            'company_ids.*' => ['integer', Rule::exists(Company::class, 'id')],
         ];
     }
 

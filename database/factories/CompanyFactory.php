@@ -19,8 +19,11 @@ class CompanyFactory extends Factory
     {
         return [
             'code' => strtoupper(fake()->unique()->bothify('??####')),
-            'name' => fake()->company(),
-            'desc' => fake()->optional()->sentence(),
+            'name' => fake()->unique()->company(),
+            'email' => fake()->optional()->companyEmail(),
+            'phone' => fake()->optional()->phoneNumber(),
+            'image' => fake()->optional()->imageUrl(320, 180, 'business'),
+            'notes' => fake()->optional()->sentence(),
         ];
     }
 }

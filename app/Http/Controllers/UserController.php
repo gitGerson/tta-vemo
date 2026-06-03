@@ -102,7 +102,7 @@ class UserController extends Controller
                 Rule::exists('roles', 'id')->where('is_active', true),
             ],
             'company_ids' => ['nullable', 'array'],
-            'company_ids.*' => ['integer', Rule::exists('company', 'id')],
+            'company_ids.*' => ['integer', Rule::exists(Company::class, 'id')],
         ]);
 
         try {
@@ -204,7 +204,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'company_ids' => ['nullable', 'array'],
-            'company_ids.*' => ['integer', Rule::exists('company', 'id')],
+            'company_ids.*' => ['integer', Rule::exists(Company::class, 'id')],
         ]);
 
         $user->companies()->sync($validated['company_ids'] ?? []);

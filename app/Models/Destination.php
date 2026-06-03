@@ -4,31 +4,38 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Validation\Rule;
 
 class Destination extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
-    protected $table = 'destinations';
+    protected $table = 'indonesia_cities';
 
     protected $fillable = [
-        'destination',
-        'desc',
+        'code',
+        'province_code',
+        'name',
+        'meta',
     ];
 
-    protected function casts(): array
+    public function getDestinationAttribute(): string
     {
-        return [
-            'deleted_at' => 'datetime',
-        ];
+        return $this->name;
+    }
+
+    public function getDescAttribute(): ?string
+    {
+        return $this->meta;
     }
 
     public static function validationRules(): array
     {
         return [
-            'destination' => ['required', 'string', 'max:50'],
-            'desc' => ['nullable', 'string'],
+            'code' => ['required', 'string', 'size:4', Rule::unique('indonesia_cities', 'code')],
+            'province_code' => ['required', 'string', 'size:2', Rule::exists('indonesia_provinces', 'code')],
+            'name' => ['required', 'string', 'max:255'],
+            'meta' => ['nullable', 'string'],
         ];
     }
 }

@@ -39,16 +39,22 @@ class CompanyModuleTest extends TestCase
         $payload = Company::factory()->make([
             'code' => 'TTA001',
             'name' => 'TTA Company',
-            'desc' => 'Main company',
+            'email' => 'tta@example.test',
+            'phone' => '021123456',
+            'image' => 'companies/tta.png',
+            'notes' => 'Main company',
         ])->toArray();
 
         $this->post(route('companies.store'), $payload)
             ->assertRedirect(route('companies.index'));
 
-        $this->assertDatabaseHas('company', [
+        $this->assertDatabaseHas('companies', [
             'code' => 'TTA001',
             'name' => 'TTA Company',
-            'desc' => 'Main company',
+            'email' => 'tta@example.test',
+            'phone' => '021123456',
+            'image' => 'companies/tta.png',
+            'notes' => 'Main company',
         ]);
     }
 
@@ -60,16 +66,22 @@ class CompanyModuleTest extends TestCase
         $payload = Company::factory()->make([
             'code' => $company->code,
             'name' => 'Updated Company',
-            'desc' => 'Updated description',
+            'email' => 'updated@example.test',
+            'phone' => '021654321',
+            'image' => 'companies/updated.png',
+            'notes' => 'Updated description',
         ])->toArray();
 
         $this->put(route('companies.update', $company), $payload)
             ->assertRedirect(route('companies.index'));
 
-        $this->assertDatabaseHas('company', [
+        $this->assertDatabaseHas('companies', [
             'id' => $company->id,
             'name' => 'Updated Company',
-            'desc' => 'Updated description',
+            'email' => 'updated@example.test',
+            'phone' => '021654321',
+            'image' => 'companies/updated.png',
+            'notes' => 'Updated description',
         ]);
     }
 
@@ -79,12 +91,16 @@ class CompanyModuleTest extends TestCase
         $company = Company::factory()->create([
             'code' => 'ABC123',
             'name' => 'Detail Company',
+            'email' => 'detail@example.test',
+            'phone' => '021000111',
         ]);
 
         $this->get(route('companies.show', $company))
             ->assertOk()
             ->assertSee('ABC123')
-            ->assertSee('Detail Company');
+            ->assertSee('Detail Company')
+            ->assertSee('detail@example.test')
+            ->assertSee('021000111');
     }
 
     public function test_company_data_endpoint_returns_rows_with_actions(): void
@@ -93,11 +109,15 @@ class CompanyModuleTest extends TestCase
         Company::factory()->create([
             'code' => 'DAT001',
             'name' => 'Data Company',
+            'email' => 'data@example.test',
+            'phone' => '021222333',
         ]);
 
         $this->get(route('companies.data'))
             ->assertOk()
             ->assertJsonFragment(['code' => 'DAT001'])
+            ->assertJsonFragment(['email' => 'data@example.test'])
+            ->assertJsonFragment(['phone' => '021222333'])
             ->assertSee('btn-edit-company', false);
     }
 
@@ -129,7 +149,7 @@ class CompanyModuleTest extends TestCase
         $this->delete(route('companies.destroy', $company))
             ->assertRedirect(route('companies.index'));
 
-        $this->assertDatabaseMissing('company', ['id' => $company->id]);
+        $this->assertSoftDeleted('companies', ['id' => $company->id]);
     }
 
     private function userWithCompanyPermissions(): User

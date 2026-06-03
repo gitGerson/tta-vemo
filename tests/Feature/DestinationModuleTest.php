@@ -10,6 +10,7 @@ use App\Services\MenuService;
 use App\Services\PermissionSyncService;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class DestinationModuleTest extends TestCase
@@ -26,91 +27,101 @@ class DestinationModuleTest extends TestCase
     public function test_destination_index_renders_for_authorized_user(): void
     {
         $this->actingAs($this->userWithDestinationPermissions());
+        $this->createProvince();
 
         $this->get(route('destinations.index'))
             ->assertOk()
-            ->assertSee('Daftar Tujuan');
+            ->assertSee('Daftar Tujuan')
+            ->assertSee('Preview data kota Laravolt Indonesia');
     }
 
-    public function test_authorized_user_can_create_destination(): void
+    public function test_destination_create_route_is_preview_only(): void
     {
         $this->actingAs($this->userWithDestinationPermissions());
+        $this->createProvince();
 
         $payload = Destination::factory()->make([
-            'destination' => 'Jakarta',
-            'desc' => 'Capital destination',
+            'code' => '3171',
+            'province_code' => '31',
+            'name' => 'Jakarta',
+            'meta' => 'Capital destination',
         ])->toArray();
 
         $this->post(route('destinations.store'), $payload)
             ->assertRedirect(route('destinations.index'));
 
-        $this->assertDatabaseHas('destinations', [
-            'destination' => 'Jakarta',
-            'desc' => 'Capital destination',
+        $this->assertDatabaseMissing('indonesia_cities', [
+            'code' => '3171',
+            'name' => 'Jakarta',
         ]);
     }
 
-    public function test_authorized_user_can_update_destination(): void
+    public function test_destination_update_route_is_preview_only(): void
     {
         $this->actingAs($this->userWithDestinationPermissions());
+        $this->createProvince();
         $destination = Destination::factory()->create();
 
         $payload = Destination::factory()->make([
-            'destination' => 'Updated Destination',
-            'desc' => 'Updated description',
+            'code' => '3172',
+            'province_code' => $destination->province_code,
+            'name' => 'Updated Destination',
+            'meta' => 'Updated description',
         ])->toArray();
 
         $this->put(route('destinations.update', $destination), $payload)
             ->assertRedirect(route('destinations.index'));
 
-        $this->assertDatabaseHas('destinations', [
+        $this->assertDatabaseMissing('indonesia_cities', [
             'id' => $destination->id,
-            'destination' => 'Updated Destination',
-            'desc' => 'Updated description',
+            'name' => 'Updated Destination',
+            'meta' => 'Updated description',
         ]);
     }
 
     public function test_authorized_user_can_view_destination_detail_fragment(): void
     {
         $this->actingAs($this->userWithDestinationPermissions());
+        $this->createProvince();
         $destination = Destination::factory()->create([
-            'destination' => 'Detail Destination',
+            'code' => '3171',
+            'name' => 'Detail Destination',
         ]);
 
         $this->get(route('destinations.show', $destination))
             ->assertOk()
+            ->assertSee('3171')
             ->assertSee('Detail Destination');
     }
 
     public function test_destination_data_endpoint_returns_rows_with_actions(): void
     {
         $this->actingAs($this->userWithDestinationPermissions());
+        $this->createProvince();
         Destination::factory()->create([
-            'destination' => 'Data Destination',
+            'code' => '3171',
+            'name' => 'Data Destination',
         ]);
 
         $this->get(route('destinations.data'))
             ->assertOk()
-            ->assertJsonFragment(['destination' => 'Data Destination'])
-            ->assertSee('btn-edit-destination', false);
+            ->assertJsonFragment(['code' => '3171'])
+            ->assertJsonFragment(['name' => 'Data Destination'])
+            ->assertDontSee('btn-edit-destination', false);
     }
 
-    public function test_authorized_user_can_soft_delete_and_restore_destination(): void
+    public function test_destination_delete_route_is_preview_only(): void
     {
         $this->actingAs($this->userWithDestinationPermissions());
+        $this->createProvince();
         $destination = Destination::factory()->create();
 
         $this->delete(route('destinations.destroy', $destination))
             ->assertRedirect(route('destinations.index'));
 
-        $this->assertSoftDeleted('destinations', ['id' => $destination->id]);
-
-        $this->post(route('destinations.restore', $destination))
-            ->assertRedirect(route('destinations.trash'));
-
-        $this->assertDatabaseHas('destinations', [
+        $this->assertDatabaseHas('indonesia_cities', [
             'id' => $destination->id,
-            'deleted_at' => null,
+            'code' => $destination->code,
         ]);
     }
 
@@ -165,5 +176,16 @@ class DestinationModuleTest extends TestCase
         $user->load('roles.permissions');
 
         return $user;
+    }
+
+    private function createProvince(): void
+    {
+        DB::table('indonesia_provinces')->insertOrIgnore([
+            'code' => '31',
+            'name' => 'DKI Jakarta',
+            'meta' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 }

@@ -29,8 +29,10 @@ class DestinationStoreRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'destination' => is_string($this->input('destination')) ? trim($this->input('destination')) : $this->input('destination'),
-            'desc' => is_string($this->input('desc')) ? trim($this->input('desc')) : $this->input('desc'),
+            'code' => is_string($this->input('code')) ? trim($this->input('code')) : $this->input('code'),
+            'province_code' => is_string($this->input('province_code')) ? trim($this->input('province_code')) : $this->input('province_code'),
+            'name' => is_string($this->input('name')) ? trim($this->input('name')) : $this->input('name'),
+            'meta' => is_string($this->input('meta')) ? trim($this->input('meta')) : $this->input('meta'),
         ]);
     }
 }

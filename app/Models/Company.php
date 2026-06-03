@@ -2,30 +2,45 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Validation\Rule;
 
 class Company extends Model
 {
-    use HasFactory;
+    use Auditable, HasFactory, SoftDeletes;
 
-    protected $table = 'company';
+    protected $table = 'companies';
 
     protected $fillable = [
         'code',
         'name',
-        'desc',
+        'email',
+        'phone',
+        'image',
+        'notes',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'deleted_at' => 'datetime',
+        ];
+    }
 
     public static function validationRules(?self $company = null): array
     {
         return [
-            'code' => ['required', 'string', 'max:6', Rule::unique('company', 'code')->ignore($company?->getKey())],
-            'name' => ['required', 'string', 'max:255'],
-            'desc' => ['nullable', 'string'],
+            'code' => ['required', 'string', 'max:20', Rule::unique(self::class, 'code')->ignore($company)->withoutTrashed()],
+            'name' => ['required', 'string', 'max:255', Rule::unique(self::class, 'name')->ignore($company)->withoutTrashed()],
+            'email' => ['nullable', 'email', 'max:150'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'image' => ['nullable', 'string', 'max:255'],
+            'notes' => ['nullable', 'string'],
         ];
     }
 
@@ -33,7 +48,8 @@ class Company extends Model
     {
         return [
             'code.unique' => 'Kode perusahaan sudah tersedia.',
-            'code.max' => 'Kode perusahaan maksimal 6 karakter.',
+            'code.max' => 'Kode perusahaan maksimal 20 karakter.',
+            'name.unique' => 'Nama perusahaan sudah tersedia.',
         ];
     }
 

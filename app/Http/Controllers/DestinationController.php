@@ -17,9 +17,7 @@ class DestinationController extends Controller
 
     public function store(DestinationStoreRequest $request)
     {
-        Destination::create($request->validated());
-
-        return redirect()->route('destinations.index')->with('success', 'Tujuan berhasil ditambahkan.');
+        return redirect()->route('destinations.index')->with('success', 'Tujuan memakai data kota Laravolt Indonesia untuk preview.');
     }
 
     public function show(Destination $destination)
@@ -29,16 +27,12 @@ class DestinationController extends Controller
 
     public function update(Destination $destination, DestinationUpdateRequest $request)
     {
-        $destination->update($request->validated());
-
-        return redirect()->route('destinations.index')->with('success', 'Tujuan berhasil diperbarui.');
+        return redirect()->route('destinations.index')->with('success', 'Tujuan memakai data kota Laravolt Indonesia untuk preview.');
     }
 
     public function destroy(Destination $destination)
     {
-        $destination->delete();
-
-        return redirect()->route('destinations.index')->with('success', 'Tujuan berhasil disimpan di sampah.');
+        return redirect()->route('destinations.index')->with('success', 'Data kota Laravolt Indonesia tidak dihapus dari modul tujuan preview.');
     }
 
     public function trash()
@@ -48,16 +42,12 @@ class DestinationController extends Controller
 
     public function restore(Destination $destination)
     {
-        $destination->restore();
-
-        return redirect()->route('destinations.trash')->with('success', 'Tujuan berhasil dipulihkan.');
+        return redirect()->route('destinations.index')->with('success', 'Tujuan memakai data kota Laravolt Indonesia untuk preview.');
     }
 
     public function forceDelete(Destination $destination)
     {
-        $destination->forceDelete();
-
-        return redirect()->route('destinations.trash')->with('success', 'Tujuan berhasil dihapus permanen.');
+        return redirect()->route('destinations.index')->with('success', 'Data kota Laravolt Indonesia tidak dihapus dari modul tujuan preview.');
     }
 
     public function getData()

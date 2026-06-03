@@ -36,7 +36,10 @@ class CompanyStoreRequest extends FormRequest
         $this->merge([
             'code' => is_string($this->input('code')) ? strtoupper(trim($this->input('code'))) : $this->input('code'),
             'name' => is_string($this->input('name')) ? trim($this->input('name')) : $this->input('name'),
-            'desc' => is_string($this->input('desc')) ? trim($this->input('desc')) : $this->input('desc'),
+            'email' => is_string($this->input('email')) ? trim($this->input('email')) : $this->input('email'),
+            'phone' => is_string($this->input('phone')) ? trim($this->input('phone')) : $this->input('phone'),
+            'image' => is_string($this->input('image')) ? trim($this->input('image')) : $this->input('image'),
+            'notes' => is_string($this->input('notes')) ? trim($this->input('notes')) : $this->input('notes'),
         ]);
     }
 }

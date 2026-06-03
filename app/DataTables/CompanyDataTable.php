@@ -13,7 +13,10 @@ class CompanyDataTable extends DataTable
             'id',
             'code',
             'name',
-            'desc',
+            'email',
+            'phone',
+            'image',
+            'notes',
         ]);
     }
 
@@ -23,7 +26,9 @@ class CompanyDataTable extends DataTable
             Column::index(),
             Column::make('code', 'Kode'),
             Column::make('name', 'Nama'),
-            Column::make('desc', 'Keterangan'),
+            Column::make('email', 'Email'),
+            Column::make('phone', 'Telepon'),
+            Column::make('notes', 'Keterangan'),
             Column::action(),
         ];
     }
@@ -64,7 +69,10 @@ class CompanyDataTable extends DataTable
                     'update-url' => route('companies.update', $row),
                     'code' => $row->code,
                     'name' => $row->name,
-                    'desc' => $row->desc,
+                    'email' => $row->email,
+                    'phone' => $row->phone,
+                    'image' => $row->image,
+                    'notes' => $row->notes,
                 ],
             ],
             [

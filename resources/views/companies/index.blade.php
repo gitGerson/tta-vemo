@@ -96,7 +96,10 @@
 
         setField('code', d.code);
         setField('name', d.name);
-        setField('desc', d.desc);
+        setField('email', d.email);
+        setField('phone', d.phone);
+        setField('image', d.image);
+        setField('notes', d.notes);
     }
 
     modalEl.addEventListener('shown.bs.modal', function () {
@@ -118,7 +121,10 @@
             updateUrl: btn.dataset.updateUrl,
             code: btn.dataset.code,
             name: btn.dataset.name,
-            desc: btn.dataset.desc,
+            email: btn.dataset.email,
+            phone: btn.dataset.phone,
+            image: btn.dataset.image,
+            notes: btn.dataset.notes,
         };
 
         bootstrap.Modal.getOrCreateInstance(modalEl).show();

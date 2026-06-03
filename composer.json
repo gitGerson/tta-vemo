@@ -16,6 +16,7 @@
         "laravel/tinker": "^2.10.1",
         "laravel/ui": "^4.6",
         "laravolt/avatar": "^6.2",
+        "laravolt/indonesia": "^0.41.0",
         "league/flysystem-aws-s3-v3": "^3.0",
         "predis/predis": "^3.4",
         "vinkla/hashids": "^13.0",

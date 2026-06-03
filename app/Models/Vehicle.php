@@ -51,7 +51,7 @@ class Vehicle extends Model
             'mtc' => ['required', Rule::in(['YES', 'NO'])],
             'desc' => ['nullable', 'string'],
             'isprivate' => ['required', 'boolean'],
-            'company_id' => ['nullable', 'integer', Rule::exists('company', 'id')],
+            'company_id' => ['nullable', 'integer', Rule::exists(Company::class, 'id')],
         ];
     }
 
