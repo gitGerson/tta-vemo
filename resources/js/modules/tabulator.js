@@ -59,6 +59,9 @@ function initTabulators() {
             paginationSizeSelector: config.paginationSizeSelector ?? [10, 25, 50, 100],
             sortMode: 'remote',
             filterMode: 'remote',
+            persistence: { columns: ['visible'] },
+            persistenceID: id,
+            persistenceMode: 'local',
             ajaxURL: config.ajaxUrl,
             ajaxParams: {
                 engine: 'tabulator',
@@ -228,6 +231,60 @@ function initTabulators() {
         const csvButton = document.getElementById(`${id}-csv`);
         if (csvButton) {
             csvButton.addEventListener('click', () => table.download('csv', `${id}.csv`));
+        }
+
+        const colvisButton = document.getElementById(`${id}-colvis`);
+        const colvisMenu = document.getElementById(`${id}-colvis-menu`);
+        if (colvisButton && colvisMenu) {
+            const colvisContainer = colvisButton.closest('.dropdown');
+
+            const closeColvis = () => {
+                colvisMenu.classList.remove('show');
+                colvisButton.setAttribute('aria-expanded', 'false');
+            };
+
+            // Toggle manually: this app loads two Bootstrap bundles, so the
+            // data-api would fire twice and immediately re-close the menu.
+            colvisButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const isOpen = colvisMenu.classList.toggle('show');
+                colvisButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!colvisContainer.contains(event.target)) {
+                    closeColvis();
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    closeColvis();
+                }
+            });
+
+            table.on('tableBuilt', () => {
+                table.getColumns().forEach((column) => {
+                    const def = column.getDefinition();
+
+                    if (!def.title) {
+                        return;
+                    }
+
+                    const item = document.createElement('label');
+                    item.className = 'dropdown-item d-flex align-items-center gap-2 mb-0';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'form-check-input m-0';
+                    checkbox.checked = column.isVisible();
+                    checkbox.addEventListener('change', () => (checkbox.checked ? column.show() : column.hide()));
+
+                    item.append(checkbox, document.createTextNode(def.title));
+                    colvisMenu.append(item);
+                });
+            });
         }
 
         const detailModalEl = config.detailModal ? document.getElementById(config.detailModal) : null;

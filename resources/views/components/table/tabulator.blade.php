@@ -236,6 +236,21 @@
             .table-tabulator.table-clickable .tabulator-row {
                 cursor: pointer;
             }
+
+            .table-tabulator-colvis {
+                min-width: 9rem;
+                font-size: 0.72rem;
+            }
+
+            .table-tabulator-colvis .dropdown-item {
+                padding: 0.15rem 0.4rem;
+                border-radius: 0.2rem;
+            }
+
+            .table-tabulator-colvis .form-check-input {
+                width: 0.8rem;
+                height: 0.8rem;
+            }
         </style>
     @endpush
     @push('scripts')
@@ -277,6 +292,15 @@
                     <i class="bx bx-save me-1"></i> Save
                 </button>
             @endif
+
+            <div class="dropdown">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="{{ $tableId }}-colvis" aria-expanded="false">
+                    <i class="bx bx-columns me-1"></i> Kolom
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-1 table-tabulator-colvis" id="{{ $tableId }}-colvis-menu">
+                    {{-- checkbox items injected by tabulator.js --}}
+                </div>
+            </div>
 
             <button type="button" class="btn btn-sm btn-outline-secondary" id="{{ $tableId }}-csv">
                 <i class="bx bx-download me-1"></i> CSV
