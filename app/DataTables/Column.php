@@ -29,6 +29,14 @@ class Column
 
     public ?Closure $renderUsing = null;
 
+    public string|bool|null $tabulatorEditor = null;
+
+    public ?array $tabulatorEditorParams = null;
+
+    public ?string $tabulatorFormatter = null;
+
+    public ?array $tabulatorFormatterParams = null;
+
     private function __construct(
         public string $key,
         public string $label,
@@ -117,7 +125,23 @@ class Column
         return $this;
     }
 
-    /** Client-side column config object. */
+    public function editable(string|bool $editor = 'input', ?array $editorParams = null): self
+    {
+        $this->tabulatorEditor = $editor;
+        $this->tabulatorEditorParams = $editorParams;
+
+        return $this;
+    }
+
+    public function formatter(string $formatter, ?array $formatterParams = null): self
+    {
+        $this->tabulatorFormatter = $formatter;
+        $this->tabulatorFormatterParams = $formatterParams;
+
+        return $this;
+    }
+
+    /** Client-side column config object for jQuery DataTables. */
     public function toJs(): array
     {
         $config = [
@@ -132,5 +156,56 @@ class Column
         }
 
         return $config;
+    }
+
+    /** Column definition for the Tabulator engine. */
+    public function toTabulator(): array
+    {
+        $config = [
+            'title' => $this->label,
+            'field' => $this->key,
+            'headerSort' => $this->orderable && ! $this->raw,
+            'responsive' => $this->tabulatorResponsivePriority(),
+        ];
+
+        if ($this->className !== null) {
+            $config['cssClass'] = $this->className;
+        }
+
+        if ($this->tabulatorEditor !== null) {
+            $config['editor'] = $this->tabulatorEditor;
+
+            if ($this->tabulatorEditorParams !== null) {
+                $config['editorParams'] = $this->tabulatorEditorParams;
+            }
+        }
+
+        if ($this->tabulatorFormatter !== null) {
+            $config['formatter'] = $this->tabulatorFormatter;
+
+            if ($this->tabulatorFormatterParams !== null) {
+                $config['formatterParams'] = $this->tabulatorFormatterParams;
+            }
+        }
+
+        if ($this->raw) {
+            $config['formatter'] = 'html';
+            $config['download'] = false;
+        }
+
+        return $config;
+    }
+
+    private function tabulatorResponsivePriority(): int
+    {
+        if ($this->isIndex || $this->isAction) {
+            return 0;
+        }
+
+        if ($this->raw) {
+            return 1;
+        }
+
+        return 2;
     }
 }

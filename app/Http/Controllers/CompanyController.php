@@ -6,6 +6,7 @@ use App\DataTables\CompanyDataTable;
 use App\Http\Requests\CompanyStoreRequest;
 use App\Http\Requests\CompanyUpdateRequest;
 use App\Models\Company;
+use Illuminate\Http\Request;
 
 class CompanyController extends Controller
 {
@@ -40,8 +41,8 @@ class CompanyController extends Controller
         return redirect()->route('companies.index')->with('success', 'Perusahaan berhasil dihapus.');
     }
 
-    public function getData()
+    public function getData(Request $request)
     {
-        return (new CompanyDataTable)->response();
+        return (new CompanyDataTable)->responseFor($request);
     }
 }

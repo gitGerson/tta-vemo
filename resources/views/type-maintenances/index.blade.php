@@ -13,11 +13,11 @@
             </div>
         @endif
 
-        <x-datatable :table="$table" title="Daftar Tipe Maintenance">
+        <x-table :table="$table" engine="tabulator" title="Daftar Tipe Maintenance">
             <x-slot:actions>
                 <div class="d-flex gap-2">
                     @if(auth()->user()->hasPermission('master.type_maintenances.delete'))
-                        <a href="{{ route('type-maintenances.trash') }}" class="btn btn-secondary">
+                        <a href="{{ route('type-maintenances.trash') }}" class="btn btn-sm btn-secondary">
                             <i class="bx bx-trash me-1"></i> Trash
                         </a>
                     @endif
@@ -25,19 +25,19 @@
                     @if(auth()->user()->hasPermission('master.type_maintenances.create'))
                         <form id="type-maintenance-import-form" action="{{ route('type-maintenances.import') }}" method="POST" enctype="multipart/form-data">
                             @csrf
-                            <label class="btn btn-outline-secondary mb-0">
+                            <label class="btn btn-sm btn-outline-secondary mb-0">
                                 <i class="bx bx-upload me-1"></i> Import Excel
                                 <input type="file" name="excelFile" accept=".xlsx,.xls,.csv" class="d-none" onchange="document.getElementById('type-maintenance-import-form').submit();">
                             </label>
                         </form>
 
-                        <button type="button" class="btn btn-primary" id="btn-tambah-type-maintenance" data-bs-toggle="modal" data-bs-target="#type-maintenance-modal">
+                        <button type="button" class="btn btn-sm btn-primary" id="btn-tambah-type-maintenance" data-bs-toggle="modal" data-bs-target="#type-maintenance-modal">
                             <i class="bx bx-plus me-1"></i> Tambah Tipe
                         </button>
                     @endif
                 </div>
             </x-slot:actions>
-        </x-datatable>
+        </x-table>
     </div>
 
     <div class="modal fade" id="type-maintenance-modal" tabindex="-1" aria-hidden="true">

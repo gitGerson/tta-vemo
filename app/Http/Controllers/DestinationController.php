@@ -7,6 +7,7 @@ use App\DataTables\DestinationTrashDataTable;
 use App\Http\Requests\DestinationStoreRequest;
 use App\Http\Requests\DestinationUpdateRequest;
 use App\Models\Destination;
+use Illuminate\Http\Request;
 
 class DestinationController extends Controller
 {
@@ -52,13 +53,13 @@ class DestinationController extends Controller
         return redirect()->route('destinations.index')->with('success', 'Data kota Laravolt Indonesia tidak dihapus dari modul tujuan preview.');
     }
 
-    public function getData()
+    public function getData(Request $request)
     {
-        return (new DestinationDataTable)->response();
+        return (new DestinationDataTable)->responseFor($request);
     }
 
-    public function getTrashData()
+    public function getTrashData(Request $request)
     {
-        return (new DestinationTrashDataTable)->response();
+        return (new DestinationTrashDataTable)->responseFor($request);
     }
 }

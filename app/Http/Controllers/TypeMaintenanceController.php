@@ -9,6 +9,7 @@ use App\Http\Requests\TypeMaintenanceStoreRequest;
 use App\Http\Requests\TypeMaintenanceUpdateRequest;
 use App\Imports\TypeMaintenancesImport;
 use App\Models\TypeMaintenances;
+use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
 class TypeMaintenanceController extends Controller
@@ -70,13 +71,13 @@ class TypeMaintenanceController extends Controller
         return redirect()->route('type-maintenances.trash')->with('success', 'Tipe maintenance berhasil dihapus permanen.');
     }
 
-    public function getData()
+    public function getData(Request $request)
     {
-        return (new TypeMaintenanceDataTable)->response();
+        return (new TypeMaintenanceDataTable)->responseFor($request);
     }
 
-    public function getTrashData()
+    public function getTrashData(Request $request)
     {
-        return (new TypeMaintenanceTrashDataTable)->response();
+        return (new TypeMaintenanceTrashDataTable)->responseFor($request);
     }
 }

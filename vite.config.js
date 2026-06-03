@@ -21,6 +21,7 @@ export default defineConfig({
                 'resources/js/modules/filepond.js',
                 'resources/js/modules/rich-editor.js',
                 'resources/js/modules/select2.js',
+                'resources/js/modules/tabulator.js',
             ],
             refresh: true,
         }),

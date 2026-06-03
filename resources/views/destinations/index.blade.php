@@ -12,7 +12,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
-        <x-datatable :table="$table" title="Daftar Tujuan"></x-datatable>
+        <x-table :table="$table" engine="tabulator" layout="fitColumns" title="Daftar Tujuan"></x-table>
     </div>
 
     <div class="modal fade" id="destination-detail-modal" tabindex="-1" aria-hidden="true">

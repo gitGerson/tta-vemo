@@ -117,14 +117,14 @@ class DriverController extends Controller
         return redirect()->route('drivers.trash')->with('success', 'Driver berhasil dihapus permanen.');
     }
 
-    public function getData()
+    public function getData(Request $request)
     {
-        return (new DriverDataTable)->response();
+        return (new DriverDataTable)->responseFor($request);
     }
 
-    public function getTrashData()
+    public function getTrashData(Request $request)
     {
-        return (new DriverTrashDataTable)->response();
+        return (new DriverTrashDataTable)->responseFor($request);
     }
 
     public function getEmpInfo(Request $request)

@@ -13,23 +13,23 @@
             </div>
         @endif
 
-        <x-datatable :table="$table" title="Daftar Driver">
+        <x-table :table="$table" engine="tabulator" layout="fitDataStretch" title="Daftar Driver">
             <x-slot:actions>
                 <div class="d-flex gap-2">
                     @if(auth()->user()->hasPermission('master.drivers.delete'))
-                        <a href="{{ route('drivers.trash') }}" class="btn btn-secondary">
+                        <a href="{{ route('drivers.trash') }}" class="btn btn-sm btn-secondary">
                             <i class="bx bx-trash me-1"></i> Trash
                         </a>
                     @endif
 
                     @if(auth()->user()->hasPermission('master.drivers.create'))
-                        <button type="button" class="btn btn-primary" id="btn-tambah-driver" data-bs-toggle="modal" data-bs-target="#driver-modal">
+                        <button type="button" class="btn btn-sm btn-primary" id="btn-tambah-driver" data-bs-toggle="modal" data-bs-target="#driver-modal">
                             <i class="bx bx-plus me-1"></i> Tambah Driver
                         </button>
                     @endif
                 </div>
             </x-slot:actions>
-        </x-datatable>
+        </x-table>
     </div>
 
     <div class="modal fade" id="driver-modal" tabindex="-1" aria-hidden="true">
@@ -50,7 +50,7 @@
         </div>
     </div>
 
-    {{-- Detail modal: body is loaded via AJAX from drivers.show by <x-datatable> --}}
+    {{-- Detail modal: body is loaded via AJAX from drivers.show by <x-table> --}}
     <div class="modal fade" id="driver-detail-modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">

@@ -8,6 +8,7 @@ use App\Http\Requests\VehicleStoreRequest;
 use App\Http\Requests\VehicleUpdateRequest;
 use App\Models\Company;
 use App\Models\Vehicle;
+use Illuminate\Http\Request;
 
 class VehicleController extends Controller
 {
@@ -66,13 +67,13 @@ class VehicleController extends Controller
         return redirect()->route('vehicles.trash')->with('success', 'Kendaraan berhasil dihapus permanen.');
     }
 
-    public function getData()
+    public function getData(Request $request)
     {
-        return (new VehicleDataTable)->response();
+        return (new VehicleDataTable)->responseFor($request);
     }
 
-    public function getTrashData()
+    public function getTrashData(Request $request)
     {
-        return (new VehicleTrashDataTable)->response();
+        return (new VehicleTrashDataTable)->responseFor($request);
     }
 }

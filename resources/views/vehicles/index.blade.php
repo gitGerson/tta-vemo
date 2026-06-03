@@ -13,23 +13,23 @@
             </div>
         @endif
 
-        <x-datatable :table="$table" title="Daftar Kendaraan">
+        <x-table :table="$table" engine="tabulator" layout="fitDataStretch" title="Daftar Kendaraan">
             <x-slot:actions>
                 <div class="d-flex gap-2">
                     @if(auth()->user()->hasPermission('master.vehicles.delete'))
-                        <a href="{{ route('vehicles.trash') }}" class="btn btn-secondary">
+                        <a href="{{ route('vehicles.trash') }}" class="btn btn-sm btn-secondary">
                             <i class="bx bx-trash me-1"></i> Trash
                         </a>
                     @endif
 
                     @if(auth()->user()->hasPermission('master.vehicles.create'))
-                        <button type="button" class="btn btn-primary" id="btn-tambah-vehicle" data-bs-toggle="modal" data-bs-target="#vehicle-modal">
+                        <button type="button" class="btn btn-sm btn-primary" id="btn-tambah-vehicle" data-bs-toggle="modal" data-bs-target="#vehicle-modal">
                             <i class="bx bx-plus me-1"></i> Tambah Kendaraan
                         </button>
                     @endif
                 </div>
             </x-slot:actions>
-        </x-datatable>
+        </x-table>
     </div>
 
     <div class="modal fade" id="vehicle-modal" tabindex="-1" aria-hidden="true">
