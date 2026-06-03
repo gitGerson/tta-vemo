@@ -25,6 +25,9 @@
         "@tiptap/extension-text-align": "^3.20.4",
         "@tiptap/extension-underline": "^3.20.4",
         "@tiptap/starter-kit": "^3.20.4",
-        "tabulator-tables": "^6.4.0"
+        "jspdf": "^4.2.1",
+        "jspdf-autotable": "^5.0.8",
+        "tabulator-tables": "^6.4.0",
+        "xlsx": "^0.18.5"
     }
 }

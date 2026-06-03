@@ -7,7 +7,7 @@
     'paginationSize' => 10,
     'paginationSizeSelector' => [10, 25, 50, 100],
     'layout' => 'fitColumns',
-    'responsiveLayout' => null,
+    'responsiveLayout' => false,
     'selectableRows' => false,
 ])
 
@@ -30,5 +30,9 @@
 >
     @isset($actions)
         <x-slot:actions>{{ $actions }}</x-slot:actions>
+    @endisset
+
+    @isset($tools)
+        <x-slot:tools>{{ $tools }}</x-slot:tools>
     @endisset
 </x-dynamic-component>

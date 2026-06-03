@@ -17,26 +17,37 @@
             <x-slot:actions>
                 <div class="d-flex gap-2">
                     @if(auth()->user()->hasPermission('master.type_maintenances.delete'))
-                        <a href="{{ route('type-maintenances.trash') }}" class="btn btn-sm btn-secondary">
+                        <a href="{{ route('type-maintenances.trash') }}" class="btn btn-sm btn-outline-secondary">
                             <i class="bx bx-trash me-1"></i> Trash
                         </a>
                     @endif
 
                     @if(auth()->user()->hasPermission('master.type_maintenances.create'))
-                        <form id="type-maintenance-import-form" action="{{ route('type-maintenances.import') }}" method="POST" enctype="multipart/form-data">
-                            @csrf
-                            <label class="btn btn-sm btn-outline-secondary mb-0">
-                                <i class="bx bx-upload me-1"></i> Import Excel
-                                <input type="file" name="excelFile" accept=".xlsx,.xls,.csv" class="d-none" onchange="document.getElementById('type-maintenance-import-form').submit();">
-                            </label>
-                        </form>
-
-                        <button type="button" class="btn btn-sm btn-primary" id="btn-tambah-type-maintenance" data-bs-toggle="modal" data-bs-target="#type-maintenance-modal">
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btn-tambah-type-maintenance" data-bs-toggle="modal" data-bs-target="#type-maintenance-modal">
                             <i class="bx bx-plus me-1"></i> Tambah Tipe
                         </button>
                     @endif
                 </div>
             </x-slot:actions>
+
+            @if(auth()->user()->hasPermission('master.type_maintenances.create'))
+                <x-slot:tools>
+                    <div class="dropdown">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-dropdown-toggle aria-expanded="false">
+                            <i class="bx bx-upload me-1"></i> Import
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end p-1 table-tabulator-menu">
+                            <form id="type-maintenance-import-form" action="{{ route('type-maintenances.import') }}" method="POST" enctype="multipart/form-data" class="mb-0">
+                                @csrf
+                                <label class="dropdown-item mb-0" style="cursor: pointer;">
+                                    <i class="me-1"></i>Excel
+                                    <input type="file" name="excelFile" accept=".xlsx,.xls,.csv" class="d-none" onchange="document.getElementById('type-maintenance-import-form').submit();">
+                                </label>
+                            </form>
+                        </div>
+                    </div>
+                </x-slot:tools>
+            @endif
         </x-table>
     </div>
 

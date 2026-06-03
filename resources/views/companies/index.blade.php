@@ -16,7 +16,7 @@
         <x-table :table="$table" engine="tabulator" title="Daftar Perusahaan">
             <x-slot:actions>
                 @if(auth()->user()->hasPermission('master.companies.create'))
-                    <button type="button" class="btn btn-sm btn-primary" id="btn-tambah-company" data-bs-toggle="modal" data-bs-target="#company-modal">
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="btn-tambah-company" data-bs-toggle="modal" data-bs-target="#company-modal">
                         <i class="bx bx-plus me-1"></i> Tambah Perusahaan
                     </button>
                 @endif

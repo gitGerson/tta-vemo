@@ -17,13 +17,13 @@
             <x-slot:actions>
                 <div class="d-flex gap-2">
                     @if(auth()->user()->hasPermission('master.drivers.delete'))
-                        <a href="{{ route('drivers.trash') }}" class="btn btn-sm btn-secondary">
+                        <a href="{{ route('drivers.trash') }}" class="btn btn-sm btn-outline-secondary">
                             <i class="bx bx-trash me-1"></i> Trash
                         </a>
                     @endif
 
                     @if(auth()->user()->hasPermission('master.drivers.create'))
-                        <button type="button" class="btn btn-sm btn-primary" id="btn-tambah-driver" data-bs-toggle="modal" data-bs-target="#driver-modal">
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btn-tambah-driver" data-bs-toggle="modal" data-bs-target="#driver-modal">
                             <i class="bx bx-plus me-1"></i> Tambah Driver
                         </button>
                     @endif

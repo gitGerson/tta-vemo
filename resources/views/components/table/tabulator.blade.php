@@ -6,7 +6,7 @@
     'paginationSize' => 10,
     'paginationSizeSelector' => [10, 25, 50, 100],
     'layout' => 'fitColumns',
-    'responsiveLayout' => 'collapse',
+    'responsiveLayout' => false,
     'selectableRows' => false,
 ])
 
@@ -79,6 +79,29 @@
                 border-color: var(--tabulator-sneat-success);
                 box-shadow: 0 0 0 0.12rem rgba(var(--tabulator-sneat-success-rgb), 0.18);
                 outline: 0;
+            }
+
+            @media (max-width: 575.98px) {
+                .table-tabulator-toolbar {
+                    width: 100%;
+                    justify-content: flex-start;
+                }
+
+                .table-tabulator-search {
+                    display: none;
+                }
+
+                /* Collapse toolbar buttons to icon-only: zero the button font to hide
+                   the text label + whitespace, then restore the boxicon glyph size.
+                   !important overrides Bootstrap's me-1 (margin utilities are !important). */
+                .table-tabulator-card .card-header .btn {
+                    font-size: 0;
+                }
+
+                .table-tabulator-card .card-header .btn > .bx {
+                    font-size: 1rem;
+                    margin: 0 !important;
+                }
             }
 
             .table-tabulator {
@@ -237,17 +260,18 @@
                 cursor: pointer;
             }
 
-            .table-tabulator-colvis {
+            .table-tabulator-menu {
                 min-width: 9rem;
                 font-size: 0.72rem;
             }
 
-            .table-tabulator-colvis .dropdown-item {
+            .table-tabulator-menu .dropdown-item {
                 padding: 0.15rem 0.4rem;
                 border-radius: 0.2rem;
+                cursor: pointer;
             }
 
-            .table-tabulator-colvis .form-check-input {
+            .table-tabulator-menu .form-check-input {
                 width: 0.8rem;
                 height: 0.8rem;
             }
@@ -259,10 +283,10 @@
 @endonce
 
 <div class="card table-tabulator-card">
-    <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="card-header d-flex justify-content-between align-items-center gap-2 flex-wrap">
         <h5 class="mb-0">{{ $title }}</h5>
 
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex flex-wrap align-items-center gap-2 table-tabulator-toolbar">
             <input
                 type="search"
                 class="form-control form-control-sm table-tabulator-search"
@@ -272,7 +296,11 @@
             >
 
             @isset($actions)
-                <div>{{ $actions }}</div>
+                <div class="d-flex align-items-center gap-2">{{ $actions }}</div>
+            @endisset
+
+            @isset($tools)
+                <div class="d-flex align-items-center gap-2">{{ $tools }}</div>
             @endisset
 
             @if ($table->tabulatorCreateUrl() !== null)
@@ -297,14 +325,23 @@
                 <button type="button" class="btn btn-sm btn-outline-secondary" id="{{ $tableId }}-colvis" aria-expanded="false">
                     <i class="bx bx-columns me-1"></i> Kolom
                 </button>
-                <div class="dropdown-menu dropdown-menu-end p-1 table-tabulator-colvis" id="{{ $tableId }}-colvis-menu">
+                <div class="dropdown-menu dropdown-menu-end p-1 table-tabulator-menu" id="{{ $tableId }}-colvis-menu">
                     {{-- checkbox items injected by tabulator.js --}}
                 </div>
             </div>
 
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="{{ $tableId }}-csv">
-                <i class="bx bx-download me-1"></i> CSV
-            </button>
+            <div class="dropdown">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="{{ $tableId }}-export" aria-expanded="false">
+                    <i class="bx bx-download me-1"></i> Export
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-1 table-tabulator-menu" id="{{ $tableId }}-export-menu">
+                    <a class="dropdown-item" href="#" data-export="csv">CSV</a>
+                    <a class="dropdown-item" href="#" data-export="json">JSON</a>
+                    <a class="dropdown-item" href="#" data-export="xlsx">Excel (XLSX)</a>
+                    <a class="dropdown-item" href="#" data-export="pdf">PDF</a>
+                    <a class="dropdown-item" href="#" data-export="html">HTML</a>
+                </div>
+            </div>
         </div>
     </div>
     <div class="card-body">

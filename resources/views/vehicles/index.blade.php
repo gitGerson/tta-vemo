@@ -17,13 +17,13 @@
             <x-slot:actions>
                 <div class="d-flex gap-2">
                     @if(auth()->user()->hasPermission('master.vehicles.delete'))
-                        <a href="{{ route('vehicles.trash') }}" class="btn btn-sm btn-secondary">
+                        <a href="{{ route('vehicles.trash') }}" class="btn btn-sm btn-outline-secondary">
                             <i class="bx bx-trash me-1"></i> Trash
                         </a>
                     @endif
 
                     @if(auth()->user()->hasPermission('master.vehicles.create'))
-                        <button type="button" class="btn btn-sm btn-primary" id="btn-tambah-vehicle" data-bs-toggle="modal" data-bs-target="#vehicle-modal">
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btn-tambah-vehicle" data-bs-toggle="modal" data-bs-target="#vehicle-modal">
                             <i class="bx bx-plus me-1"></i> Tambah Kendaraan
                         </button>
                     @endif

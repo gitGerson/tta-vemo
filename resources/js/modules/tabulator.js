@@ -2,6 +2,30 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_bootstrap5.min.css';
 
 /**
+ * Trigger a native Tabulator download. CSV / JSON / HTML are built in; XLSX and
+ * PDF need external libraries, which are lazy-loaded (separate chunks) only when
+ * those formats are actually requested so the main bundle stays small.
+ */
+async function downloadTable(table, type, id) {
+    try {
+        if (type === 'xlsx') {
+            window.XLSX = await import('xlsx');
+            table.download('xlsx', `${id}.xlsx`, { sheetName: id });
+        } else if (type === 'pdf') {
+            const { jsPDF } = await import('jspdf');
+            const { applyPlugin } = await import('jspdf-autotable');
+            applyPlugin(jsPDF);
+            window.jspdf = { jsPDF };
+            table.download('pdf', `${id}.pdf`, { orientation: 'landscape' });
+        } else {
+            table.download(type, `${id}.${type}`);
+        }
+    } catch (error) {
+        window.alert(`Export gagal: ${error.message}`);
+    }
+}
+
+/**
  * Initialize every Tabulator table on the page.
  *
  * Each <x-table engine="tabulator"> renders a container div plus a sibling
@@ -50,7 +74,7 @@ function initTabulators() {
         const table = new Tabulator(el, {
             columns,
             layout: config.layout ?? 'fitColumns',
-            responsiveLayout: config.responsiveLayout ?? 'collapse',
+            responsiveLayout: config.responsiveLayout ?? false,
             selectableRows: config.selectableRows ? true : 'highlight',
             selectableRowsPersistence: false,
             pagination: true,
@@ -228,41 +252,56 @@ function initTabulators() {
             });
         }
 
-        const csvButton = document.getElementById(`${id}-csv`);
-        if (csvButton) {
-            csvButton.addEventListener('click', () => table.download('csv', `${id}.csv`));
-        }
+        // Toggle manually: this app loads two Bootstrap bundles, so the
+        // data-api would fire twice and immediately re-close the menu.
+        const setupDropdownToggle = (button, menu) => {
+            const container = button.closest('.dropdown');
 
-        const colvisButton = document.getElementById(`${id}-colvis`);
-        const colvisMenu = document.getElementById(`${id}-colvis-menu`);
-        if (colvisButton && colvisMenu) {
-            const colvisContainer = colvisButton.closest('.dropdown');
-
-            const closeColvis = () => {
-                colvisMenu.classList.remove('show');
-                colvisButton.setAttribute('aria-expanded', 'false');
+            const close = () => {
+                menu.classList.remove('show');
+                button.setAttribute('aria-expanded', 'false');
             };
 
-            // Toggle manually: this app loads two Bootstrap bundles, so the
-            // data-api would fire twice and immediately re-close the menu.
-            colvisButton.addEventListener('click', (event) => {
+            button.addEventListener('click', (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                const isOpen = colvisMenu.classList.toggle('show');
-                colvisButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                const isOpen = menu.classList.toggle('show');
+                button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
             });
 
             document.addEventListener('click', (event) => {
-                if (!colvisContainer.contains(event.target)) {
-                    closeColvis();
+                if (!container.contains(event.target)) {
+                    close();
                 }
             });
 
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'Escape') {
-                    closeColvis();
+                    close();
                 }
             });
+
+            return close;
+        };
+
+        const exportButton = document.getElementById(`${id}-export`);
+        const exportMenu = document.getElementById(`${id}-export-menu`);
+        if (exportButton && exportMenu) {
+            const closeExport = setupDropdownToggle(exportButton, exportMenu);
+
+            exportMenu.querySelectorAll('[data-export]').forEach((item) => {
+                item.addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    closeExport();
+                    await downloadTable(table, item.dataset.export, id);
+                });
+            });
+        }
+
+        const colvisButton = document.getElementById(`${id}-colvis`);
+        const colvisMenu = document.getElementById(`${id}-colvis-menu`);
+        if (colvisButton && colvisMenu) {
+            setupDropdownToggle(colvisButton, colvisMenu);
 
             table.on('tableBuilt', () => {
                 table.getColumns().forEach((column) => {
