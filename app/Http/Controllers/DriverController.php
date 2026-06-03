@@ -10,14 +10,17 @@ use App\Models\Company;
 use App\Models\Driver;
 use App\Services\FilePondUploadService;
 use App\Services\JPayrollService;
+use App\Services\PayrollCompanyResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 
 class DriverController extends Controller
 {
     public function __construct(
         protected JPayrollService $jpayroll,
         protected FilePondUploadService $filePond,
+        protected PayrollCompanyResolver $payrollCompany,
     ) {}
 
     public function index()
@@ -32,6 +35,8 @@ class DriverController extends Controller
     {
         $data = $request->validated();
         $companyIds = Arr::pull($data, 'company_ids', []);
+        $sourceCompanyCode = Arr::pull($data, 'source_company_code');
+        $sourceCompanyName = Arr::pull($data, 'source_company_name');
         $nik = $data['nik'] ?? null;
 
         if ($nik && ! $this->jpayroll->validateNik($nik)) {
@@ -40,8 +45,12 @@ class DriverController extends Controller
 
         $data['image'] = $this->filePond->storeFromRequestField($request, 'image', 'profile_images', 's3');
 
-        $driver = Driver::create($data);
-        $driver->companies()->sync($companyIds);
+        DB::transaction(function () use ($companyIds, $data, $sourceCompanyCode, $sourceCompanyName): void {
+            $driver = Driver::create($data);
+            $resolvedCompanyIds = $this->payrollCompany->mergeResolvedCompanyIds($companyIds, $sourceCompanyCode, $sourceCompanyName);
+
+            $driver->companies()->sync($resolvedCompanyIds);
+        });
 
         return redirect()->route('drivers.index')->with('success', 'Driver berhasil ditambahkan.');
     }
@@ -59,6 +68,8 @@ class DriverController extends Controller
     {
         $data = $request->validated();
         $companyIds = Arr::pull($data, 'company_ids', []);
+        $sourceCompanyCode = Arr::pull($data, 'source_company_code');
+        $sourceCompanyName = Arr::pull($data, 'source_company_name');
         $nik = $data['nik'] ?? null;
 
         if ($nik && $nik !== $driver->nik && ! $this->jpayroll->validateNik($nik)) {
@@ -67,8 +78,12 @@ class DriverController extends Controller
 
         $data['image'] = $this->filePond->storeFromRequestField($request, 'image', 'profile_images', 's3') ?? $driver->image;
 
-        $driver->update($data);
-        $driver->companies()->sync($companyIds);
+        DB::transaction(function () use ($companyIds, $data, $driver, $sourceCompanyCode, $sourceCompanyName): void {
+            $driver->update($data);
+            $resolvedCompanyIds = $this->payrollCompany->mergeResolvedCompanyIds($companyIds, $sourceCompanyCode, $sourceCompanyName);
+
+            $driver->companies()->sync($resolvedCompanyIds);
+        });
 
         return redirect()->route('drivers.index')->with('success', 'Driver berhasil diperbarui.');
     }
@@ -118,6 +133,20 @@ class DriverController extends Controller
 
         $nik = $request->input('nik');
         $result = $this->jpayroll->fetchEmployeeByNik($nik);
+
+        if (($result['success'] ?? false) && isset($result['data']) && is_array($result['data'])) {
+            $result['data'] = array_map(function (mixed $employee): mixed {
+                if (is_object($employee)) {
+                    $employee = (array) $employee;
+                }
+
+                if (is_array($employee)) {
+                    $employee['_company'] = $this->payrollCompany->normalize($employee);
+                }
+
+                return $employee;
+            }, $result['data']);
+        }
 
         return response()->json($result);
     }

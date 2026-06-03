@@ -26,6 +26,8 @@ class DriverStoreRequest extends FormRequest
     {
         $rules = Driver::validationRules(firstPhoneNumber: $this->input('no_phone_1'));
         $rules['image'] = ['nullable', app(FilePondUploadService::class)->imageUploadValidationRule()];
+        $rules['source_company_code'] = ['nullable', 'string', 'max:20'];
+        $rules['source_company_name'] = ['nullable', 'string', 'max:255'];
 
         return $rules;
     }

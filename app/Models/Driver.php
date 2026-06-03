@@ -48,14 +48,14 @@ class Driver extends Model
         return [
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:2048'],
             'name' => ['required', 'string', 'max:255'],
-            'nik' => ['nullable', 'string', Rule::unique('drivers', 'nik')->ignore($ignoreId)],
+            'nik' => ['required', 'string', Rule::unique('drivers', 'nik')->ignore($ignoreId)],
             'address' => ['required', 'string', 'max:255'],
             'no_identity' => ['required', 'digits:16', Rule::unique('drivers', 'no_identity')->ignore($ignoreId)],
             'residence' => ['required', 'string', 'max:255'],
             'date_birth' => ['required', 'date'],
             'no_phone_1' => ['required', 'string', 'min:5', 'max:15', Rule::unique('drivers', 'no_phone_1')->ignore($ignoreId)],
             'no_phone_2' => [
-                'required',
+                'nullable',
                 'string',
                 'min:5',
                 'max:15',

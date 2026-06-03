@@ -34,7 +34,7 @@ class DriverDataTable extends DataTable
             Column::computed('companies_label', 'Perusahaan', fn (Driver $driver): string => $driver->companies->pluck('name')->join(', ') ?: '-')
                 ->orderable(false)
                 ->searchable(false),
-            Column::make('no_identity', 'No Identitas'),
+            Column::make('nik', 'No Karyawan'),
             Column::make('no_phone_1', 'No Telepon'),
             Column::make('status', 'Status'),
             Column::action(),

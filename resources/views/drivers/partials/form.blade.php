@@ -13,14 +13,16 @@
     @csrf
     <input type="hidden" name="_method" id="driver-form-method" value="{{ $method !== 'POST' ? $method : '' }}">
     <input type="hidden" name="_form_action" id="driver-form-action" value="{{ $action }}">
+    <input type="hidden" name="source_company_code" id="source-company-code" value="{{ old('source_company_code') }}">
+    <input type="hidden" name="source_company_name" id="source-company-name" value="{{ old('source_company_name') }}">
 
     <div class="row g-3">
         {{-- NIK first: user enters this to trigger employee prefill --}}
         <div class="col-md-12">
-            <x-form.group name="nik" label="Nomor Karyawan">
+            <x-form.group name="nik" label="Nomor Karyawan" required>
                 <div class="input-group">
                     <input type="text" id="nik" name="nik" class="form-control form-control-sm @error('nik') is-invalid @enderror"
-                        value="{{ old('nik', $driver?->nik) }}" placeholder="Contoh: TTI0001938" />
+                        value="{{ old('nik', $driver?->nik) }}" placeholder="Contoh: TTI0001938" required />
                     <button type="button" class="btn btn-sm btn-primary" id="btn-search-nik">
                         <i class="bx bx-search"></i> Cari
                     </button>
@@ -57,13 +59,13 @@
                 </div>
 
                 <div class="col-md-6">
-                    <x-form.text name="no_phone_1" label="HP" :value="$driver?->no_phone_1" placeholder="08xxxx"
+                    <x-form.text name="no_phone_1" label="Nomor Telepon 1" :value="$driver?->no_phone_1" placeholder="08xxxx"
                         inputClass="form-control-sm" required />
                 </div>
 
                 <div class="col-md-6">
-                    <x-form.text name="no_phone_2" label="HP Wali" :value="$driver?->no_phone_2" placeholder="08xxxx"
-                        inputClass="form-control-sm" required />
+                    <x-form.text name="no_phone_2" label="Nomor Telepon 2" :value="$driver?->no_phone_2" placeholder="08xxxx"
+                        inputClass="form-control-sm" />
                 </div>
 
                 {{-- Employment --}}
@@ -154,10 +156,60 @@
                 set('address', emp.IDAddress ?? '');
                 set('no_phone_1', normalizePhone(emp.mobilePhone));
                 set('entry_date', toDateInput(emp.JoinDate));
+                prefillCompany(emp._company);
 
                 const statusEl = document.querySelector('[name="status"]');
                 if (statusEl && emp.Status) {
                     statusEl.value = emp.Status.toUpperCase() === 'ACTIVE' ? 'ACTIVE' : 'PASSIVE';
+                }
+            }
+
+            function prefillCompany(company) {
+                set('source_company_code', company?.code ?? '');
+                set('source_company_name', company?.name ?? '');
+
+                if (!company?.name) {
+                    return;
+                }
+
+                const select = document.querySelector('[name="company_ids[]"]');
+                if (!select) {
+                    return;
+                }
+
+                if (company.id) {
+                    ensureOption(select, String(company.id), `${company.name} (${company.code || '-'})`, false);
+                    selectValues(select, [String(company.id)]);
+                    return;
+                }
+
+                const temporaryValue = `source-company:${company.code || company.name}`;
+                ensureOption(select, temporaryValue, `${company.name} (${company.code || 'baru dari API'})`, true);
+                selectValues(select, [temporaryValue]);
+            }
+
+            function ensureOption(select, value, label, disabled) {
+                let option = Array.from(select.options).find((item) => item.value === value);
+
+                if (!option) {
+                    option = new Option(label, value, true, true);
+                    select.appendChild(option);
+                }
+
+                option.text = label;
+                option.disabled = disabled;
+                option.selected = true;
+            }
+
+            function selectValues(select, values) {
+                Array.from(select.options).forEach((option) => {
+                    option.selected = values.includes(option.value);
+                });
+
+                if (window.jQuery) {
+                    window.jQuery(select).trigger('change');
+                } else {
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
                 }
             }
 
