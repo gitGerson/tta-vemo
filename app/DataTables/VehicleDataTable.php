@@ -16,7 +16,6 @@ class VehicleDataTable extends DataTable
             'entry_year',
             'mileage',
             'plat_new',
-            'plat_old',
             'status',
             'fuel_type',
             'mtc',
@@ -33,14 +32,28 @@ class VehicleDataTable extends DataTable
             Column::computed('company_name', 'Perusahaan', fn (Vehicle $vehicle): string => $vehicle->company?->name ?? '-')
                 ->orderable(false)
                 ->searchable(false),
-            Column::make('plat_new', 'Plat Baru'),
-            Column::make('plat_old', 'Plat Lama'),
-            Column::make('status', 'Status'),
+            Column::make('plat_new', 'Plat Nomor'),
             Column::make('fuel_type', 'Bahan Bakar'),
-            Column::make('mtc', 'MTC'),
-            Column::computed('isprivate_label', 'Private', fn (Vehicle $vehicle): string => $vehicle->isprivate ? 'Yes' : 'No')
+            Column::computed('status_badges', 'Status', function (Vehicle $vehicle): string {
+                $statusClass = $vehicle->status === 'ACTIVE'
+                    ? 'bg-label-success text-success'
+                    : 'bg-label-secondary text-secondary';
+
+                $badges = ['<span class="badge '.$statusClass.'">'.e($vehicle->status).'</span>'];
+
+                if ($vehicle->mtc === 'YES') {
+                    $badges[] = '<span class="badge bg-label-warning text-warning">Under Maintenance</span>';
+                }
+
+                $badges[] = $vehicle->isprivate
+                    ? '<span class="badge bg-label-info text-info">Kendaraan Pribadi</span>'
+                    : '<span class="badge bg-label-secondary text-secondary">Kendaraan Umum</span>';
+
+                return '<div class="d-flex flex-wrap gap-1">'.implode('', $badges).'</div>';
+            })
                 ->orderable(false)
-                ->searchable(false),
+                ->searchable(false)
+                ->raw(),
             Column::action(),
         ];
     }
@@ -60,16 +73,11 @@ class VehicleDataTable extends DataTable
         return 'vehicles.show';
     }
 
-    public function detailModal(): ?string
-    {
-        return 'vehicle-detail-modal';
-    }
-
     public function actions(mixed $row): array
     {
         return [
             [
-                'type' => 'detail-modal',
+                'type' => 'view',
                 'url' => route('vehicles.show', $row),
                 'permission' => 'master.vehicles.view',
             ],
@@ -83,7 +91,6 @@ class VehicleDataTable extends DataTable
                     'entry-year' => $row->entry_year,
                     'mileage' => $row->mileage,
                     'plat-new' => $row->plat_new,
-                    'plat-old' => $row->plat_old,
                     'status' => $row->status,
                     'fuel-type' => $row->fuel_type,
                     'mtc' => $row->mtc,

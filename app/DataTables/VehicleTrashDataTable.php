@@ -24,7 +24,7 @@ class VehicleTrashDataTable extends DataTable
         return [
             Column::index(),
             Column::make('type', 'Tipe'),
-            Column::make('plat_new', 'Plat Baru'),
+            Column::make('plat_new', 'Plat Nomor'),
             Column::make('status', 'Status'),
             Column::make('fuel_type', 'Bahan Bakar'),
             Column::make('deleted_at', 'Dihapus Pada'),

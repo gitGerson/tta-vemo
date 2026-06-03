@@ -8,9 +8,12 @@
         'NO' => 'NO',
         'YES' => 'YES',
     ];
+    // Explicit value/label list: a ['0' => ..., '1' => ...] map collapses to a PHP
+    // list (numeric keys), which <x-form.select> reads as value=label and would
+    // submit "Yes"/"No" instead of 1/0, breaking the boolean validation.
     $privateOptions = [
-        '0' => 'No',
-        '1' => 'Yes',
+        ['value' => '1', 'label' => 'Yes'],
+        ['value' => '0', 'label' => 'No'],
     ];
     $companyOptions = ($companies ?? collect())->mapWithKeys(fn ($company) => [
         $company->id => "{$company->name} ({$company->code})",
@@ -36,11 +39,7 @@
         </div>
 
         <div class="col-md-6">
-            <x-form.text name="plat_new" label="Plat Baru" :value="$vehicle?->plat_new" inputClass="form-control-sm" required maxlength="20" />
-        </div>
-
-        <div class="col-md-6">
-            <x-form.text name="plat_old" label="Plat Lama" :value="$vehicle?->plat_old" inputClass="form-control-sm" maxlength="20" />
+            <x-form.text name="plat_new" label="Plat Nomor" :value="$vehicle?->plat_new" inputClass="form-control-sm" required maxlength="20" />
         </div>
 
         <div class="col-md-6">
@@ -60,7 +59,7 @@
         </div>
 
         <div class="col-md-4">
-            <x-form.select name="isprivate" label="Private" :options="$privateOptions" :value="(string) (int) ($vehicle?->isprivate ?? false)" inputClass="form-select-sm" required />
+            <x-form.select name="isprivate" label="Private" :options="$privateOptions" option-value="value" option-label="label" :value="(string) (int) ($vehicle?->isprivate ?? false)" inputClass="form-select-sm" required />
         </div>
 
         <div class="col-12">

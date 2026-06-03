@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\DataTables\VehicleDataTable;
+use App\DataTables\VehicleSnapshotDataTable;
 use App\DataTables\VehicleTrashDataTable;
 use App\Http\Requests\VehicleStoreRequest;
 use App\Http\Requests\VehicleUpdateRequest;
@@ -31,7 +32,10 @@ class VehicleController extends Controller
     {
         $vehicle->load('company');
 
-        return view('vehicles.partials.show', compact('vehicle'));
+        return view('vehicles.show', [
+            'vehicle' => $vehicle,
+            'snapshotTable' => new VehicleSnapshotDataTable($vehicle),
+        ]);
     }
 
     public function update(Vehicle $vehicle, VehicleUpdateRequest $request)
@@ -70,6 +74,11 @@ class VehicleController extends Controller
     public function getData(Request $request)
     {
         return (new VehicleDataTable)->responseFor($request);
+    }
+
+    public function getSnapshotData(Vehicle $vehicle, Request $request)
+    {
+        return (new VehicleSnapshotDataTable($vehicle))->responseFor($request);
     }
 
     public function getTrashData(Request $request)

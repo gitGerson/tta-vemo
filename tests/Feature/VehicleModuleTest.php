@@ -43,7 +43,6 @@ class VehicleModuleTest extends TestCase
             'type' => 'Box',
             'entry_year' => '2026',
             'plat_new' => 'H 1234 TT',
-            'plat_old' => null,
             'fuel_type' => 'BBM',
             'isprivate' => false,
         ])->toArray();
@@ -70,7 +69,6 @@ class VehicleModuleTest extends TestCase
             'company_id' => $company->id,
             'type' => 'Updated Truck',
             'plat_new' => $vehicle->plat_new,
-            'plat_old' => $vehicle->plat_old,
             'fuel_type' => 'Solar',
         ])->toArray();
 

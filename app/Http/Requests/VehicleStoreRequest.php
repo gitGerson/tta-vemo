@@ -38,7 +38,6 @@ class VehicleStoreRequest extends FormRequest
             'entry_year' => $this->normalizeText($this->input('entry_year')),
             'mileage' => blank($this->input('mileage')) ? '0' : $this->normalizeText($this->input('mileage')),
             'plat_new' => $this->normalizePlate($this->input('plat_new')),
-            'plat_old' => $this->normalizePlate($this->input('plat_old')),
             'fuel_type' => $this->normalizeText($this->input('fuel_type', 'BBM')),
             'desc' => $this->normalizeText($this->input('desc')),
         ]);

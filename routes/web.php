@@ -145,6 +145,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:master.vehicles.view'])->group(function () {
         Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles.index');
         Route::get('/vehicles/data', [VehicleController::class, 'getData'])->name('vehicles.data');
+        Route::get('/vehicles/{vehicle}/snapshots/data', [VehicleController::class, 'getSnapshotData'])->name('vehicles.snapshots.data');
     });
 
     Route::middleware(['permission:master.vehicles.create'])->group(function () {

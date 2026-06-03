@@ -50,19 +50,6 @@
         </div>
     </div>
 
-    <div class="modal fade" id="vehicle-detail-modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Detail Kendaraan</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    {{-- AJAX-loaded detail fragment --}}
-                </div>
-            </div>
-        </div>
-    </div>
 @endsection
 
 @push('scripts')
@@ -112,7 +99,6 @@
         setField('company_id', d.companyId);
         setField('mileage', d.mileage);
         setField('plat_new', d.platNew);
-        setField('plat_old', d.platOld);
         setField('status', d.status);
         setField('fuel_type', d.fuelType);
         setField('mtc', d.mtc);
@@ -142,7 +128,6 @@
             companyId: btn.dataset.companyId,
             mileage: btn.dataset.mileage,
             platNew: btn.dataset.platNew,
-            platOld: btn.dataset.platOld,
             status: btn.dataset.status,
             fuelType: btn.dataset.fuelType,
             mtc: btn.dataset.mtc,

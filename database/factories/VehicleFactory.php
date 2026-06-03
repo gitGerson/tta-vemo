@@ -22,7 +22,6 @@ class VehicleFactory extends Factory
             'entry_year' => (string) fake()->numberBetween(2018, 2026),
             'mileage' => (string) fake()->numberBetween(0, 250000),
             'plat_new' => strtoupper(fake()->unique()->bothify('? #### ??')),
-            'plat_old' => fake()->optional()->bothify('? #### ??'),
             'status' => 'ACTIVE',
             'fuel_type' => 'BBM',
             'mtc' => fake()->randomElement(['YES', 'NO']),
