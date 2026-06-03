@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('type_maintenances', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->enum('jenis', ['jasa', 'barang'])->default('jasa');
             $table->timestamps();
             $table->softDeletes();
         });

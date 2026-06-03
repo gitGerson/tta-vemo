@@ -12,6 +12,7 @@ class TypeMaintenanceDataTable extends DataTable
         return TypeMaintenances::query()->select([
             'id',
             'name',
+            'jenis',
         ]);
     }
 
@@ -20,6 +21,7 @@ class TypeMaintenanceDataTable extends DataTable
         return [
             Column::index(),
             Column::make('name', 'Nama'),
+            Column::make('jenis', 'Jenis'),
             Column::action(),
         ];
     }
@@ -59,6 +61,7 @@ class TypeMaintenanceDataTable extends DataTable
                 'data' => [
                     'update-url' => route('type-maintenances.update', $row),
                     'name' => $row->name,
+                    'jenis' => $row->jenis,
                 ],
             ],
             [

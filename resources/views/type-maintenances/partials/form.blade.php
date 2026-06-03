@@ -11,6 +11,10 @@
         <div class="col-12">
             <x-form.text name="name" label="Nama" :value="$typeMaintenance?->name" inputClass="form-control-sm" required />
         </div>
+
+        <div class="col-12">
+            <x-form.select name="jenis" label="Jenis" :options="['jasa' => 'Jasa', 'barang' => 'Barang']" :value="$typeMaintenance?->jenis ?? 'jasa'" inputClass="form-select-sm" required />
+        </div>
     </div>
 
     <div class="d-flex justify-content-end gap-2 mt-4">

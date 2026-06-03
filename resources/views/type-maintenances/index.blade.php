@@ -111,6 +111,7 @@
         form.querySelector('[type="submit"]').textContent = 'Perbarui';
 
         setField('name', d.name);
+        setField('jenis', d.jenis);
     }
 
     modalEl.addEventListener('shown.bs.modal', function () {
@@ -131,6 +132,7 @@
         pendingEditData = {
             updateUrl: btn.dataset.updateUrl,
             name: btn.dataset.name,
+            jenis: btn.dataset.jenis,
         };
 
         bootstrap.Modal.getOrCreateInstance(modalEl).show();

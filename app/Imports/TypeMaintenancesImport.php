@@ -15,7 +15,7 @@ class TypeMaintenancesImport implements ToModel, WithHeadingRow
      */
     public function model(array $row)
     {
-        $name = isset($row['name']) ? Str::upper(trim((string) $row['name'])) : '';
+        $name = isset($row['nama_jenis_perbaikan']) ? Str::upper(trim((string) $row['nama_jenis_perbaikan'])) : '';
 
         if ($name === '') {
             return null;
@@ -27,8 +27,15 @@ class TypeMaintenancesImport implements ToModel, WithHeadingRow
             return null;
         }
 
+        $jenis = Str::lower(trim((string) ($row['jenis'] ?? '')));
+
+        if (! in_array($jenis, ['jasa', 'barang'], true)) {
+            $jenis = 'jasa';
+        }
+
         $data = [
             'name' => $name,
+            'jenis' => $jenis,
         ];
 
         return new TypeMaintenances($data);

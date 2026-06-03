@@ -36,6 +36,7 @@ class TypeMaintenanceStoreRequest extends FormRequest
     {
         $this->merge([
             'name' => is_string($this->input('name')) ? Str::upper(trim($this->input('name'))) : $this->input('name'),
+            'jenis' => is_string($this->input('jenis')) ? Str::lower(trim($this->input('jenis'))) : $this->input('jenis'),
         ]);
     }
 }

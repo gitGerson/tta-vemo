@@ -19,6 +19,7 @@ class TypeMaintenancesFactory extends Factory
     {
         return [
             'name' => strtoupper(fake()->unique()->words(3, true)),
+            'jenis' => fake()->randomElement(['jasa', 'barang']),
         ];
     }
 }

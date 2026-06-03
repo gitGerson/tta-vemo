@@ -36,11 +36,12 @@ class TypeMaintenanceModuleTest extends TestCase
     {
         $this->actingAs($this->userWithTypeMaintenancePermissions());
 
-        $this->post(route('type-maintenances.store'), ['name' => 'engine oil'])
+        $this->post(route('type-maintenances.store'), ['name' => 'engine oil', 'jenis' => 'barang'])
             ->assertRedirect(route('type-maintenances.index'));
 
         $this->assertDatabaseHas('type_maintenances', [
             'name' => 'ENGINE OIL',
+            'jenis' => 'barang',
         ]);
     }
 
@@ -49,12 +50,13 @@ class TypeMaintenanceModuleTest extends TestCase
         $this->actingAs($this->userWithTypeMaintenancePermissions());
         $typeMaintenance = TypeMaintenances::factory()->create();
 
-        $this->put(route('type-maintenances.update', $typeMaintenance), ['name' => 'brake service'])
+        $this->put(route('type-maintenances.update', $typeMaintenance), ['name' => 'brake service', 'jenis' => 'jasa'])
             ->assertRedirect(route('type-maintenances.index'));
 
         $this->assertDatabaseHas('type_maintenances', [
             'id' => $typeMaintenance->id,
             'name' => 'BRAKE SERVICE',
+            'jenis' => 'jasa',
         ]);
     }
 

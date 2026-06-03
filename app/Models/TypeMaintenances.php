@@ -15,6 +15,7 @@ class TypeMaintenances extends Model
 
     protected $fillable = [
         'name',
+        'jenis',
     ];
 
     protected function casts(): array
@@ -28,6 +29,7 @@ class TypeMaintenances extends Model
     {
         return [
             'name' => ['required', 'string', 'max:255', Rule::unique('type_maintenances', 'name')->ignore($typeMaintenance?->getKey())],
+            'jenis' => ['required', Rule::in(['jasa', 'barang'])],
         ];
     }
 
@@ -35,6 +37,7 @@ class TypeMaintenances extends Model
     {
         return [
             'name.unique' => 'Tipe maintenance sudah tersedia.',
+            'jenis.in' => 'Jenis harus jasa atau barang.',
         ];
     }
 }
