@@ -18,6 +18,9 @@
     $companyOptions = ($companies ?? collect())->mapWithKeys(fn ($company) => [
         $company->id => "{$company->name} ({$company->code})",
     ])->all();
+    $vehicleTypeOptions = ($vehicleTypes ?? collect())->mapWithKeys(fn ($vehicleType) => [
+        $vehicleType->id => "{$vehicleType->name} ({$vehicleType->code})",
+    ])->all();
     $fuelTypeOptions = ($fuelTypes ?? collect())->mapWithKeys(fn ($fuelType) => [
         $fuelType->id => "{$fuelType->name} ({$fuelType->merk} - " . ucfirst($fuelType->type) . ")",
     ])->all();
@@ -32,7 +35,8 @@
     <h6 class="fw-semibold mb-3"><i class="bx bx-car me-1 text-primary"></i> Informasi Kendaraan</h6>
     <div class="row g-3">
         <div class="col-md-6">
-            <x-form.text name="type" label="Tipe" :value="$vehicle?->type" inputClass="form-control-sm" required maxlength="50" />
+            <x-form.select name="vehicle_type_id" label="Tipe" :options="$vehicleTypeOptions" :value="$vehicle?->vehicle_type_id" placeholder="Pilih tipe kendaraan..." inputClass="form-select-sm" />
+            <input type="hidden" name="type" value="{{ old('type', $vehicle?->type) }}">
         </div>
 
         <div class="col-md-6">

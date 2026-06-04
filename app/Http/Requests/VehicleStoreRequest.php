@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\FuelType;
 use App\Models\Vehicle;
+use App\Models\VehicleType;
 use App\Services\FilePondUploadService;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -40,7 +41,8 @@ class VehicleStoreRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'type' => $this->normalizeText($this->input('type')),
+            'vehicle_type_id' => $this->nullIfBlank($this->input('vehicle_type_id')),
+            'type' => $this->resolveVehicleTypeLabel(),
             'entry_year' => $this->normalizeText($this->input('entry_year')),
             'mileage' => blank($this->input('mileage')) ? '0' : $this->normalizeText($this->input('mileage')),
             'plat_new' => $this->normalizePlate($this->input('plat_new')),
@@ -80,5 +82,16 @@ class VehicleStoreRequest extends FormRequest
         }
 
         return $this->normalizeText($this->input('fuel_type', 'BBM'));
+    }
+
+    protected function resolveVehicleTypeLabel(): mixed
+    {
+        $vehicleTypeId = $this->nullIfBlank($this->input('vehicle_type_id'));
+
+        if ($vehicleTypeId !== null) {
+            return VehicleType::query()->whereKey($vehicleTypeId)->value('name') ?? $this->normalizeText($this->input('type'));
+        }
+
+        return $this->normalizeText($this->input('type'));
     }
 }

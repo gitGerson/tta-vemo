@@ -11,6 +11,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TypeMaintenanceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
+use App\Http\Controllers\VehicleTypeController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -262,6 +263,25 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:master.fuel_types.delete'])->group(function () {
         Route::delete('/fuel-types/{fuelType}', [FuelTypeController::class, 'destroy'])->name('fuel-types.destroy');
+    });
+
+    // Vehicle type master data routes with permissions
+    Route::middleware(['permission:master.vehicle_types.view'])->group(function () {
+        Route::get('/vehicle-types', [VehicleTypeController::class, 'index'])->name('vehicle-types.index');
+        Route::get('/vehicle-types/data', [VehicleTypeController::class, 'getData'])->name('vehicle-types.data');
+        Route::get('/vehicle-types/{vehicleType}', [VehicleTypeController::class, 'show'])->name('vehicle-types.show');
+    });
+
+    Route::middleware(['permission:master.vehicle_types.create'])->group(function () {
+        Route::post('/vehicle-types', [VehicleTypeController::class, 'store'])->name('vehicle-types.store');
+    });
+
+    Route::middleware(['permission:master.vehicle_types.edit'])->group(function () {
+        Route::put('/vehicle-types/{vehicleType}', [VehicleTypeController::class, 'update'])->name('vehicle-types.update');
+    });
+
+    Route::middleware(['permission:master.vehicle_types.delete'])->group(function () {
+        Route::delete('/vehicle-types/{vehicleType}', [VehicleTypeController::class, 'destroy'])->name('vehicle-types.destroy');
     });
 
     // Generic FilePond routes

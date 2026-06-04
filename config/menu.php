@@ -164,6 +164,22 @@ return [
             'enabled' => true,
         ],
         [
+            'key' => 'vehicle-types-index',
+            'label' => 'Vehicle Type',
+            'icon' => 'bx-category',
+            'route' => 'vehicle-types.index',
+            'route_params' => [],
+            'active_patterns' => ['vehicle-types.*'],
+            'permission' => 'master.vehicle_types.view',
+            'section' => 'master-data',
+            'contexts' => ['desktop', 'search'],
+            'search' => [
+                'description' => 'Manage vehicle type master data',
+                'keywords' => ['vehicle type', 'vehicle', 'kendaraan', 'jenis kendaraan', 'master'],
+            ],
+            'enabled' => true,
+        ],
+        [
             'key' => 'users-index',
             'label' => 'Users',
             'icon' => 'bx-user',

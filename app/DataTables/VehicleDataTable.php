@@ -9,10 +9,11 @@ class VehicleDataTable extends DataTable
 {
     public function query(): Builder
     {
-        return Vehicle::query()->with(['company', 'fuelType'])->select([
+        return Vehicle::query()->with(['company', 'fuelType', 'vehicleType'])->select([
             'id',
             'company_id',
             'fuel_type_id',
+            'vehicle_type_id',
             'type',
             'entry_year',
             'mileage',
@@ -37,7 +38,9 @@ class VehicleDataTable extends DataTable
     {
         return [
             Column::index(),
-            Column::make('type', 'Tipe'),
+            Column::computed('vehicle_type_label', 'Tipe', fn (Vehicle $vehicle): string => $vehicle->vehicleType?->name ?? $vehicle->type)
+                ->orderable(false)
+                ->searchable(false),
             Column::computed('company_name', 'Perusahaan', fn (Vehicle $vehicle): string => $vehicle->company?->name ?? '-')
                 ->orderable(false)
                 ->searchable(false),

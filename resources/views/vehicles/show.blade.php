@@ -6,6 +6,7 @@
 
 @php
     $statusClass = $vehicle->status === 'ACTIVE' ? 'bg-label-success' : 'bg-label-secondary';
+    $vehicleTypeLabel = $vehicle->vehicleType?->name ?? $vehicle->type;
     $bpkb = $vehicle->bpkbImageUrls();
     $stnk = $vehicle->stnkImageUrls();
 @endphp
@@ -20,7 +21,7 @@
                     <span class="badge bg-label-primary rounded p-3"><i class="bx bx-car fs-3"></i></span>
                     <div>
                         <h4 class="mb-0">{{ $vehicle->plat_new }}</h4>
-                        <span class="text-muted">{{ $vehicle->type }}</span>
+                        <span class="text-muted">{{ $vehicleTypeLabel }}</span>
                     </div>
                 </div>
                 <div class="d-flex gap-2">
@@ -105,7 +106,7 @@
                 <div class="row g-3 mb-4">
                     @foreach ([
                         ['label' => 'Plat Nomor', 'value' => $vehicle->plat_new, 'color' => 'primary'],
-                        ['label' => 'Tipe', 'value' => $vehicle->type, 'color' => 'info'],
+                        ['label' => 'Tipe', 'value' => $vehicleTypeLabel, 'color' => 'info'],
                         ['label' => 'Perusahaan', 'value' => $vehicle->company?->name ?? '-', 'color' => 'success'],
                         ['label' => 'Tahun Masuk', 'value' => $vehicle->entry_year, 'color' => 'warning'],
                     ] as $chip)

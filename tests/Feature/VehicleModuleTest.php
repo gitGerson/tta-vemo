@@ -8,6 +8,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Models\VehicleType;
 use App\Services\MenuService;
 use App\Services\PermissionSyncService;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
@@ -97,6 +98,34 @@ class VehicleModuleTest extends TestCase
             'id' => $vehicle->id,
             'fuel_type_id' => $fuelType->id,
             'fuel_type' => 'PERTAMAX',
+        ]);
+    }
+
+    public function test_authorized_user_can_create_vehicle_with_vehicle_type_relation(): void
+    {
+        $this->actingAs($this->userWithVehiclePermissions());
+        $vehicleType = VehicleType::factory()->create([
+            'code' => 'BOX',
+            'name' => 'BOX TRUCK',
+        ]);
+
+        $payload = Vehicle::factory()->make([
+            'vehicle_type_id' => $vehicleType->id,
+            'type' => 'Legacy Type',
+            'plat_new' => 'H 8888 VT',
+        ])->toArray();
+
+        $this->post(route('vehicles.store'), $payload)
+            ->assertRedirect(route('vehicles.index'));
+
+        $vehicle = Vehicle::query()->where('plat_new', 'H 8888 VT')->firstOrFail();
+
+        $this->assertTrue($vehicle->vehicleType->is($vehicleType));
+        $this->assertTrue($vehicleType->vehicles()->whereKey($vehicle->getKey())->exists());
+        $this->assertDatabaseHas('vehicles', [
+            'id' => $vehicle->id,
+            'vehicle_type_id' => $vehicleType->id,
+            'type' => 'BOX TRUCK',
         ]);
     }
 
