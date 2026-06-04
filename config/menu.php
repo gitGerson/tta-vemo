@@ -26,6 +26,12 @@ return [
             'order' => 30,
             'contexts' => ['desktop', 'search'],
         ],
+        'operational' => [
+            'label' => 'Operasional',
+            'sidebar_label' => 'Operasional',
+            'order' => 35,
+            'contexts' => ['desktop', 'search'],
+        ],
         'management' => [
             'label' => 'Management',
             'sidebar_label' => 'Management',
@@ -208,6 +214,22 @@ return [
             'search' => [
                 'description' => 'Manage vehicle brand master data',
                 'keywords' => ['vehicle brand', 'brand', 'kendaraan', 'merk kendaraan', 'master'],
+            ],
+            'enabled' => true,
+        ],
+        [
+            'key' => 'records-index',
+            'label' => 'Data Perjalanan',
+            'icon' => 'bx-navigation',
+            'route' => 'records.index',
+            'route_params' => [],
+            'active_patterns' => ['records.*'],
+            'permission' => 'operational.records.view',
+            'section' => 'operational',
+            'contexts' => ['desktop', 'search'],
+            'search' => [
+                'description' => 'Trip records and fuel usage tracking',
+                'keywords' => ['record', 'records', 'perjalanan', 'trip', 'bbm', 'operasional'],
             ],
             'enabled' => true,
         ],

@@ -7,6 +7,7 @@ use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\FormDemoController;
 use App\Http\Controllers\FuelTypeController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\RecordController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TypeMaintenanceController;
 use App\Http\Controllers\UserController;
@@ -217,6 +218,41 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:master.vehicle_insurances.view'])->group(function () {
         Route::get('/vehicle-insurances/{vehicleInsurance}', [VehicleInsuranceController::class, 'show'])->name('vehicle-insurances.show');
+    });
+
+    // Record (Data Perjalanan) operational routes with permissions
+    Route::middleware(['permission:operational.records.view'])->group(function () {
+        Route::get('/records', [RecordController::class, 'index'])->name('records.index');
+        Route::get('/records/data', [RecordController::class, 'getData'])->name('records.data');
+        Route::get('/records/export', [RecordController::class, 'exportExcel'])->name('records.export');
+    });
+
+    Route::middleware(['permission:operational.records.create'])->group(function () {
+        Route::get('/records/create', [RecordController::class, 'create'])->name('records.create');
+        Route::post('/records', [RecordController::class, 'store'])->name('records.store');
+    });
+
+    Route::middleware(['permission:operational.records.edit'])->group(function () {
+        Route::get('/records/{record}/edit', [RecordController::class, 'edit'])->name('records.edit');
+        Route::put('/records/{record}', [RecordController::class, 'update'])->name('records.update');
+    });
+
+    Route::middleware(['permission:operational.records.delete'])->group(function () {
+        Route::get('/records/trash', [RecordController::class, 'trash'])->name('records.trash');
+        Route::get('/records/trash/data', [RecordController::class, 'getTrashData'])->name('records.trash.data');
+        Route::delete('/records/{record}', [RecordController::class, 'destroy'])->name('records.destroy');
+    });
+
+    Route::middleware(['permission:operational.records.restore'])->group(function () {
+        Route::post('/records/{record}/restore', [RecordController::class, 'restore'])->withTrashed()->name('records.restore');
+    });
+
+    Route::middleware(['permission:operational.records.force_delete'])->group(function () {
+        Route::delete('/records/{record}/force-delete', [RecordController::class, 'forceDelete'])->withTrashed()->name('records.force-delete');
+    });
+
+    Route::middleware(['permission:operational.records.view'])->group(function () {
+        Route::get('/records/{record}', [RecordController::class, 'show'])->name('records.show');
     });
 
     // Destination master data routes with permissions
