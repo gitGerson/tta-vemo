@@ -41,20 +41,6 @@
             </div>
         </div>
     </div>
-
-    <div class="modal fade" id="company-detail-modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Detail Perusahaan</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    {{-- AJAX-loaded detail fragment --}}
-                </div>
-            </div>
-        </div>
-    </div>
 @endsection
 
 @push('scripts')

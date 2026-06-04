@@ -48,16 +48,11 @@ class CompanyDataTable extends DataTable
         return 'companies.show';
     }
 
-    public function detailModal(): ?string
-    {
-        return 'company-detail-modal';
-    }
-
     public function actions(mixed $row): array
     {
         return [
             [
-                'type' => 'detail-modal',
+                'type' => 'view',
                 'url' => route('companies.show', $row),
                 'permission' => 'master.companies.view',
             ],

@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Company;
+use App\Models\Driver;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Vehicle;
 use App\Services\MenuService;
 use App\Services\PermissionSyncService;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
@@ -85,7 +87,7 @@ class CompanyModuleTest extends TestCase
         ]);
     }
 
-    public function test_authorized_user_can_view_company_detail_fragment(): void
+    public function test_authorized_user_can_view_company_detail_page(): void
     {
         $this->actingAs($this->userWithCompanyPermissions());
         $company = Company::factory()->create([
@@ -97,10 +99,58 @@ class CompanyModuleTest extends TestCase
 
         $this->get(route('companies.show', $company))
             ->assertOk()
+            ->assertSee('Detail Perusahaan')
+            ->assertSee('Kembali')
             ->assertSee('ABC123')
             ->assertSee('Detail Company')
             ->assertSee('detail@example.test')
-            ->assertSee('021000111');
+            ->assertSee('021000111')
+            ->assertSee('Data Terkait')
+            ->assertSee('Driver')
+            ->assertSee('Kendaraan')
+            ->assertSee('User')
+            ->assertSee('Audit');
+    }
+
+    public function test_company_relation_data_endpoints_return_only_related_records(): void
+    {
+        $this->actingAs($this->userWithCompanyPermissions());
+        $company = Company::factory()->create();
+        $otherCompany = Company::factory()->create();
+
+        $driver = Driver::factory()->create(['name' => 'Related Driver']);
+        $unrelatedDriver = Driver::factory()->create(['name' => 'Unrelated Driver']);
+        $driver->companies()->attach($company);
+        $unrelatedDriver->companies()->attach($otherCompany);
+
+        $user = User::factory()->create(['name' => 'Related User']);
+        $unrelatedUser = User::factory()->create(['name' => 'Unrelated User']);
+        $user->companies()->attach($company);
+        $unrelatedUser->companies()->attach($otherCompany);
+
+        Vehicle::factory()->create([
+            'company_id' => $company->id,
+            'plat_new' => 'REL 100',
+        ]);
+        Vehicle::factory()->create([
+            'company_id' => $otherCompany->id,
+            'plat_new' => 'OUT 200',
+        ]);
+
+        $this->get(route('companies.drivers.data', ['company' => $company, 'engine' => 'tabulator']))
+            ->assertOk()
+            ->assertJsonPath('data.0.name', 'Related Driver')
+            ->assertDontSee('Unrelated Driver');
+
+        $this->get(route('companies.users.data', ['company' => $company, 'engine' => 'tabulator']))
+            ->assertOk()
+            ->assertJsonPath('data.0.name', 'Related User')
+            ->assertDontSee('Unrelated User');
+
+        $this->get(route('companies.vehicles.data', ['company' => $company, 'engine' => 'tabulator']))
+            ->assertOk()
+            ->assertJsonPath('data.0.plat_new', 'REL 100')
+            ->assertDontSee('OUT 200');
     }
 
     public function test_company_data_endpoint_returns_rows_with_actions(): void
@@ -118,6 +168,7 @@ class CompanyModuleTest extends TestCase
             ->assertJsonFragment(['code' => 'DAT001'])
             ->assertJsonFragment(['email' => 'data@example.test'])
             ->assertJsonFragment(['phone' => '021222333'])
+            ->assertJsonPath('data.0.row_url', route('companies.show', Company::query()->first()))
             ->assertSee('btn-edit-company', false);
     }
 

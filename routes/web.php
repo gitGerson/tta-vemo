@@ -126,6 +126,9 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:master.companies.view'])->group(function () {
         Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
         Route::get('/companies/data', [CompanyController::class, 'getData'])->name('companies.data');
+        Route::get('/companies/{company}/drivers/data', [CompanyController::class, 'getDriverData'])->name('companies.drivers.data');
+        Route::get('/companies/{company}/users/data', [CompanyController::class, 'getUserData'])->name('companies.users.data');
+        Route::get('/companies/{company}/vehicles/data', [CompanyController::class, 'getVehicleData'])->name('companies.vehicles.data');
         Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
     });
 

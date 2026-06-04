@@ -93,6 +93,7 @@ function initTabulators() {
             ...(config.initialSort?.length ? { initialSort: config.initialSort } : {}),
         });
 
+        el.tabulatorInstance = table;
         el.dataset.tabulatorInitialized = '1';
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
         const dirtyRows = new Map();
@@ -393,6 +394,18 @@ function initTabulators() {
         }
     });
 }
+
+document.addEventListener('shown.bs.tab', (event) => {
+    const targetSelector = event.target?.getAttribute('data-bs-target');
+
+    if (!targetSelector) {
+        return;
+    }
+
+    document.querySelector(targetSelector)?.querySelectorAll('.table-tabulator').forEach((tableEl) => {
+        tableEl.tabulatorInstance?.redraw(true);
+    });
+});
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initTabulators);
