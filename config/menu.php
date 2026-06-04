@@ -105,7 +105,7 @@ return [
             'icon' => 'bx-car',
             'route' => 'vehicles.index',
             'route_params' => [],
-            'active_patterns' => ['vehicles.*'],
+            'active_patterns' => ['vehicles.*', 'vehicle-types.*', 'vehicle-brands.*'],
             'permission' => 'master.vehicles.view',
             'section' => 'master-data',
             'contexts' => ['desktop', 'search'],
@@ -172,7 +172,7 @@ return [
             'active_patterns' => ['vehicle-types.*'],
             'permission' => 'master.vehicle_types.view',
             'section' => 'master-data',
-            'contexts' => ['desktop', 'search'],
+            'contexts' => ['search'],
             'search' => [
                 'description' => 'Manage vehicle type master data',
                 'keywords' => ['vehicle type', 'vehicle', 'kendaraan', 'jenis kendaraan', 'master'],
@@ -188,7 +188,7 @@ return [
             'active_patterns' => ['vehicle-brands.*'],
             'permission' => 'master.vehicle_brands.view',
             'section' => 'master-data',
-            'contexts' => ['desktop', 'search'],
+            'contexts' => ['search'],
             'search' => [
                 'description' => 'Manage vehicle brand master data',
                 'keywords' => ['vehicle brand', 'brand', 'kendaraan', 'merk kendaraan', 'master'],

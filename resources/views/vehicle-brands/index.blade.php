@@ -15,6 +15,9 @@
 
         <x-table :table="$table" engine="tabulator" title="Daftar Vehicle Brand">
             <x-slot:actions>
+                <a href="{{ route('vehicles.index') }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bx bx-arrow-back me-1"></i> Kembali
+                </a>
                 @if(auth()->user()->hasPermission('master.vehicle_brands.create'))
                     <button type="button" class="btn btn-sm btn-outline-primary" id="btn-tambah-vehicle-brand" data-bs-toggle="modal" data-bs-target="#vehicle-brand-modal">
                         <i class="bx bx-plus me-1"></i> Tambah Vehicle Brand
