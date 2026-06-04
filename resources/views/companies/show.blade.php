@@ -7,21 +7,18 @@
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
 
-        {{-- Header --}}
-        <div class="card mb-4">
-            <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
-                <div class="d-flex align-items-center gap-3">
-                    <span class="badge bg-label-primary rounded p-3"><i class="bx bx-buildings fs-3"></i></span>
-                    <div>
-                        <h4 class="mb-0">{{ $company->name }}</h4>
-                        <span class="text-muted">{{ $company->code }}</span>
-                    </div>
-                </div>
-                <div class="d-flex gap-2">
-                    <a href="{{ route('companies.index') }}" class="btn btn-outline-secondary">
-                        <i class="bx bx-arrow-back me-1"></i> Kembali
-                    </a>
-                </div>
+        {{-- Header breadcrumb --}}
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ route('companies.index') }}">Perusahaan</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ $company->name }}</li>
+                </ol>
+            </nav>
+            <div class="d-flex gap-2">
+                <a href="{{ route('companies.index') }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bx bx-arrow-back me-1"></i> Kembali
+                </a>
             </div>
         </div>
 

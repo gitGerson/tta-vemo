@@ -9,31 +9,30 @@
     $vehicleTypeLabel = $vehicle->vehicleType?->name ?? $vehicle->type;
     $bpkb = $vehicle->bpkbImageUrls();
     $stnk = $vehicle->stnkImageUrls();
+    $brandLogo = $vehicle->vehicleBrand?->logoUrl();
+    $brandName = $vehicle->vehicleBrand?->name;
 @endphp
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
 
-        {{-- Header --}}
-        <div class="card mb-4">
-            <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
-                <div class="d-flex align-items-center gap-3">
-                    <span class="badge bg-label-primary rounded p-3"><i class="bx bx-car fs-3"></i></span>
-                    <div>
-                        <h4 class="mb-0">{{ $vehicle->plat_new }}</h4>
-                        <span class="text-muted">{{ $vehicleTypeLabel }}</span>
-                    </div>
-                </div>
-                <div class="d-flex gap-2">
-                    @if(auth()->user()->hasPermission('master.vehicles.edit'))
-                        <a href="{{ route('vehicles.edit', $vehicle) }}" class="btn btn-primary">
-                            <i class="bx bx-edit me-1"></i> Edit
-                        </a>
-                    @endif
-                    <a href="{{ route('vehicles.index') }}" class="btn btn-outline-secondary">
-                        <i class="bx bx-arrow-back me-1"></i> Kembali
+        {{-- Header breadcrumb --}}
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ route('vehicles.index') }}">Kendaraan</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ $vehicle->plat_new }}</li>
+                </ol>
+            </nav>
+            <div class="d-flex gap-2">
+                @if(auth()->user()->hasPermission('master.vehicles.edit'))
+                    <a href="{{ route('vehicles.edit', $vehicle) }}" class="btn btn-sm btn-primary">
+                        <i class="bx bx-edit me-1"></i> Edit
                     </a>
-                </div>
+                @endif
+                <a href="{{ route('vehicles.index') }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bx bx-arrow-back me-1"></i> Kembali
+                </a>
             </div>
         </div>
 
@@ -42,7 +41,13 @@
             <div class="col-lg-4 col-md-5">
                 <div class="card mb-4">
                     <div class="card-body text-center">
-                        <span class="badge bg-label-primary rounded p-4 mb-3"><i class="bx bx-car" style="font-size: 3rem;"></i></span>
+                        <span class="badge bg-label-primary rounded p-4 mb-3 d-inline-flex align-items-center justify-content-center">
+                            @if($brandLogo)
+                                <img src="{{ $brandLogo }}" alt="{{ $brandName }}" style="height: 3rem; width: auto;" onerror="this.outerHTML='<i class=&quot;bx bx-car&quot; style=&quot;font-size: 3rem;&quot;></i>'">
+                            @else
+                                <i class="bx bx-car" style="font-size: 3rem;"></i>
+                            @endif
+                        </span>
                         <h4 class="mb-1">{{ $vehicle->plat_new }}</h4>
                         <div class="d-flex flex-wrap justify-content-center gap-1 mb-3">
                             <span class="badge {{ $statusClass }}">{{ $vehicle->status }}</span>
@@ -59,6 +64,10 @@
                                 <small class="text-muted">Kilometer</small>
                             </div>
                             <div>
+                                <h5 class="mb-0">{{ $brandName ?? '-' }}</h5>
+                                <small class="text-muted">Brand</small>
+                            </div>
+                            <div>
                                 <h5 class="mb-0">{{ $vehicle->fuelType?->name ?? $vehicle->fuel_type }}</h5>
                                 <small class="text-muted">Bahan Bakar</small>
                             </div>
@@ -66,26 +75,19 @@
                     </div>
                 </div>
 
+                {{-- Audit --}}
                 <div class="card mb-4">
                     <div class="card-body">
-                        <h6 class="fw-semibold mb-3"><i class="bx bx-file me-1 text-primary"></i> Dokumen</h6>
-
-                        <small class="text-muted text-uppercase d-block mb-1">Foto BPKB</small>
-                        <div class="d-flex flex-wrap gap-1 mb-3">
-                            @forelse($bpkb as $url)
-                                <a href="{{ $url }}" target="_blank" rel="noopener"><img src="{{ $url }}" alt="BPKB" class="rounded border" style="height: 56px; width: auto;"></a>
-                            @empty
-                                <span class="text-muted">-</span>
-                            @endforelse
+                        <div class="d-flex align-items-center mb-4">
+                            <span class="badge bg-label-secondary rounded p-2 me-2"><i class="bx bx-history"></i></span>
+                            <div>
+                                <h6 class="mb-0 fw-semibold">Audit</h6>
+                                <small class="text-muted">Riwayat pembuatan dan pembaruan.</small>
+                            </div>
                         </div>
-
-                        <small class="text-muted text-uppercase d-block mb-1">Foto STNK</small>
-                        <div class="d-flex flex-wrap gap-1">
-                            @forelse($stnk as $url)
-                                <a href="{{ $url }}" target="_blank" rel="noopener"><img src="{{ $url }}" alt="STNK" class="rounded border" style="height: 56px; width: auto;"></a>
-                            @empty
-                                <span class="text-muted">-</span>
-                            @endforelse
+                        <div class="row g-3">
+                            <div class="col-md-6"><small class="text-muted text-uppercase d-block">Dibuat Pada</small><span class="fw-medium">{{ $vehicle->created_at?->format('d M Y H:i') ?? '-' }}</span></div>
+                            <div class="col-md-6"><small class="text-muted text-uppercase d-block">Diperbarui Pada</small><span class="fw-medium">{{ $vehicle->updated_at?->format('d M Y H:i') ?? '-' }}</span></div>
                         </div>
                     </div>
                 </div>
@@ -107,7 +109,6 @@
                     @foreach ([
                         ['label' => 'Plat Nomor', 'value' => $vehicle->plat_new, 'color' => 'primary'],
                         ['label' => 'Tipe', 'value' => $vehicleTypeLabel, 'color' => 'info'],
-                        ['label' => 'Brand', 'value' => $vehicle->vehicleBrand?->name ?? '-', 'color' => 'secondary'],
                         ['label' => 'Perusahaan', 'value' => $vehicle->company?->name ?? '-', 'color' => 'success'],
                         ['label' => 'Tahun Masuk', 'value' => $vehicle->entry_year, 'color' => 'warning'],
                     ] as $chip)
@@ -139,6 +140,41 @@
                     </div>
                 </div>
 
+                {{-- Dokumen --}}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-4">
+                            <span class="badge bg-label-primary rounded p-2 me-2"><i class="bx bx-file"></i></span>
+                            <div>
+                                <h6 class="mb-0 fw-semibold">Dokumen</h6>
+                                <small class="text-muted">Foto BPKB dan STNK kendaraan.</small>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <small class="text-muted text-uppercase d-block mb-1">Foto BPKB</small>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @forelse($bpkb as $url)
+                                        <a href="{{ $url }}" target="_blank" rel="noopener"><img src="{{ $url }}" alt="BPKB" class="rounded border" style="height: 56px; width: auto;"></a>
+                                    @empty
+                                        <span class="text-muted">-</span>
+                                    @endforelse
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted text-uppercase d-block mb-1">Foto STNK</small>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @forelse($stnk as $url)
+                                        <a href="{{ $url }}" target="_blank" rel="noopener"><img src="{{ $url }}" alt="STNK" class="rounded border" style="height: 56px; width: auto;"></a>
+                                    @empty
+                                        <span class="text-muted">-</span>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Keuangan --}}
                 <div class="card mb-4">
                     <div class="card-body">
@@ -154,23 +190,6 @@
                             <div class="col-md-3"><small class="text-muted text-uppercase d-block">Harga Jual</small><span class="fw-medium">{{ $vehicle->selling_price !== null ? 'Rp ' . number_format((float) $vehicle->selling_price, 0, ',', '.') : '-' }}</span></div>
                             <div class="col-md-3"><small class="text-muted text-uppercase d-block">Tanggal Beli</small><span class="fw-medium">{{ $vehicle->purchase_date?->format('d M Y') ?? '-' }}</span></div>
                             <div class="col-md-3"><small class="text-muted text-uppercase d-block">Tanggal Jual</small><span class="fw-medium">{{ $vehicle->sale_date?->format('d M Y') ?? '-' }}</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Audit --}}
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-4">
-                            <span class="badge bg-label-secondary rounded p-2 me-2"><i class="bx bx-history"></i></span>
-                            <div>
-                                <h6 class="mb-0 fw-semibold">Audit</h6>
-                                <small class="text-muted">Riwayat pembuatan dan pembaruan.</small>
-                            </div>
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-6"><small class="text-muted text-uppercase d-block">Dibuat Pada</small><span class="fw-medium">{{ $vehicle->created_at?->format('d M Y H:i') ?? '-' }}</span></div>
-                            <div class="col-md-6"><small class="text-muted text-uppercase d-block">Diperbarui Pada</small><span class="fw-medium">{{ $vehicle->updated_at?->format('d M Y H:i') ?? '-' }}</span></div>
                         </div>
                     </div>
                 </div>
