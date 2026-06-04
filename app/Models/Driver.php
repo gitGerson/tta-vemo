@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompanyTenantThroughPivot;
 use App\Rules\DifferentPhoneNumbers;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +13,7 @@ use Illuminate\Validation\Rule;
 
 class Driver extends Model
 {
-    use HasFactory, SoftDeletes;
+    use BelongsToCompanyTenantThroughPivot, HasFactory, SoftDeletes;
 
     protected $table = 'drivers';
 
@@ -66,7 +67,7 @@ class Driver extends Model
             'out_date' => ['nullable', 'date', 'after_or_equal:entry_date'],
             'status' => ['required', Rule::in(['ACTIVE', 'PASSIVE'])],
             'company_ids' => ['nullable', 'array'],
-            'company_ids.*' => ['integer', Rule::exists(Company::class, 'id')],
+            'company_ids.*' => ['integer', Rule::exists(Company::class, 'id'), self::belongsToTenantCompanyRule()],
         ];
     }
 

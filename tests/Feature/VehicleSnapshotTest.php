@@ -72,12 +72,16 @@ class VehicleSnapshotTest extends TestCase
     {
         $user = User::factory()->create();
         $role = Role::create(['name' => 'vehicle-viewer', 'display_name' => 'Vehicle Viewer']);
-        $permission = Permission::create([
-            'name' => 'master.vehicles.view',
-            'display_name' => 'master.vehicles.view',
-            'module' => 'master',
-        ]);
-        $role->permissions()->attach($permission->id);
+
+        collect(['master.vehicles.view', 'management.tenant.bypass'])->each(function (string $name) use ($role): void {
+            $permission = Permission::create([
+                'name' => $name,
+                'display_name' => $name,
+                'module' => str($name)->before('.')->value(),
+            ]);
+            $role->permissions()->attach($permission->id);
+        });
+
         $user->roles()->attach($role->id, ['assigned_at' => now()]);
         $user->load('roles.permissions');
 

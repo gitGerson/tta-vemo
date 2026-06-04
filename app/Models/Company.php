@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\BelongsToCompanyTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -12,7 +13,7 @@ use Illuminate\Validation\Rule;
 
 class Company extends Model
 {
-    use Auditable, HasFactory, SoftDeletes;
+    use Auditable, BelongsToCompanyTenant, HasFactory, SoftDeletes;
 
     protected $table = 'companies';
 
@@ -51,6 +52,16 @@ class Company extends Model
             'code.max' => 'Kode perusahaan maksimal 20 karakter.',
             'name.unique' => 'Nama perusahaan sudah tersedia.',
         ];
+    }
+
+    public function getTenantScopeColumn(): string
+    {
+        return $this->getKeyName();
+    }
+
+    public function getTenantAssignmentColumn(): ?string
+    {
+        return null;
     }
 
     public function drivers(): BelongsToMany

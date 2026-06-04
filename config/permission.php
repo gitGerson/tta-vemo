@@ -109,6 +109,14 @@ return [
                     'parent' => 'management.access',
                     'sort_order' => 13,
                 ],
+                [
+                    'name' => 'management.tenant.bypass',
+                    'display_name' => 'Tenant Scope - Bypass',
+                    'description' => 'Can access data across all companies without tenant filtering',
+                    'module' => 'management',
+                    'parent' => 'management.access',
+                    'sort_order' => 14,
+                ],
             ],
         ],
         'master' => [

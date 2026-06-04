@@ -216,6 +216,7 @@ class CompanyModuleTest extends TestCase
             'master.companies.create',
             'master.companies.edit',
             'master.companies.delete',
+            'management.tenant.bypass',
         ])->each(function (string $name) use ($role): void {
             $permission = Permission::create([
                 'name' => $name,

@@ -333,6 +333,7 @@ class VehicleModuleTest extends TestCase
             'master.vehicles.delete',
             'master.vehicles.restore',
             'master.vehicles.force_delete',
+            'management.tenant.bypass',
         ])->each(function (string $name) use ($role): void {
             $permission = Permission::create([
                 'name' => $name,

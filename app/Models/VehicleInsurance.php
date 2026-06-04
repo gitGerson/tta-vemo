@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompanyTenant;
 use Database\Factories\VehicleInsuranceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,19 +14,32 @@ use Illuminate\Validation\Rule;
 class VehicleInsurance extends Model
 {
     /** @use HasFactory<VehicleInsuranceFactory> */
-    use HasFactory, SoftDeletes;
+    use BelongsToCompanyTenant, HasFactory, SoftDeletes;
 
     protected $table = 'vehicle_insurances';
 
     protected static function booted(): void
     {
+        // company_id always tracks the parent vehicle (denormalized for tenant scope).
+        static::saving(function (self $insurance): void {
+            $insurance->company_id = $insurance->vehicle?->company_id
+                ?? Vehicle::withoutGlobalScopes()->whereKey($insurance->vehicle_id)->value('company_id');
+        });
+
         static::created(fn (self $insurance) => VehicleInsuranceSnapshot::recordFor($insurance));
         static::updated(fn (self $insurance) => VehicleInsuranceSnapshot::recordFor($insurance));
+    }
+
+    // Tenant company_id is derived from the vehicle, not assigned from the user.
+    public function getTenantAssignmentColumn(): ?string
+    {
+        return null;
     }
 
     protected $fillable = [
         'code',
         'vehicle_id',
+        'company_id',
         'insurer_name',
         'policy_number',
         'insurance_type',
@@ -51,7 +65,7 @@ class VehicleInsurance extends Model
     {
         return [
             'code' => ['required', 'string', 'max:50', Rule::unique('vehicle_insurances', 'code')->ignore($insurance)->withoutTrashed()],
-            'vehicle_id' => ['required', 'integer', Rule::exists(Vehicle::class, 'id')],
+            'vehicle_id' => ['required', 'integer', Rule::exists(Vehicle::class, 'id'), self::vehicleBelongsToTenantRule()],
             'insurer_name' => ['required', 'string', 'max:255'],
             'policy_number' => ['required', 'string', 'max:255'],
             'insurance_type' => ['required', 'string', 'max:255'],
@@ -69,6 +83,25 @@ class VehicleInsurance extends Model
             'code.unique' => 'Kode asuransi sudah tersedia.',
             'end_date.after_or_equal' => 'Tanggal berakhir tidak boleh sebelum tanggal mulai.',
         ];
+    }
+
+    /**
+     * Ensure the selected vehicle belongs to one of the user's tenant companies.
+     */
+    protected static function vehicleBelongsToTenantRule(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail): void {
+            if ($value === null || $value === '' || self::isTenantBypassed()) {
+                return;
+            }
+
+            $allowedCompanyIds = self::resolveTenantCompanyIds();
+            $companyId = Vehicle::withoutGlobalScopes()->whereKey($value)->value('company_id');
+
+            if ($companyId === null || ! in_array((int) $companyId, $allowedCompanyIds, true)) {
+                $fail('Kendaraan yang dipilih tidak tersedia untuk perusahaan Anda.');
+            }
+        };
     }
 
     public function vehicle(): BelongsTo

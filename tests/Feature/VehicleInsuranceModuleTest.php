@@ -134,6 +134,7 @@ class VehicleInsuranceModuleTest extends TestCase
             'master.vehicle_insurances.delete',
             'master.vehicle_insurances.restore',
             'master.vehicle_insurances.force_delete',
+            'management.tenant.bypass',
         ])->each(function (string $name) use ($role): void {
             $permission = Permission::create([
                 'name' => $name,
