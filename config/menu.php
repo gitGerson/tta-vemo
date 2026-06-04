@@ -148,6 +148,22 @@ return [
             'enabled' => true,
         ],
         [
+            'key' => 'fuel-types-index',
+            'label' => 'Fuel Type',
+            'icon' => 'bx-gas-pump',
+            'route' => 'fuel-types.index',
+            'route_params' => [],
+            'active_patterns' => ['fuel-types.*'],
+            'permission' => 'master.fuel_types.view',
+            'section' => 'master-data',
+            'contexts' => ['desktop', 'search'],
+            'search' => [
+                'description' => 'Manage fuel type master data',
+                'keywords' => ['fuel type', 'fuel', 'bbm', 'bensin', 'solar', 'master'],
+            ],
+            'enabled' => true,
+        ],
+        [
             'key' => 'users-index',
             'label' => 'Users',
             'icon' => 'bx-user',

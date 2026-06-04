@@ -5,6 +5,7 @@ use App\Http\Controllers\DestinationController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\FormDemoController;
+use App\Http\Controllers\FuelTypeController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TypeMaintenanceController;
@@ -242,6 +243,25 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:master.type_maintenances.view'])->group(function () {
         Route::get('/type-maintenances/{typeMaintenance}', [TypeMaintenanceController::class, 'show'])->name('type-maintenances.show');
+    });
+
+    // Fuel type master data routes with permissions
+    Route::middleware(['permission:master.fuel_types.view'])->group(function () {
+        Route::get('/fuel-types', [FuelTypeController::class, 'index'])->name('fuel-types.index');
+        Route::get('/fuel-types/data', [FuelTypeController::class, 'getData'])->name('fuel-types.data');
+        Route::get('/fuel-types/{fuelType}', [FuelTypeController::class, 'show'])->name('fuel-types.show');
+    });
+
+    Route::middleware(['permission:master.fuel_types.create'])->group(function () {
+        Route::post('/fuel-types', [FuelTypeController::class, 'store'])->name('fuel-types.store');
+    });
+
+    Route::middleware(['permission:master.fuel_types.edit'])->group(function () {
+        Route::put('/fuel-types/{fuelType}', [FuelTypeController::class, 'update'])->name('fuel-types.update');
+    });
+
+    Route::middleware(['permission:master.fuel_types.delete'])->group(function () {
+        Route::delete('/fuel-types/{fuelType}', [FuelTypeController::class, 'destroy'])->name('fuel-types.destroy');
     });
 
     // Generic FilePond routes
