@@ -180,6 +180,22 @@ return [
             'enabled' => true,
         ],
         [
+            'key' => 'vehicle-brands-index',
+            'label' => 'Vehicle Brand',
+            'icon' => 'bx-purchase-tag',
+            'route' => 'vehicle-brands.index',
+            'route_params' => [],
+            'active_patterns' => ['vehicle-brands.*'],
+            'permission' => 'master.vehicle_brands.view',
+            'section' => 'master-data',
+            'contexts' => ['desktop', 'search'],
+            'search' => [
+                'description' => 'Manage vehicle brand master data',
+                'keywords' => ['vehicle brand', 'brand', 'kendaraan', 'merk kendaraan', 'master'],
+            ],
+            'enabled' => true,
+        ],
+        [
             'key' => 'users-index',
             'label' => 'Users',
             'icon' => 'bx-user',

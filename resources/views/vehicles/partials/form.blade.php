@@ -21,6 +21,9 @@
     $vehicleTypeOptions = ($vehicleTypes ?? collect())->mapWithKeys(fn ($vehicleType) => [
         $vehicleType->id => "{$vehicleType->name} ({$vehicleType->code})",
     ])->all();
+    $vehicleBrandOptions = ($vehicleBrands ?? collect())->mapWithKeys(fn ($vehicleBrand) => [
+        $vehicleBrand->id => "{$vehicleBrand->name} ({$vehicleBrand->code})",
+    ])->all();
     $fuelTypeOptions = ($fuelTypes ?? collect())->mapWithKeys(fn ($fuelType) => [
         $fuelType->id => "{$fuelType->name} ({$fuelType->merk} - " . ucfirst($fuelType->type) . ")",
     ])->all();
@@ -41,6 +44,10 @@
 
         <div class="col-md-6">
             <x-form.text name="entry_year" label="Tahun Masuk" :value="$vehicle?->entry_year" inputClass="form-control-sm" required maxlength="5" />
+        </div>
+
+        <div class="col-md-6">
+            <x-form.select name="vehicle_brand_id" label="Brand" :options="$vehicleBrandOptions" :value="$vehicle?->vehicle_brand_id" placeholder="Pilih brand kendaraan..." inputClass="form-select-sm" />
         </div>
 
         <div class="col-md-6">

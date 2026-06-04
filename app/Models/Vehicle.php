@@ -26,6 +26,7 @@ class Vehicle extends Model
         'company_id',
         'fuel_type_id',
         'vehicle_type_id',
+        'vehicle_brand_id',
         'type',
         'entry_year',
         'mileage',
@@ -66,6 +67,7 @@ class Vehicle extends Model
         return [
             'type' => ['required', 'string', 'max:50'],
             'vehicle_type_id' => ['nullable', 'integer', Rule::exists(VehicleType::class, 'id')],
+            'vehicle_brand_id' => ['nullable', 'integer', Rule::exists(VehicleBrand::class, 'id')],
             'entry_year' => ['required', 'string', 'max:5'],
             'mileage' => ['nullable', 'string', 'max:255'],
             'plat_new' => ['required', 'string', 'max:20', Rule::unique('vehicles', 'plat_new')->ignore($ignoreId)],
@@ -112,6 +114,11 @@ class Vehicle extends Model
     public function vehicleType(): BelongsTo
     {
         return $this->belongsTo(VehicleType::class);
+    }
+
+    public function vehicleBrand(): BelongsTo
+    {
+        return $this->belongsTo(VehicleBrand::class);
     }
 
     public function snapshots(): HasMany

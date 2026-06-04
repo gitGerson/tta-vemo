@@ -42,6 +42,7 @@ class VehicleStoreRequest extends FormRequest
     {
         $this->merge([
             'vehicle_type_id' => $this->nullIfBlank($this->input('vehicle_type_id')),
+            'vehicle_brand_id' => $this->nullIfBlank($this->input('vehicle_brand_id')),
             'type' => $this->resolveVehicleTypeLabel(),
             'entry_year' => $this->normalizeText($this->input('entry_year')),
             'mileage' => blank($this->input('mileage')) ? '0' : $this->normalizeText($this->input('mileage')),

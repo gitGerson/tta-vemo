@@ -107,10 +107,11 @@
                     @foreach ([
                         ['label' => 'Plat Nomor', 'value' => $vehicle->plat_new, 'color' => 'primary'],
                         ['label' => 'Tipe', 'value' => $vehicleTypeLabel, 'color' => 'info'],
+                        ['label' => 'Brand', 'value' => $vehicle->vehicleBrand?->name ?? '-', 'color' => 'secondary'],
                         ['label' => 'Perusahaan', 'value' => $vehicle->company?->name ?? '-', 'color' => 'success'],
                         ['label' => 'Tahun Masuk', 'value' => $vehicle->entry_year, 'color' => 'warning'],
                     ] as $chip)
-                        <div class="col-sm-6 col-xl-3">
+                        <div class="col-sm-6 col-xl">
                             <div class="card h-100 border-start border-3" style="border-left-color: rgba(var(--bs-{{ $chip['color'] }}-rgb), 0.4) !important;">
                                 <div class="card-body p-3">
                                     <small class="text-muted text-uppercase d-block">{{ $chip['label'] }}</small>

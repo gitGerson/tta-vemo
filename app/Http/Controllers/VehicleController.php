@@ -10,6 +10,7 @@ use App\Http\Requests\VehicleUpdateRequest;
 use App\Models\Company;
 use App\Models\FuelType;
 use App\Models\Vehicle;
+use App\Models\VehicleBrand;
 use App\Models\VehicleType;
 use App\Services\FilePondUploadService;
 use Illuminate\Http\Request;
@@ -33,6 +34,7 @@ class VehicleController extends Controller
             'companies' => Company::query()->orderBy('name')->get(['id', 'name', 'code']),
             'fuelTypes' => FuelType::query()->orderBy('merk')->orderBy('name')->get(['id', 'name', 'type', 'merk']),
             'vehicleTypes' => VehicleType::query()->orderBy('name')->get(['id', 'code', 'name']),
+            'vehicleBrands' => VehicleBrand::query()->orderBy('name')->get(['id', 'code', 'name']),
         ]);
     }
 
@@ -49,7 +51,7 @@ class VehicleController extends Controller
 
     public function show(Vehicle $vehicle)
     {
-        $vehicle->load(['company', 'fuelType', 'vehicleType']);
+        $vehicle->load(['company', 'fuelType', 'vehicleType', 'vehicleBrand']);
 
         return view('vehicles.show', [
             'vehicle' => $vehicle,
@@ -60,10 +62,11 @@ class VehicleController extends Controller
     public function edit(Vehicle $vehicle)
     {
         return view('vehicles.edit', [
-            'vehicle' => $vehicle->load(['company', 'fuelType', 'vehicleType']),
+            'vehicle' => $vehicle->load(['company', 'fuelType', 'vehicleType', 'vehicleBrand']),
             'companies' => Company::query()->orderBy('name')->get(['id', 'name', 'code']),
             'fuelTypes' => FuelType::query()->orderBy('merk')->orderBy('name')->get(['id', 'name', 'type', 'merk']),
             'vehicleTypes' => VehicleType::query()->orderBy('name')->get(['id', 'code', 'name']),
+            'vehicleBrands' => VehicleBrand::query()->orderBy('name')->get(['id', 'code', 'name']),
         ]);
     }
 

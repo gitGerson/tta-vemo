@@ -10,6 +10,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TypeMaintenanceController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VehicleBrandController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\VehicleTypeController;
 use Illuminate\Support\Facades\Auth;
@@ -282,6 +283,25 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:master.vehicle_types.delete'])->group(function () {
         Route::delete('/vehicle-types/{vehicleType}', [VehicleTypeController::class, 'destroy'])->name('vehicle-types.destroy');
+    });
+
+    // Vehicle brand master data routes with permissions
+    Route::middleware(['permission:master.vehicle_brands.view'])->group(function () {
+        Route::get('/vehicle-brands', [VehicleBrandController::class, 'index'])->name('vehicle-brands.index');
+        Route::get('/vehicle-brands/data', [VehicleBrandController::class, 'getData'])->name('vehicle-brands.data');
+        Route::get('/vehicle-brands/{vehicleBrand}', [VehicleBrandController::class, 'show'])->name('vehicle-brands.show');
+    });
+
+    Route::middleware(['permission:master.vehicle_brands.create'])->group(function () {
+        Route::post('/vehicle-brands', [VehicleBrandController::class, 'store'])->name('vehicle-brands.store');
+    });
+
+    Route::middleware(['permission:master.vehicle_brands.edit'])->group(function () {
+        Route::put('/vehicle-brands/{vehicleBrand}', [VehicleBrandController::class, 'update'])->name('vehicle-brands.update');
+    });
+
+    Route::middleware(['permission:master.vehicle_brands.delete'])->group(function () {
+        Route::delete('/vehicle-brands/{vehicleBrand}', [VehicleBrandController::class, 'destroy'])->name('vehicle-brands.destroy');
     });
 
     // Generic FilePond routes

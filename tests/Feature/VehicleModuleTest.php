@@ -8,6 +8,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Models\VehicleBrand;
 use App\Models\VehicleType;
 use App\Services\MenuService;
 use App\Services\PermissionSyncService;
@@ -126,6 +127,32 @@ class VehicleModuleTest extends TestCase
             'id' => $vehicle->id,
             'vehicle_type_id' => $vehicleType->id,
             'type' => 'BOX TRUCK',
+        ]);
+    }
+
+    public function test_authorized_user_can_create_vehicle_with_vehicle_brand_relation(): void
+    {
+        $this->actingAs($this->userWithVehiclePermissions());
+        $vehicleBrand = VehicleBrand::factory()->create([
+            'code' => 'TYT',
+            'name' => 'TOYOTA',
+        ]);
+
+        $payload = Vehicle::factory()->make([
+            'vehicle_brand_id' => $vehicleBrand->id,
+            'plat_new' => 'H 8888 VB',
+        ])->toArray();
+
+        $this->post(route('vehicles.store'), $payload)
+            ->assertRedirect(route('vehicles.index'));
+
+        $vehicle = Vehicle::query()->where('plat_new', 'H 8888 VB')->firstOrFail();
+
+        $this->assertTrue($vehicle->vehicleBrand->is($vehicleBrand));
+        $this->assertTrue($vehicleBrand->vehicles()->whereKey($vehicle->getKey())->exists());
+        $this->assertDatabaseHas('vehicles', [
+            'id' => $vehicle->id,
+            'vehicle_brand_id' => $vehicleBrand->id,
         ]);
     }
 
