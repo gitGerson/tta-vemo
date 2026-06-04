@@ -225,6 +225,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/records', [RecordController::class, 'index'])->name('records.index');
         Route::get('/records/data', [RecordController::class, 'getData'])->name('records.data');
         Route::get('/records/export', [RecordController::class, 'exportExcel'])->name('records.export');
+        Route::get('/records/{record}/snapshots/data', [RecordController::class, 'getSnapshotData'])->name('records.snapshots.data');
     });
 
     Route::middleware(['permission:operational.records.create'])->group(function () {

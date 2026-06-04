@@ -53,5 +53,7 @@
                 </div>
             </div>
         </div>
+
+        <x-table :table="$snapshotTable" engine="tabulator" layout="fitDataStretch" title="Riwayat Perubahan" />
     </div>
 @endsection

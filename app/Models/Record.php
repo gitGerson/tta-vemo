@@ -7,6 +7,7 @@ use Database\Factories\RecordFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Validation\Rule;
 
@@ -16,6 +17,12 @@ class Record extends Model
     use BelongsToCompanyTenant, HasFactory, SoftDeletes;
 
     protected $table = 'records';
+
+    protected static function booted(): void
+    {
+        static::created(fn (self $record) => RecordSnapshot::recordFor($record));
+        static::updated(fn (self $record) => RecordSnapshot::recordFor($record));
+    }
 
     protected $fillable = [
         'driver_1',
@@ -98,5 +105,10 @@ class Record extends Model
     public function driver2(): BelongsTo
     {
         return $this->belongsTo(Driver::class, 'driver_2', 'name')->withTrashed();
+    }
+
+    public function snapshots(): HasMany
+    {
+        return $this->hasMany(RecordSnapshot::class)->latest();
     }
 }

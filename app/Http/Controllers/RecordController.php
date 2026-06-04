@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\DataTables\RecordDataTable;
+use App\DataTables\RecordSnapshotDataTable;
 use App\DataTables\RecordTrashDataTable;
 use App\Exports\RecordExport;
 use App\Http\Requests\RecordStoreRequest;
@@ -72,6 +73,7 @@ class RecordController extends Controller
     {
         return view('records.show', [
             'record' => $record->load(['company', 'fuelType']),
+            'snapshotTable' => new RecordSnapshotDataTable($record),
         ]);
     }
 
@@ -148,6 +150,11 @@ class RecordController extends Controller
     public function getTrashData(Request $request)
     {
         return (new RecordTrashDataTable)->responseFor($request);
+    }
+
+    public function getSnapshotData(Record $record, Request $request)
+    {
+        return (new RecordSnapshotDataTable($record))->responseFor($request);
     }
 
     public function exportExcel(Request $request)
