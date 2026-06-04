@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\DataTables\VehicleDataTable;
+use App\DataTables\VehicleInsuranceDataTable;
 use App\DataTables\VehicleSnapshotDataTable;
 use App\DataTables\VehicleTrashDataTable;
 use App\Http\Requests\VehicleStoreRequest;
@@ -56,6 +57,7 @@ class VehicleController extends Controller
         return view('vehicles.show', [
             'vehicle' => $vehicle,
             'snapshotTable' => new VehicleSnapshotDataTable($vehicle),
+            'vehicleInsuranceTable' => new VehicleInsuranceDataTable($vehicle),
         ]);
     }
 

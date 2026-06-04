@@ -12,6 +12,7 @@ use App\Http\Controllers\TypeMaintenanceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleBrandController;
 use App\Http\Controllers\VehicleController;
+use App\Http\Controllers\VehicleInsuranceController;
 use App\Http\Controllers\VehicleTypeController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -152,6 +153,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles.index');
         Route::get('/vehicles/data', [VehicleController::class, 'getData'])->name('vehicles.data');
         Route::get('/vehicles/{vehicle}/snapshots/data', [VehicleController::class, 'getSnapshotData'])->name('vehicles.snapshots.data');
+        Route::get('/vehicles/{vehicle}/insurances/data', [VehicleInsuranceController::class, 'getDataForVehicle'])->name('vehicles.insurances.data');
     });
 
     Route::middleware(['permission:master.vehicles.create'])->group(function () {
@@ -180,6 +182,41 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:master.vehicles.view'])->group(function () {
         Route::get('/vehicles/{vehicle}', [VehicleController::class, 'show'])->name('vehicles.show');
+    });
+
+    // Vehicle insurance master data routes with permissions
+    Route::middleware(['permission:master.vehicle_insurances.view'])->group(function () {
+        Route::get('/vehicle-insurances', [VehicleInsuranceController::class, 'index'])->name('vehicle-insurances.index');
+        Route::get('/vehicle-insurances/data', [VehicleInsuranceController::class, 'getData'])->name('vehicle-insurances.data');
+        Route::get('/vehicle-insurances/{vehicleInsurance}/snapshots/data', [VehicleInsuranceController::class, 'getSnapshotData'])->name('vehicle-insurances.snapshots.data');
+    });
+
+    Route::middleware(['permission:master.vehicle_insurances.create'])->group(function () {
+        Route::get('/vehicle-insurances/create', [VehicleInsuranceController::class, 'create'])->name('vehicle-insurances.create');
+        Route::post('/vehicle-insurances', [VehicleInsuranceController::class, 'store'])->name('vehicle-insurances.store');
+    });
+
+    Route::middleware(['permission:master.vehicle_insurances.edit'])->group(function () {
+        Route::get('/vehicle-insurances/{vehicleInsurance}/edit', [VehicleInsuranceController::class, 'edit'])->name('vehicle-insurances.edit');
+        Route::put('/vehicle-insurances/{vehicleInsurance}', [VehicleInsuranceController::class, 'update'])->name('vehicle-insurances.update');
+    });
+
+    Route::middleware(['permission:master.vehicle_insurances.delete'])->group(function () {
+        Route::get('/vehicle-insurances/trash', [VehicleInsuranceController::class, 'trash'])->name('vehicle-insurances.trash');
+        Route::get('/vehicle-insurances/trash/data', [VehicleInsuranceController::class, 'getTrashData'])->name('vehicle-insurances.trash.data');
+        Route::delete('/vehicle-insurances/{vehicleInsurance}', [VehicleInsuranceController::class, 'destroy'])->name('vehicle-insurances.destroy');
+    });
+
+    Route::middleware(['permission:master.vehicle_insurances.restore'])->group(function () {
+        Route::post('/vehicle-insurances/{vehicleInsurance}/restore', [VehicleInsuranceController::class, 'restore'])->withTrashed()->name('vehicle-insurances.restore');
+    });
+
+    Route::middleware(['permission:master.vehicle_insurances.force_delete'])->group(function () {
+        Route::delete('/vehicle-insurances/{vehicleInsurance}/force-delete', [VehicleInsuranceController::class, 'forceDelete'])->withTrashed()->name('vehicle-insurances.force-delete');
+    });
+
+    Route::middleware(['permission:master.vehicle_insurances.view'])->group(function () {
+        Route::get('/vehicle-insurances/{vehicleInsurance}', [VehicleInsuranceController::class, 'show'])->name('vehicle-insurances.show');
     });
 
     // Destination master data routes with permissions

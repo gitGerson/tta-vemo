@@ -148,7 +148,9 @@ class VehicleBrandModuleTest extends TestCase
         $user = $this->userWithVehicleBrandPermissions();
         $this->actingAs($user);
 
-        $menuItems = app(MenuService::class)->itemsForContext('desktop', $user);
+        // Vehicle Brand lives in the vehicle index "Referensi" dropdown, not the
+        // desktop sidebar; it remains reachable via the search palette.
+        $menuItems = app(MenuService::class)->itemsForContext('search', $user);
 
         $this->assertContains('vehicle-brands-index', collect($menuItems)->pluck('key'));
     }

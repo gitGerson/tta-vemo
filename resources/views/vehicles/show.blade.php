@@ -196,6 +196,20 @@
             </div>
         </div>
 
+        @if(auth()->user()->hasPermission('master.vehicle_insurances.view'))
+            <div class="mb-4">
+                <x-table :table="$vehicleInsuranceTable" engine="tabulator" layout="fitDataStretch" title="Asuransi">
+                    <x-slot:actions>
+                        @if(auth()->user()->hasPermission('master.vehicle_insurances.create'))
+                            <a href="{{ route('vehicle-insurances.create', ['vehicle_id' => $vehicle->id]) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bx bx-plus me-1"></i> Tambah Asuransi
+                            </a>
+                        @endif
+                    </x-slot:actions>
+                </x-table>
+            </div>
+        @endif
+
         <x-table :table="$snapshotTable" engine="tabulator" layout="fitDataStretch" title="Riwayat Perubahan" />
     </div>
 @endsection

@@ -128,7 +128,9 @@ class VehicleTypeModuleTest extends TestCase
         $user = $this->userWithVehicleTypePermissions();
         $this->actingAs($user);
 
-        $menuItems = app(MenuService::class)->itemsForContext('desktop', $user);
+        // Vehicle Type lives in the vehicle index "Referensi" dropdown, not the
+        // desktop sidebar; it remains reachable via the search palette.
+        $menuItems = app(MenuService::class)->itemsForContext('search', $user);
 
         $this->assertContains('vehicle-types-index', collect($menuItems)->pluck('key'));
     }

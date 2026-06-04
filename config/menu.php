@@ -116,6 +116,22 @@ return [
             'enabled' => true,
         ],
         [
+            'key' => 'vehicle-insurances-index',
+            'label' => 'Asuransi',
+            'icon' => 'bx-shield-quarter',
+            'route' => 'vehicle-insurances.index',
+            'route_params' => [],
+            'active_patterns' => ['vehicle-insurances.*'],
+            'permission' => 'master.vehicle_insurances.view',
+            'section' => 'master-data',
+            'contexts' => ['desktop', 'search'],
+            'search' => [
+                'description' => 'Manage vehicle insurance records',
+                'keywords' => ['insurance', 'asuransi', 'polis', 'premi', 'kendaraan', 'master'],
+            ],
+            'enabled' => true,
+        ],
+        [
             'key' => 'destinations-index',
             'label' => 'Destination',
             'icon' => 'bx-map',
