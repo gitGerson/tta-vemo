@@ -13,10 +13,12 @@ class CompanyVehicleDataTable extends DataTable
     public function query(): Builder
     {
         return Vehicle::query()
+            ->with('fuelType')
             ->whereBelongsTo($this->company)
             ->select([
                 'id',
                 'company_id',
+                'fuel_type_id',
                 'type',
                 'entry_year',
                 'mileage',
@@ -38,7 +40,9 @@ class CompanyVehicleDataTable extends DataTable
             Column::make('plat_new', 'Plat Nomor'),
             Column::make('machine_number', 'No. Mesin'),
             Column::make('vin_number', 'VIN'),
-            Column::make('fuel_type', 'Bahan Bakar'),
+            Column::computed('fuel_type_label', 'Bahan Bakar', fn (Vehicle $vehicle): string => $vehicle->fuelType?->name ?? $vehicle->fuel_type)
+                ->orderable(false)
+                ->searchable(false),
             Column::make('mileage', 'Kilometer'),
             Column::make('entry_year', 'Tahun Masuk'),
             Column::computed('status_badges', 'Status', function (Vehicle $vehicle): string {

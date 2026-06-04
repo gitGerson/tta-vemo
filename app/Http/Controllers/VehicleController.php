@@ -8,6 +8,7 @@ use App\DataTables\VehicleTrashDataTable;
 use App\Http\Requests\VehicleStoreRequest;
 use App\Http\Requests\VehicleUpdateRequest;
 use App\Models\Company;
+use App\Models\FuelType;
 use App\Models\Vehicle;
 use App\Services\FilePondUploadService;
 use Illuminate\Http\Request;
@@ -29,6 +30,7 @@ class VehicleController extends Controller
     {
         return view('vehicles.create', [
             'companies' => Company::query()->orderBy('name')->get(['id', 'name', 'code']),
+            'fuelTypes' => FuelType::query()->orderBy('merk')->orderBy('name')->get(['id', 'name', 'type', 'merk']),
         ]);
     }
 
@@ -45,7 +47,7 @@ class VehicleController extends Controller
 
     public function show(Vehicle $vehicle)
     {
-        $vehicle->load('company');
+        $vehicle->load(['company', 'fuelType']);
 
         return view('vehicles.show', [
             'vehicle' => $vehicle,
@@ -56,8 +58,9 @@ class VehicleController extends Controller
     public function edit(Vehicle $vehicle)
     {
         return view('vehicles.edit', [
-            'vehicle' => $vehicle->load('company'),
+            'vehicle' => $vehicle->load(['company', 'fuelType']),
             'companies' => Company::query()->orderBy('name')->get(['id', 'name', 'code']),
+            'fuelTypes' => FuelType::query()->orderBy('merk')->orderBy('name')->get(['id', 'name', 'type', 'merk']),
         ]);
     }
 

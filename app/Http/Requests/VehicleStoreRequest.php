@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\FuelType;
 use App\Models\Vehicle;
 use App\Services\FilePondUploadService;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -43,7 +44,8 @@ class VehicleStoreRequest extends FormRequest
             'entry_year' => $this->normalizeText($this->input('entry_year')),
             'mileage' => blank($this->input('mileage')) ? '0' : $this->normalizeText($this->input('mileage')),
             'plat_new' => $this->normalizePlate($this->input('plat_new')),
-            'fuel_type' => $this->normalizeText($this->input('fuel_type', 'BBM')),
+            'fuel_type_id' => $this->nullIfBlank($this->input('fuel_type_id')),
+            'fuel_type' => $this->resolveFuelTypeLabel(),
             'desc' => $this->normalizeText($this->input('desc')),
             'machine_number' => $this->normalizeText($this->input('machine_number')),
             'vin_number' => $this->normalizeText($this->input('vin_number')),
@@ -67,5 +69,16 @@ class VehicleStoreRequest extends FormRequest
     protected function nullIfBlank(mixed $value): mixed
     {
         return blank($value) ? null : $value;
+    }
+
+    protected function resolveFuelTypeLabel(): mixed
+    {
+        $fuelTypeId = $this->nullIfBlank($this->input('fuel_type_id'));
+
+        if ($fuelTypeId !== null) {
+            return FuelType::query()->whereKey($fuelTypeId)->value('name') ?? $this->normalizeText($this->input('fuel_type', 'BBM'));
+        }
+
+        return $this->normalizeText($this->input('fuel_type', 'BBM'));
     }
 }

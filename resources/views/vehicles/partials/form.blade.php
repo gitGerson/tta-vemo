@@ -18,6 +18,9 @@
     $companyOptions = ($companies ?? collect())->mapWithKeys(fn ($company) => [
         $company->id => "{$company->name} ({$company->code})",
     ])->all();
+    $fuelTypeOptions = ($fuelTypes ?? collect())->mapWithKeys(fn ($fuelType) => [
+        $fuelType->id => "{$fuelType->name} ({$fuelType->merk} - " . ucfirst($fuelType->type) . ")",
+    ])->all();
 @endphp
 
 <form method="POST" action="{{ $action }}">
@@ -49,7 +52,8 @@
         </div>
 
         <div class="col-md-6">
-            <x-form.text name="fuel_type" label="Bahan Bakar" :value="$vehicle?->fuel_type ?? 'BBM'" inputClass="form-control-sm" required />
+            <x-form.select name="fuel_type_id" label="Bahan Bakar" :options="$fuelTypeOptions" :value="$vehicle?->fuel_type_id" placeholder="Pilih bahan bakar..." inputClass="form-select-sm" />
+            <input type="hidden" name="fuel_type" value="{{ old('fuel_type', $vehicle?->fuel_type ?? 'BBM') }}">
         </div>
     </div>
 

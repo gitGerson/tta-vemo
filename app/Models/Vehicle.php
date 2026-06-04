@@ -24,6 +24,7 @@ class Vehicle extends Model
 
     protected $fillable = [
         'company_id',
+        'fuel_type_id',
         'type',
         'entry_year',
         'mileage',
@@ -68,6 +69,7 @@ class Vehicle extends Model
             'plat_new' => ['required', 'string', 'max:20', Rule::unique('vehicles', 'plat_new')->ignore($ignoreId)],
             'status' => ['required', Rule::in(['ACTIVE', 'PASSIVE'])],
             'fuel_type' => ['required', 'string', 'max:255'],
+            'fuel_type_id' => ['nullable', 'integer', Rule::exists(FuelType::class, 'id')],
             'mtc' => ['required', Rule::in(['YES', 'NO'])],
             'desc' => ['nullable', 'string'],
             'isprivate' => ['required', 'boolean'],
@@ -98,6 +100,11 @@ class Vehicle extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function fuelType(): BelongsTo
+    {
+        return $this->belongsTo(FuelType::class);
     }
 
     public function snapshots(): HasMany

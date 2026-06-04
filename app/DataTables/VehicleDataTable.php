@@ -9,9 +9,10 @@ class VehicleDataTable extends DataTable
 {
     public function query(): Builder
     {
-        return Vehicle::query()->with('company')->select([
+        return Vehicle::query()->with(['company', 'fuelType'])->select([
             'id',
             'company_id',
+            'fuel_type_id',
             'type',
             'entry_year',
             'mileage',
@@ -43,7 +44,9 @@ class VehicleDataTable extends DataTable
             Column::make('plat_new', 'Plat Nomor'),
             Column::make('machine_number', 'No. Mesin'),
             Column::make('vin_number', 'VIN'),
-            Column::make('fuel_type', 'Bahan Bakar'),
+            Column::computed('fuel_type_label', 'Bahan Bakar', fn (Vehicle $vehicle): string => $vehicle->fuelType?->name ?? $vehicle->fuel_type)
+                ->orderable(false)
+                ->searchable(false),
             Column::computed('purchase_price_label', 'Harga Beli', fn (Vehicle $vehicle): string => $vehicle->purchase_price !== null ? 'Rp '.number_format((float) $vehicle->purchase_price, 0, ',', '.') : '-')
                 ->searchable(false),
             Column::computed('selling_price_label', 'Harga Jual', fn (Vehicle $vehicle): string => $vehicle->selling_price !== null ? 'Rp '.number_format((float) $vehicle->selling_price, 0, ',', '.') : '-')

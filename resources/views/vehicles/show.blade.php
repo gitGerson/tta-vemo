@@ -58,7 +58,7 @@
                                 <small class="text-muted">Kilometer</small>
                             </div>
                             <div>
-                                <h5 class="mb-0">{{ $vehicle->fuel_type }}</h5>
+                                <h5 class="mb-0">{{ $vehicle->fuelType?->name ?? $vehicle->fuel_type }}</h5>
                                 <small class="text-muted">Bahan Bakar</small>
                             </div>
                         </div>

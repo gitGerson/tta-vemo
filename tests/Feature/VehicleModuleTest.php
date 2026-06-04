@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Company;
+use App\Models\FuelType;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -67,6 +68,35 @@ class VehicleModuleTest extends TestCase
             'plat_new' => 'H 1234 TT',
             'fuel_type' => 'BBM',
             'isprivate' => false,
+        ]);
+    }
+
+    public function test_authorized_user_can_create_vehicle_with_fuel_type_relation(): void
+    {
+        $this->actingAs($this->userWithVehiclePermissions());
+        $fuelType = FuelType::factory()->create([
+            'name' => 'PERTAMAX',
+            'type' => 'bensin',
+            'merk' => 'Pertamina',
+        ]);
+
+        $payload = Vehicle::factory()->make([
+            'fuel_type_id' => $fuelType->id,
+            'fuel_type' => 'Legacy Value',
+            'plat_new' => 'H 7777 FT',
+        ])->toArray();
+
+        $this->post(route('vehicles.store'), $payload)
+            ->assertRedirect(route('vehicles.index'));
+
+        $vehicle = Vehicle::query()->where('plat_new', 'H 7777 FT')->firstOrFail();
+
+        $this->assertTrue($vehicle->fuelType->is($fuelType));
+        $this->assertTrue($fuelType->vehicles()->whereKey($vehicle->getKey())->exists());
+        $this->assertDatabaseHas('vehicles', [
+            'id' => $vehicle->id,
+            'fuel_type_id' => $fuelType->id,
+            'fuel_type' => 'PERTAMAX',
         ]);
     }
 
