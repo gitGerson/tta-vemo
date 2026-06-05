@@ -258,272 +258,126 @@
             </div>
         </div>
         <div class="row">
-            <!-- Order Statistics -->
+            <!-- Vehicle Condition -->
             <div class="col-md-6 col-lg-4 col-xl-4 order-0 mb-6">
                 <div class="card h-100">
                     <div class="card-header d-flex justify-content-between">
                         <div class="card-title mb-0">
-                            <h5 class="mb-1 me-2">Order Statistics</h5>
-                            <p class="card-subtitle">42.82k Total Sales</p>
-                        </div>
-                        <div class="dropdown">
-                            <button class="btn text-body-secondary p-0" type="button" id="orederStatistics"
-                                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="icon-base bx bx-dots-vertical-rounded icon-lg"></i>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="orederStatistics">
-                                <a class="dropdown-item" href="javascript:void(0);">Select All</a>
-                                <a class="dropdown-item" href="javascript:void(0);">Refresh</a>
-                                <a class="dropdown-item" href="javascript:void(0);">Share</a>
-                            </div>
+                            <h5 class="mb-1 me-2">Vehicle Condition</h5>
+                            <p class="card-subtitle">{{ $conditionSummary['active'] }} Active</p>
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-6">
                             <div class="d-flex flex-column align-items-center gap-1">
-                                <h3 class="mb-1">8,258</h3>
-                                <small>Total Orders</small>
+                                <h3 class="mb-1">{{ $conditionSummary['total'] }}</h3>
+                                <small>Total Vehicles</small>
                             </div>
-                            <div id="orderStatisticsChart"></div>
+                            <div id="vehicleConditionChart"></div>
                         </div>
+                        <script type="application/json" id="vehicleConditionData">@json($conditionSummary)</script>
                         <ul class="p-0 m-0">
-                            <li class="d-flex align-items-center mb-5">
-                                <div class="avatar flex-shrink-0 me-3">
-                                    <span class="avatar-initial rounded bg-label-primary"><i
-                                            class="icon-base bx bx-mobile-alt"></i></span>
-                                </div>
-                                <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                                    <div class="me-2">
-                                        <h6 class="mb-0">Electronic</h6>
-                                        <small>Mobile, Earbuds, TV</small>
+                            @foreach ($conditionSummary['items'] as $item)
+                                <li class="d-flex align-items-center {{ $loop->last ? '' : 'mb-5' }}">
+                                    <div class="avatar flex-shrink-0 me-3">
+                                        <span class="avatar-initial rounded bg-label-{{ $item['color'] }}"><i
+                                                class="icon-base bx {{ $item['icon'] }}"></i></span>
                                     </div>
-                                    <div class="user-progress">
-                                        <h6 class="mb-0">82.5k</h6>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="d-flex align-items-center mb-5">
-                                <div class="avatar flex-shrink-0 me-3">
-                                    <span class="avatar-initial rounded bg-label-success"><i
-                                            class="icon-base bx bx-closet"></i></span>
-                                </div>
-                                <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                                    <div class="me-2">
-                                        <h6 class="mb-0">Fashion</h6>
-                                        <small>T-shirt, Jeans, Shoes</small>
-                                    </div>
-                                    <div class="user-progress">
-                                        <h6 class="mb-0">23.8k</h6>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="d-flex align-items-center mb-5">
-                                <div class="avatar flex-shrink-0 me-3">
-                                    <span class="avatar-initial rounded bg-label-info"><i
-                                            class="icon-base bx bx-home-alt"></i></span>
-                                </div>
-                                <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                                    <div class="me-2">
-                                        <h6 class="mb-0">Decor</h6>
-                                        <small>Fine Art, Dining</small>
-                                    </div>
-                                    <div class="user-progress">
-                                        <h6 class="mb-0">849k</h6>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="d-flex align-items-center">
-                                <div class="avatar flex-shrink-0 me-3">
-                                    <span class="avatar-initial rounded bg-label-secondary"><i
-                                            class="icon-base bx bx-football"></i></span>
-                                </div>
-                                <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                                    <div class="me-2">
-                                        <h6 class="mb-0">Sports</h6>
-                                        <small>Football, Cricket Kit</small>
-                                    </div>
-                                    <div class="user-progress">
-                                        <h6 class="mb-0">99</h6>
-                                    </div>
-                                </div>
-                            </li>
+                                    <a href="{{ $item['link'] }}"
+                                        class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2 text-body">
+                                        <div class="me-2">
+                                            <h6 class="mb-0">{{ $item['label'] }}</h6>
+                                            <small>{{ $item['sublabel'] }}</small>
+                                        </div>
+                                        <div class="user-progress">
+                                            <h6 class="mb-0">{{ $item['count'] }}</h6>
+                                        </div>
+                                    </a>
+                                </li>
+                            @endforeach
                         </ul>
                     </div>
                 </div>
             </div>
-            <!--/ Order Statistics -->
+            <!--/ Vehicle Condition -->
 
-            <!-- Expense Overview -->
+            <!-- Service Reminder -->
             <div class="col-md-6 col-lg-4 order-1 mb-6">
                 <div class="card h-100">
-                    <div class="card-header nav-align-top">
-                        <ul class="nav nav-pills flex-wrap row-gap-2" role="tablist">
-                            <li class="nav-item">
-                                <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab"
-                                    data-bs-target="#navs-tabs-line-card-income"
-                                    aria-controls="navs-tabs-line-card-income" aria-selected="true">
-                                    Income
-                                </button>
-                            </li>
-                            <li class="nav-item">
-                                <button type="button" class="nav-link" role="tab">Expenses</button>
-                            </li>
-                            <li class="nav-item">
-                                <button type="button" class="nav-link" role="tab">Profit</button>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="card-body">
-                        <div class="tab-content p-0">
-                            <div class="tab-pane fade show active" id="navs-tabs-line-card-income" role="tabpanel">
-                                <div class="d-flex mb-6">
-                                    <div class="avatar flex-shrink-0 me-3">
-                                        <img src="../assets/img/icons/unicons/wallet.png" alt="User" />
-                                    </div>
-                                    <div>
-                                        <p class="mb-0">Total Balance</p>
-                                        <div class="d-flex align-items-center">
-                                            <h6 class="mb-0 me-1">$459.10</h6>
-                                            <small class="text-success fw-medium">
-                                                <i class="icon-base bx bx-chevron-up icon-lg"></i>
-                                                42.9%
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div id="incomeChart"></div>
-                                <div class="d-flex align-items-center justify-content-center mt-6 gap-3">
-                                    <div class="flex-shrink-0">
-                                        <div id="expensesOfWeek"></div>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">Income this week</h6>
-                                        <small>$39k less than last week</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!--/ Expense Overview -->
-
-            <!-- Transactions -->
-            <div class="col-md-6 col-lg-4 order-2 mb-6">
-                <div class="card h-100">
                     <div class="card-header d-flex align-items-center justify-content-between">
-                        <h5 class="card-title m-0 me-2">Transactions</h5>
-                        <div class="dropdown">
-                            <button class="btn text-body-secondary p-0" type="button" id="transactionID"
-                                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="icon-base bx bx-dots-vertical-rounded icon-lg"></i>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="transactionID">
-                                <a class="dropdown-item" href="javascript:void(0);">Last 28 Days</a>
-                                <a class="dropdown-item" href="javascript:void(0);">Last Month</a>
-                                <a class="dropdown-item" href="javascript:void(0);">Last Year</a>
-                            </div>
+                        <div class="card-title mb-0">
+                            <h5 class="mb-1 me-2">Service Reminder</h5>
+                            <p class="card-subtitle">{{ $serviceReminders['count'] }} Due</p>
                         </div>
+                        <a href="{{ route('maintenances.create') }}" class="btn btn-sm btn-outline-primary">Log
+                            Service</a>
                     </div>
                     <div class="card-body pt-4">
                         <ul class="p-0 m-0">
-                            <li class="d-flex align-items-center mb-6">
-                                <div class="avatar flex-shrink-0 me-3">
-                                    <img src="../assets/img/icons/unicons/paypal.png" alt="User" class="rounded" />
-                                </div>
-                                <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                                    <div class="me-2">
-                                        <small class="d-block">Paypal</small>
-                                        <h6 class="fw-normal mb-0">Send money</h6>
+                            @forelse ($serviceReminders['items'] as $item)
+                                <li class="d-flex align-items-center {{ $loop->last ? '' : 'mb-6' }}">
+                                    <div class="avatar flex-shrink-0 me-3">
+                                        <span class="avatar-initial rounded bg-label-danger"><i
+                                                class="icon-base bx bx-wrench"></i></span>
                                     </div>
-                                    <div class="user-progress d-flex align-items-center gap-2">
-                                        <h6 class="fw-normal mb-0">+82.6</h6>
-                                        <span class="text-body-secondary">USD</span>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="d-flex align-items-center mb-6">
-                                <div class="avatar flex-shrink-0 me-3">
-                                    <img src="../assets/img/icons/unicons/wallet.png" alt="User" class="rounded" />
-                                </div>
-                                <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                                    <div class="me-2">
-                                        <small class="d-block">Wallet</small>
-                                        <h6 class="fw-normal mb-0">Mac'D</h6>
-                                    </div>
-                                    <div class="user-progress d-flex align-items-center gap-2">
-                                        <h6 class="fw-normal mb-0">+270.69</h6>
-                                        <span class="text-body-secondary">USD</span>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="d-flex align-items-center mb-6">
-                                <div class="avatar flex-shrink-0 me-3">
-                                    <img src="../assets/img/icons/unicons/chart.png" alt="User" class="rounded" />
-                                </div>
-                                <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                                    <div class="me-2">
-                                        <small class="d-block">Transfer</small>
-                                        <h6 class="fw-normal mb-0">Refund</h6>
-                                    </div>
-                                    <div class="user-progress d-flex align-items-center gap-2">
-                                        <h6 class="fw-normal mb-0">+637.91</h6>
-                                        <span class="text-body-secondary">USD</span>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="d-flex align-items-center mb-6">
-                                <div class="avatar flex-shrink-0 me-3">
-                                    <img src="../assets/img/icons/unicons/cc-primary.png" alt="User"
-                                        class="rounded" />
-                                </div>
-                                <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                                    <div class="me-2">
-                                        <small class="d-block">Credit Card</small>
-                                        <h6 class="fw-normal mb-0">Ordered Food</h6>
-                                    </div>
-                                    <div class="user-progress d-flex align-items-center gap-2">
-                                        <h6 class="fw-normal mb-0">-838.71</h6>
-                                        <span class="text-body-secondary">USD</span>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="d-flex align-items-center mb-6">
-                                <div class="avatar flex-shrink-0 me-3">
-                                    <img src="../assets/img/icons/unicons/wallet.png" alt="User" class="rounded" />
-                                </div>
-                                <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                                    <div class="me-2">
-                                        <small class="d-block">Wallet</small>
-                                        <h6 class="fw-normal mb-0">Starbucks</h6>
-                                    </div>
-                                    <div class="user-progress d-flex align-items-center gap-2">
-                                        <h6 class="fw-normal mb-0">+203.33</h6>
-                                        <span class="text-body-secondary">USD</span>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="d-flex align-items-center">
-                                <div class="avatar flex-shrink-0 me-3">
-                                    <img src="../assets/img/icons/unicons/cc-warning.png" alt="User"
-                                        class="rounded" />
-                                </div>
-                                <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                                    <div class="me-2">
-                                        <small class="d-block">Mastercard</small>
-                                        <h6 class="fw-normal mb-0">Ordered Food</h6>
-                                    </div>
-                                    <div class="user-progress d-flex align-items-center gap-2">
-                                        <h6 class="fw-normal mb-0">-92.45</h6>
-                                        <span class="text-body-secondary">USD</span>
-                                    </div>
-                                </div>
-                            </li>
+                                    <a href="{{ $item['link'] }}"
+                                        class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2 text-body">
+                                        <div class="me-2">
+                                            <h6 class="mb-0">{{ $item['plate'] }}</h6>
+                                            <small>{{ $item['current'] }} / {{ $item['threshold'] }} km · last {{ $item['last_service'] }}</small>
+                                        </div>
+                                        <div class="user-progress">
+                                            <span class="badge bg-label-danger">{{ $item['over'] }} km over</span>
+                                        </div>
+                                    </a>
+                                </li>
+                            @empty
+                                <li class="text-center text-body-secondary py-4">
+                                    <i class="icon-base bx bx-check-circle text-success mb-2 d-block"
+                                        style="font-size: 2rem;"></i>
+                                    No vehicles due for service.
+                                </li>
+                            @endforelse
                         </ul>
                     </div>
                 </div>
             </div>
-            <!--/ Transactions -->
+            <!--/ Service Reminder -->
+
+            <!-- Recent Maintenance -->
+            <div class="col-md-6 col-lg-4 order-2 mb-6">
+                <div class="card h-100">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h5 class="card-title m-0 me-2">Recent Maintenance</h5>
+                        <a href="{{ route('maintenances.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
+                    <div class="card-body pt-4">
+                        <ul class="p-0 m-0">
+                            @forelse ($recentMaintenance as $item)
+                                <li class="d-flex align-items-center {{ $loop->last ? '' : 'mb-6' }}">
+                                    <div class="avatar flex-shrink-0 me-3">
+                                        <span class="avatar-initial rounded bg-label-{{ $item['color'] }}"><i
+                                                class="icon-base bx {{ $item['icon'] }}"></i></span>
+                                    </div>
+                                    <a href="{{ $item['link'] }}"
+                                        class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2 text-body">
+                                        <div class="me-2">
+                                            <h6 class="mb-0">{{ $item['plate'] }}</h6>
+                                            <small>{{ $item['meta'] }}</small>
+                                        </div>
+                                        <div class="user-progress">
+                                            <span class="badge bg-label-{{ $item['color'] }}">{{ $item['badge'] }}</span>
+                                        </div>
+                                    </a>
+                                </li>
+                            @empty
+                                <li class="text-center text-body-secondary py-4">No recent maintenance records.</li>
+                            @endforelse
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!--/ Recent Maintenance -->
         </div>
     </div>
 @endsection
