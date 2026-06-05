@@ -9,6 +9,31 @@
         let existingUploadCount = parseInt(pageConfig?.dataset.existingUploadCount || '0', 10) || 0;
         let pond = null;
 
+        // Info banner: dismissable, with a "Petunjuk" button to bring it back.
+        // Dismissal is remembered per browser session only.
+        const infoBanner = document.getElementById('maintenanceInfoBanner');
+        const infoBannerClose = document.getElementById('maintenanceInfoBannerClose');
+        const infoBannerToggle = document.getElementById('maintenanceHintsToggle');
+        const BANNER_KEY = 'maintenanceInfoBannerDismissed';
+
+        function hideInfoBanner() {
+            infoBanner?.classList.add('d-none');
+            sessionStorage.setItem(BANNER_KEY, '1');
+        }
+
+        function showInfoBanner() {
+            if (!infoBanner) return;
+            infoBanner.classList.remove('d-none');
+            sessionStorage.removeItem(BANNER_KEY);
+            infoBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        if (infoBanner && sessionStorage.getItem(BANNER_KEY) === '1') {
+            infoBanner.classList.add('d-none');
+        }
+        infoBannerClose?.addEventListener('click', hideInfoBanner);
+        infoBannerToggle?.addEventListener('click', showInfoBanner);
+
         // Select2
         $('.select2').select2({ width: '100%' });
 
@@ -28,6 +53,10 @@
                     maxFileSize: '3MB',
                     labelIdle: '<span class="filepond--label-action">Klik untuk upload</span> atau tarik file ke sini',
                     acceptedFileTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/svg+xml', 'application/pdf'],
+                    // Uniform item height so the 2-column grid (see _styles.blade.php)
+                    // stays inside the card — FilePond sizes items from this ratio
+                    // instead of each loaded image, so the container height is correct.
+                    styleItemPanelAspectRatio: 0.75,
                     credits: false
                 };
 
@@ -94,23 +123,37 @@
             const form = document.getElementById('mainForm');
             if (!form) return;
 
-            let isValid = true;
-            form.querySelectorAll('[required]').forEach((field) => {
-                if (!isFieldFilled(field)) isValid = false;
-            });
+            const missing = [];
 
-            const agreeCheckbox = document.getElementById('agreeCheckbox');
-            if (agreeCheckbox && !agreeCheckbox.checked) isValid = false;
+            const hasEmptyRequired = Array.from(form.querySelectorAll('[required]')).some((field) => !isFieldFilled(field));
+            if (hasEmptyRequired) missing.push('lengkapi kolom wajib');
 
             if (requireUpload) {
                 const fileCount = pond ? pond.getFiles().length : 0;
-                if (fileCount + existingUploadCount === 0) isValid = false;
+                if (fileCount + existingUploadCount === 0) missing.push('unggah bukti pembayaran');
             }
+
+            const agreeCheckbox = document.getElementById('agreeCheckbox');
+            if (agreeCheckbox && !agreeCheckbox.checked) missing.push('centang konfirmasi');
+
+            const isValid = missing.length === 0;
 
             const $submitButton = $('#submitButton');
             const $saveButton = $('button[form="mainForm"][type="submit"]');
             if ($submitButton.length) $submitButton.prop('disabled', !isValid);
             if ($saveButton.length) $saveButton.prop('disabled', !isValid);
+
+            // Tell the user exactly what is still blocking the primary save.
+            const $hint = $('#submitHint');
+            const $hintText = $('#submitHintText');
+            if ($hint.length) {
+                if (isValid) {
+                    $hint.addClass('d-none');
+                } else {
+                    $hintText.text('Untuk menyimpan: ' + missing.join(', ') + '.');
+                    $hint.removeClass('d-none');
+                }
+            }
         }
 
         // Preview existing images
@@ -171,94 +214,28 @@
             });
         });
 
-        // ── Repeater ───────────────────────────────────────────────
-        let repeaterIndex = 0;
-
-        $('#addRepeaterItem').on('click', function () {
-            const template = $('#repeaterTemplate').html();
-            const $newItem = $(template.replace(/__INDEX__/g, repeaterIndex).trim());
-            $('#repeaterItems').append($newItem);
-            $newItem.find('.select2').select2({ width: '100%' });
-            repeaterIndex++;
-            updateTotalDisplay();
-        });
-
-        $(document).on('click', '.remove-repeater-item', function () {
-            $(this).closest('.repeater-item').remove();
-            updateTotalDisplay();
-        });
-
-        $(document).on('input', '.repeater-price, .repeater-qty', function () {
-            const item = $(this).closest('.repeater-item');
-            const price = parseInt(item.find('.repeater-price').val().replace(/[^0-9]/g, ''), 10) || 0;
-            const qty = parseInt(item.find('.repeater-qty').val(), 10) || 1;
-            item.find('.repeater-subtotal').text('Rp ' + formatNumber(price * qty));
-            updateTotalDisplay();
-        });
-
-        $(document).on('input', '.repeater-price', function () {
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
-
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        }
-
-        function updateTotalDisplay() {
-            let total = 0;
-            $('.repeater-item').each(function () {
-                const item = $(this);
-                const subtotalData = item.data('subtotal');
-                if (subtotalData !== undefined) {
-                    total += parseInt(subtotalData, 10) || 0;
-                    return;
-                }
-                const price = parseInt(item.find('.repeater-price').val().replace(/[^0-9]/g, ''), 10) || 0;
-                const qty = parseInt(item.find('.repeater-qty').val(), 10) || 1;
-                total += price * qty;
+        // ── Detail Perbaikan ───────────────────────────────────────
+        // The grid is the shared x-table component in local mode (see
+        // resources/js/modules/tabulator.js). It owns add/edit/delete and items[]
+        // serialization; here we only mirror its running total into #totalDisplay
+        // and refresh the submit state.
+        const detailTableEl = document.getElementById('maintenance-detail-tabulator');
+        if (detailTableEl) {
+            detailTableEl.addEventListener('tabulator:local-changed', function () {
+                const table = this.tabulatorInstance;
+                if (!table) return;
+                const total = table.getData().reduce(function (sum, r) {
+                    return sum + (Number(r.price) || 0) * (Number(r.qty) || 1);
+                }, 0);
+                const totalEl = document.getElementById('totalDisplay');
+                if (totalEl) totalEl.textContent = total.toLocaleString('id-ID');
+                updateSubmitState();
             });
-            $('#totalDisplay').text(formatNumber(total));
         }
-
-        // Delete existing detail item
-        $(document).on('click', '.delete-existing-item', function () {
-            const btn = $(this);
-            const itemDiv = btn.closest('.repeater-item');
-            const href = btn.data('href');
-
-            Swal.fire({
-                title: 'Hapus item?',
-                text: 'Item ini akan dihapus permanen.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, hapus',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (!result.isConfirmed) return;
-                $.ajax({
-                    url: href,
-                    type: 'DELETE',
-                    data: { _token: csrfToken },
-                    success: function () {
-                        itemDiv.fadeOut(300, function () {
-                            $(this).remove();
-                            updateTotalDisplay();
-                        });
-                        Swal.fire('Terhapus!', 'Item berhasil dihapus.', 'success');
-                    },
-                    error: function () {
-                        Swal.fire('Error!', 'Gagal menghapus item.', 'error');
-                    }
-                });
-            });
-        });
 
         $(document).on('input change', '#mainForm input, #mainForm select, #mainForm textarea', updateSubmitState);
         $(document).on('change', '.select2', updateSubmitState);
 
         updateSubmitState();
-        updateTotalDisplay();
     });
 </script>

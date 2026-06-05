@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\DataTables\MaintenanceDataTable;
+use App\DataTables\MaintenanceDetailDataTable;
 use App\DataTables\MaintenanceTrashDataTable;
 use App\Http\Requests\MaintenanceStoreRequest;
 use App\Http\Requests\MaintenanceUpdateRequest;
@@ -46,7 +47,9 @@ class MaintenanceController extends Controller
 
     public function create()
     {
-        return view('maintenances.create_or_edit', $this->formData());
+        return view('maintenances.create_or_edit', [
+            'detailTable' => $this->detailTable(),
+        ] + $this->formData());
     }
 
     public function store(MaintenanceStoreRequest $request): RedirectResponse
@@ -91,6 +94,7 @@ class MaintenanceController extends Controller
             'maintenance' => $maintenance,
             'notes' => $maintenance->notes()->get(),
             'details' => $maintenance->details()->get(),
+            'detailTable' => $this->detailTable($maintenance),
         ] + $this->formData());
     }
 
@@ -107,6 +111,9 @@ class MaintenanceController extends Controller
         ]);
 
         $this->storeNotes($request, $maintenance);
+
+        // The Tabulator detail table is the source of truth: replace the whole set.
+        $maintenance->details()->forceDelete();
         $this->storeDetails($request, $maintenance);
 
         return redirect()->route('maintenances.show', $maintenance)->with('success', 'Berhasil diperbarui.');
@@ -237,26 +244,24 @@ class MaintenanceController extends Controller
     {
         $items = $request->input('items');
 
-        if (! is_array($items)) {
-            return;
-        }
+        if (is_array($items)) {
+            foreach ($items as $item) {
+                if (empty($item['maintenance_name'])) {
+                    continue;
+                }
 
-        foreach ($items as $item) {
-            if (empty($item['maintenance_name'])) {
-                continue;
+                $price = (int) ($item['price'] ?? 0);
+                $qty = (int) ($item['qty'] ?? 1);
+
+                MaintenanceDetail::create([
+                    'maintenance_id' => $maintenance->id,
+                    'maintenance_name' => $item['maintenance_name'],
+                    'price' => $price,
+                    'qty' => $qty,
+                    'subtotal' => $price * $qty,
+                    'material' => $item['material'] ?? null,
+                ]);
             }
-
-            $price = (int) ($item['price'] ?? 0);
-            $qty = (int) ($item['qty'] ?? 1);
-
-            MaintenanceDetail::create([
-                'maintenance_id' => $maintenance->id,
-                'maintenance_name' => $item['maintenance_name'],
-                'price' => $price,
-                'qty' => $qty,
-                'subtotal' => $price * $qty,
-                'material' => $item['material'] ?? null,
-            ]);
         }
 
         $maintenance->recalculateTotal();
@@ -283,5 +288,23 @@ class MaintenanceController extends Controller
             'vehicles' => Vehicle::where('status', 'ACTIVE')->orderBy('plat_new')->get(['id', 'plat_new', 'mileage']),
             'types' => TypeMaintenances::orderBy('name')->get(['id', 'name']),
         ];
+    }
+
+    /**
+     * Build the client-side editable detail sub-grid (local Tabulator).
+     */
+    private function detailTable(?Maintenance $maintenance = null): MaintenanceDetailDataTable
+    {
+        $typeNames = TypeMaintenances::orderBy('name')->pluck('name')->values()->all();
+
+        $rows = $maintenance
+            ? $maintenance->details()->get()->map(fn (MaintenanceDetail $detail): array => [
+                'maintenance_name' => $detail->maintenance_name,
+                'price' => (float) $detail->price,
+                'qty' => (int) ($detail->qty ?? 1),
+            ])->all()
+            : [];
+
+        return new MaintenanceDetailDataTable($typeNames, $rows, $maintenance?->isReadOnly() ?? false);
     }
 }

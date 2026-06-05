@@ -41,23 +41,27 @@
         @endif
 
         {{-- Page Header --}}
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-            <div>
-                <h4 class="mb-1">{{ $maintenance ? 'Detail Pemeliharaan' : 'Input Data Pemeliharaan' }}</h4>
-                <p class="text-muted mb-0">{{ $maintenance ? 'Kode: ' . $maintenance->code_mt : 'Rekam data servis kendaraan baru dan kelola item perbaikan.' }}</p>
-            </div>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ route('maintenances.index') }}">Data Pemeliharaan</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        {{ $maintenance ? 'Detail · ' . $maintenance->code_mt : 'Input Data Baru' }}
+                    </li>
+                </ol>
+            </nav>
             <div class="d-flex gap-2">
-                <a href="{{ route('maintenances.index') }}" class="btn btn-outline-secondary">
+                <a href="{{ route('maintenances.index') }}" class="btn btn-sm btn-outline-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali
                 </a>
                 @if ($maintenance && in_array($maintenance->status, ['DRAFT', 'COMPLETED'], true) && ! $maintenance->is_confirmed && $canApprove)
-                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
                         data-bs-target="#confirmCancelModal" data-id="{{ $maintenance->id }}">
                         <i class="bx bx-x me-1"></i> Batalkan
                     </button>
                 @endif
                 @if (! $isReadOnly && $canEditOrCreate)
-                    <button type="submit" form="mainForm" class="btn btn-success">
+                    <button type="submit" form="mainForm" class="btn btn-sm btn-success">
                         <i class="bx bx-save me-1"></i> Simpan
                     </button>
                 @endif
@@ -77,6 +81,17 @@
                 @elseif ($maintenance->status === 'CANCELLED')
                     <span class="badge bg-danger fs-6">DIBATALKAN</span>
                 @endif
+            </div>
+        @endif
+
+        @if (! $isReadOnly)
+            <div class="alert alert-light border alert-dismissible d-flex gap-2 mb-4" role="note" id="maintenanceInfoBanner">
+                <i class="bx bx-info-circle text-primary fs-4 flex-shrink-0"></i>
+                <div class="small pe-3">
+                    <strong>Simpan Data Pemeliharaan</strong> butuh semua kolom wajib (<span class="text-danger">*</span>), minimal 1 bukti pembayaran, dan centang konfirmasi.
+                    Belum lengkap? Pakai <strong>Simpan sebagai Draf</strong> untuk menyimpan sementara dan melanjutkannya nanti.
+                </div>
+                <button type="button" class="btn-close" aria-label="Tutup" id="maintenanceInfoBannerClose"></button>
             </div>
         @endif
 
@@ -112,12 +127,11 @@
                                     </select>
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="mileage" class="form-label info-kendaraan-label">Km Sekarang <small class="text-danger">*</small></label>
+                                    <label for="mileage" class="form-label info-kendaraan-label">Kilometer Terakhir <small class="text-danger">*</small></label>
                                     <div class="input-group input-group-sm">
                                         <input type="text" inputmode="numeric" id="mileage" placeholder="Cth. 50000"
                                             name="mileage" class="form-control validate-number"
-                                            value="{{ old('mileage', $maintenance?->mileage) }}" {{ $isReadOnly ? 'readonly' : '' }}>
-                                        <span class="input-group-text">km</span>
+                                            value="{{ old('mileage', $maintenance?->mileage) }}" readonly>
                                     </div>
                                     <small class="text-info" id="mileage-info"></small>
                                 </div>
@@ -165,123 +179,23 @@
                         </div>
                     </div>
 
-                    {{-- Detail Perbaikan (Repeater) --}}
-                    <div class="card mb-4">
-                        <div class="card-header card-header-compact d-flex flex-wrap justify-content-between align-items-center gap-2">
-                            <h6 class="mb-0"><i class="bx bx-list-ul text-warning me-2"></i>Detail Perbaikan</h6>
-                            @if (! $isReadOnly)
-                                <div class="d-flex flex-wrap gap-2">
-                                    <button type="button" class="btn btn-sm btn-outline-success" id="addRepeaterItem">
-                                        <i class="bx bx-plus me-1"></i> Tambah Item
-                                    </button>
-                                </div>
-                            @endif
-                        </div>
-                        <div class="card-body">
-                            <div id="repeaterContainer">
-                                <div class="detail-perbaikan-table">
-                                    <div class="detail-perbaikan-header">
-                                        <div class="row g-2 align-items-center">
-                                            <div class="col-md-4 text-center">Nama Barang/Jasa</div>
-                                            <div class="col-md-3 text-center">Harga Satuan</div>
-                                            <div class="col-md-1 text-center">Jumlah</div>
-                                            <div class="col-md-3 text-center">Total</div>
-                                            <div class="col-md-1 text-center">Aksi</div>
-                                        </div>
-                                    </div>
-                                    <div id="repeaterItems">
-                                        @if (isset($details) && $details->isNotEmpty())
-                                            @foreach ($details as $row)
-                                                <div class="repeater-item detail-perbaikan-item" data-existing="true"
-                                                    data-subtotal="{{ $row->subtotal ?? ($row->price * $row->qty) }}">
-                                                    <div class="row g-2 align-items-center">
-                                                        <div class="col-md-4">
-                                                            <select class="form-select form-select-sm select2 repeater-name w-100"
-                                                                data-width="100%" disabled>
-                                                                <option value="" disabled>- Pilih jenis -</option>
-                                                                @foreach ($types as $typeRow)
-                                                                    <option value="{{ $typeRow->name }}" {{ $typeRow->name === $row->maintenance_name ? 'selected' : '' }}>
-                                                                        {{ $typeRow->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-md-3 pe-0">
-                                                            <div class="input-group input-group-sm">
-                                                                <span class="input-group-text">Rp</span>
-                                                                <input type="text" class="form-control form-control-sm repeater-price" value="{{ $row->price }}" readonly>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-1 pe-0 text-center">
-                                                            <input type="number" class="form-control form-control-sm text-center repeater-qty" value="{{ $row->qty }}" readonly>
-                                                        </div>
-                                                        <div class="col-md-3 text-center pe-0">
-                                                            <span class="fw-semibold text-success repeater-subtotal">Rp {{ number_format($row->subtotal ?? ($row->price * $row->qty), 0, ',', '.') }}</span>
-                                                        </div>
-                                                        <div class="col-md-1 text-end ps-0">
-                                                            @if (! $isReadOnly)
-                                                                <button type="button" class="btn btn-sm btn-outline-danger delete-existing-item"
-                                                                    data-href="{{ route('maintenances.detail.destroy', $row->id) }}">
-                                                                    <i class="bx bx-trash"></i>
-                                                                </button>
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-
-                            @if (! $isReadOnly)
-                                <template id="repeaterTemplate">
-                                    <div class="repeater-item detail-perbaikan-item">
-                                        <div class="row g-2 align-items-center">
-                                            <div class="col-md-4">
-                                                <select class="form-select form-select-sm select2 repeater-name w-100" name="items[__INDEX__][maintenance_name]" data-width="100%" required>
-                                                    <option value="" disabled selected>- Pilih jenis -</option>
-                                                    @foreach ($types as $row)
-                                                        <option value="{{ $row->name }}">{{ $row->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                            <div class="col-md-3 pe-0">
-                                                <div class="input-group input-group-sm">
-                                                    <span class="input-group-text">Rp</span>
-                                                    <input type="text" inputmode="numeric" class="form-control form-control-sm repeater-price" name="items[__INDEX__][price]" placeholder="0" required>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-1 pe-0 text-center">
-                                                <input type="number" class="form-control form-control-sm text-center repeater-qty" name="items[__INDEX__][qty]" value="1" min="1" required>
-                                            </div>
-                                            <div class="col-md-3 text-center pe-0">
-                                                <span class="fw-semibold text-success repeater-subtotal">Rp 0</span>
-                                            </div>
-                                            <div class="col-md-1 text-end ps-0">
-                                                <button type="button" class="btn btn-sm btn-outline-danger remove-repeater-item">
-                                                    <i class="bx bx-trash"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
-                            @else
-                                @if (! isset($details) || $details->isEmpty())
-                                    <div class="text-center text-muted py-4">
-                                        <i class="bx bx-info-circle me-1"></i> Belum ada item perbaikan
-                                    </div>
-                                @endif
-                            @endif
-                        </div>
+                    {{-- Detail Perbaikan: shared x-table component in local (client-side) mode --}}
+                    <div class="mb-4">
+                        <x-table :table="$detailTable" engine="tabulator" title="Detail Perbaikan"
+                            :show-search="false" :show-colvis="false" :show-export="false" />
                     </div>
                 </div>
 
                 {{-- RIGHT COLUMN --}}
                 <div class="col-lg-4">
                     <div class="card mb-4">
-                        <div class="card-header card-header-compact">
+                        <div class="card-header card-header-compact d-flex justify-content-between align-items-center">
                             <h6 class="mb-0"><i class="bx bx-receipt text-info me-2"></i>Ringkasan & Bukti</h6>
+                            @if (! $isReadOnly)
+                                <button type="button" class="btn btn-sm btn-outline-info" id="maintenanceHintsToggle" title="Tampilkan petunjuk pengisian">
+                                    <i class="bx bx-info-circle me-1"></i> Petunjuk
+                                </button>
+                            @endif
                         </div>
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -334,10 +248,10 @@
                             </div>
 
                             @if (! $isReadOnly)
-                                <div class="form-check mb-4">
+                                <div class="form-check mb-3">
                                     <input class="form-check-input" type="checkbox" id="agreeCheckbox">
-                                    <label class="form-check-label" for="agreeCheckbox">
-                                        Saya menyatakan bahwa data yang dimasukkan benar dan bukti valid.
+                                    <label class="form-check-label small" for="agreeCheckbox">
+                                        Data dan bukti yang dimasukkan sudah benar dan valid.
                                     </label>
                                 </div>
 
@@ -345,9 +259,20 @@
                                     <button type="submit" id="submitButton" class="btn btn-success btn-lg" disabled>
                                         <i class="bx bx-check me-1"></i> Simpan Data Pemeliharaan
                                     </button>
-                                    <button type="submit" name="save_as_draft" value="1" class="btn btn-link text-muted" formnovalidate>
-                                        Simpan sebagai Draf
+                                    <small id="submitHint" class="text-muted text-center d-none">
+                                        <i class="bx bx-lock-alt me-1"></i><span id="submitHintText"></span>
+                                    </small>
+
+                                    <div class="d-flex align-items-center text-muted small my-1">
+                                        <hr class="flex-grow-1 my-0">
+                                        <span class="px-2">atau</span>
+                                        <hr class="flex-grow-1 my-0">
+                                    </div>
+
+                                    <button type="submit" name="save_as_draft" value="1" class="btn btn-outline-secondary" formnovalidate>
+                                        <i class="bx bx-save me-1"></i> Simpan sebagai Draf
                                     </button>
+                                    <small class="text-muted text-center">Tersimpan sebagai draf — bisa dilengkapi &amp; diselesaikan nanti.</small>
                                 </div>
                             @endif
                         </div>

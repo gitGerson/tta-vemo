@@ -8,11 +8,15 @@
     'layout' => 'fitColumns',
     'responsiveLayout' => false,
     'selectableRows' => false,
+    'showSearch' => true,
+    'showColvis' => true,
+    'showExport' => true,
 ])
 
 @php
     $tableId = $table->id() . '-tabulator';
     $clickable = $table->isClickable();
+    $isLocal = $table->mode() === 'local';
     $config = [
         'ajaxUrl' => $table->ajax(),
         'columns' => $table->tabulatorColumns(),
@@ -28,7 +32,19 @@
         'createUrl' => $table->tabulatorCreateUrl(),
         'updateUrl' => $table->tabulatorUpdateUrl(),
         'deleteUrl' => $table->tabulatorDeleteUrl(),
+        // Local (client-side editable) mode — defaults are remote-safe no-ops.
+        'mode' => $table->mode(),
+        'data' => $isLocal ? $table->clientData() : [],
+        'editable' => $table->editable(),
+        'formField' => $table->formField(),
+        'formTarget' => $table->formTarget(),
+        'formFieldMap' => $table->formFieldMap(),
+        'addRowDefaults' => $table->addRowDefaults(),
+        'addRowFocusField' => $table->addRowFocusField(),
     ];
+
+    // Local editable grids show the Add button without a remote create URL.
+    $showAdd = $table->tabulatorCreateUrl() !== null || ($isLocal && $table->editable());
 @endphp
 
 @once
@@ -287,13 +303,15 @@
         <h5 class="mb-0">{{ $title }}</h5>
 
         <div class="d-flex flex-wrap align-items-center gap-2 table-tabulator-toolbar">
-            <input
-                type="search"
-                class="form-control form-control-sm table-tabulator-search"
-                id="{{ $tableId }}-search"
-                placeholder="Search"
-                autocomplete="off"
-            >
+            @if ($showSearch)
+                <input
+                    type="search"
+                    class="form-control form-control-sm table-tabulator-search"
+                    id="{{ $tableId }}-search"
+                    placeholder="Search"
+                    autocomplete="off"
+                >
+            @endif
 
             @isset($actions)
                 <div class="d-flex align-items-center gap-2">{{ $actions }}</div>
@@ -303,7 +321,7 @@
                 <div class="d-flex align-items-center gap-2">{{ $tools }}</div>
             @endisset
 
-            @if ($table->tabulatorCreateUrl() !== null)
+            @if ($showAdd)
                 <button type="button" class="btn btn-sm btn-success" id="{{ $tableId }}-add">
                     <i class="bx bx-plus me-1"></i> Add
                 </button>
@@ -321,27 +339,31 @@
                 </button>
             @endif
 
-            <div class="dropdown">
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="{{ $tableId }}-colvis" aria-expanded="false">
-                    <i class="bx bx-columns me-1"></i> Kolom
-                </button>
-                <div class="dropdown-menu dropdown-menu-end p-1 table-tabulator-menu" id="{{ $tableId }}-colvis-menu">
-                    {{-- checkbox items injected by tabulator.js --}}
+            @if ($showColvis)
+                <div class="dropdown">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="{{ $tableId }}-colvis" aria-expanded="false">
+                        <i class="bx bx-columns me-1"></i> Kolom
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-1 table-tabulator-menu" id="{{ $tableId }}-colvis-menu">
+                        {{-- checkbox items injected by tabulator.js --}}
+                    </div>
                 </div>
-            </div>
+            @endif
 
-            <div class="dropdown">
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="{{ $tableId }}-export" aria-expanded="false">
-                    <i class="bx bx-download me-1"></i> Export
-                </button>
-                <div class="dropdown-menu dropdown-menu-end p-1 table-tabulator-menu" id="{{ $tableId }}-export-menu">
-                    <a class="dropdown-item" href="#" data-export="csv">CSV</a>
-                    <a class="dropdown-item" href="#" data-export="json">JSON</a>
-                    <a class="dropdown-item" href="#" data-export="xlsx">Excel (XLSX)</a>
-                    <a class="dropdown-item" href="#" data-export="pdf">PDF</a>
-                    <a class="dropdown-item" href="#" data-export="html">HTML</a>
+            @if ($showExport)
+                <div class="dropdown">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="{{ $tableId }}-export" aria-expanded="false">
+                        <i class="bx bx-download me-1"></i> Export
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-1 table-tabulator-menu" id="{{ $tableId }}-export-menu">
+                        <a class="dropdown-item" href="#" data-export="csv">CSV</a>
+                        <a class="dropdown-item" href="#" data-export="json">JSON</a>
+                        <a class="dropdown-item" href="#" data-export="xlsx">Excel (XLSX)</a>
+                        <a class="dropdown-item" href="#" data-export="pdf">PDF</a>
+                        <a class="dropdown-item" href="#" data-export="html">HTML</a>
+                    </div>
                 </div>
-            </div>
+            @endif
         </div>
     </div>
     <div class="card-body">

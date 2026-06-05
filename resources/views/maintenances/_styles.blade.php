@@ -1,8 +1,25 @@
 <style>
+    /* Render the CDN select2 widgets at the small (form-select-sm) size. */
     .select2-container--default .select2-selection--single {
-        height: 40px;
+        height: calc(1.5em + 0.5rem + 2px);
+        min-height: calc(1.5em + 0.5rem + 2px);
         display: flex;
         align-items: center;
+        font-size: 0.8125rem;
+        border-color: #dee2e6;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 1.3;
+        padding-left: 0.5rem;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: calc(1.5em + 0.5rem);
+    }
+
+    .select2-container--default .select2-results__option {
+        font-size: 0.8125rem;
     }
 
     .btn-icon {
@@ -104,8 +121,26 @@
         margin-bottom: 0.25rem;
     }
 
+    /* Smaller agree checkbox to match its small label. */
+    #agreeCheckbox {
+        width: 0.95em;
+        height: 0.95em;
+        margin-top: 0.2em;
+    }
+
     .filepond--root {
         font-family: inherit;
+    }
+
+    /* Lay uploaded proofs out in a 2-column grid so many files don't stack tall. */
+    .filepond--item {
+        width: calc(50% - 0.5em);
+    }
+
+    @media (max-width: 575.98px) {
+        .filepond--item {
+            width: 100%;
+        }
     }
 
     .filepond--panel-root {

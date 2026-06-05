@@ -9,6 +9,9 @@
     'layout' => 'fitColumns',
     'responsiveLayout' => false,
     'selectableRows' => false,
+    'showSearch' => true,
+    'showColvis' => true,
+    'showExport' => true,
 ])
 
 {{--
@@ -27,6 +30,9 @@
     :layout="$layout"
     :responsive-layout="$responsiveLayout"
     :selectable-rows="$selectableRows"
+    :show-search="$showSearch"
+    :show-colvis="$showColvis"
+    :show-export="$showExport"
 >
     @isset($actions)
         <x-slot:actions>{{ $actions }}</x-slot:actions>

@@ -25,12 +25,134 @@ async function downloadTable(table, type, id) {
     }
 }
 
+// ── Client-side adapter registry ────────────────────────────────────────────
+// Editors and formatters that a DataTable can request by string name (via
+// Column::editable('select2', …) / Column::formatter('moneyProduct', …)), so
+// PHP never has to ship a JS closure. Built-in Tabulator names (money, html,
+// number, input, …) are NOT in these maps and pass through untouched.
+
+function formatMoney(value, params = {}) {
+    const symbol = params.symbol ?? '';
+    const thousand = params.thousand ?? '.';
+    const decimal = params.decimal ?? ',';
+    const precision = params.precision ?? 0;
+    const number = Number(value) || 0;
+    const fixed = number.toFixed(precision);
+    let [intPart, decPart] = fixed.split('.');
+    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, thousand);
+    return symbol + intPart + (decPart ? decimal + decPart : '');
+}
+
+/** Build a Tabulator editor that mounts a select2 dropdown inside the cell. */
+function makeSelect2Editor(editorParams = {}) {
+    const options = editorParams.options ?? [];
+    const placeholder = editorParams.placeholder ?? '- Pilih -';
+
+    return function select2Editor(cell, onRendered, success, cancel) {
+        const editor = document.createElement('select');
+        editor.style.width = '100%';
+
+        const blank = document.createElement('option');
+        blank.value = '';
+        blank.text = placeholder;
+        editor.appendChild(blank);
+
+        options.forEach((name) => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.text = name;
+            if (name === cell.getValue()) {
+                opt.selected = true;
+            }
+            editor.appendChild(opt);
+        });
+
+        // Stop Tabulator cancelling the edit when focus moves to the select2
+        // dropdown (rendered on <body>, i.e. outside the cell).
+        editor.addEventListener('blur', (event) => event.stopImmediatePropagation(), true);
+
+        const $ = window.jQuery || window.$;
+
+        // Graceful fallback when select2/jQuery isn't on the page.
+        if (!$ || typeof $.fn?.select2 === 'undefined') {
+            editor.addEventListener('change', () => success(editor.value || ''));
+            onRendered(() => editor.focus());
+            return editor;
+        }
+
+        let done = false;
+        const commit = () => {
+            if (done) {
+                return;
+            }
+            done = true;
+            success($(editor).val() || '');
+        };
+
+        onRendered(() => {
+            const $editor = $(editor);
+            $editor.select2({ width: '100%', dropdownParent: $('body'), placeholder });
+            $editor.on('select2:close', commit);
+            $editor.select2('open');
+        });
+
+        return editor;
+    };
+}
+
+const EDITORS = {
+    select2: makeSelect2Editor,
+};
+
+const FORMATTERS = {
+    nameOrPlaceholder: (cell, params) =>
+        cell.getValue() || `<span class="text-muted">${params.placeholder ?? ''}</span>`,
+    moneyProduct: (cell, params) => {
+        const data = cell.getRow().getData();
+        const product = (params.fields ?? []).reduce(
+            (acc, field) => acc * (Number(data[field]) || 0),
+            1
+        );
+        return formatMoney(product, params);
+    },
+    rowDelete: () =>
+        '<button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"><i class="bx bx-trash"></i></button>',
+};
+
+/**
+ * Resolve registry editor/formatter strings into real functions before building
+ * the table. Only rewrites names the registry owns — built-in Tabulator strings
+ * pass through, so remote tables (which use no registry names) are untouched.
+ */
+function resolveColumnDefs(columns) {
+    return (columns ?? []).map((column) => {
+        const def = { ...column };
+
+        if (typeof def.editor === 'string' && EDITORS[def.editor]) {
+            def.editor = EDITORS[def.editor](def.editorParams ?? {});
+            delete def.editorParams;
+        }
+
+        if (typeof def.formatter === 'string' && FORMATTERS[def.formatter]) {
+            if (def.formatter === 'rowDelete') {
+                def.__rowDelete = true;
+            }
+            const fn = FORMATTERS[def.formatter];
+            const params = def.formatterParams ?? {};
+            def.formatter = (cell) => fn(cell, params);
+        }
+
+        return def;
+    });
+}
+
 /**
  * Initialize every Tabulator table on the page.
  *
  * Each <x-table engine="tabulator"> renders a container div plus a sibling
  * JSON config script. The config carries the AJAX URL, columns, sort, and
- * clickable row settings; row data stays server-side.
+ * clickable row settings; row data stays server-side (remote mode) — or inline
+ * for local mode (in-form editable sub-grids).
  */
 function initTabulators() {
     document.querySelectorAll('script[data-tabulator-config]').forEach((configEl) => {
@@ -48,6 +170,20 @@ function initTabulators() {
             return;
         }
 
+        if ((config.mode ?? 'remote') === 'local') {
+            initLocalTable(el, id, config);
+        } else {
+            initRemoteTable(el, id, config);
+        }
+    });
+}
+
+/**
+ * Server-side (remote) table: paginate / sort / filter against an ajaxURL, with
+ * optional inline-edit / add / delete wired to REST endpoints. This is the
+ * original initTabulators body, unchanged — every existing table uses this path.
+ */
+function initRemoteTable(el, id, config) {
         const editableFields = new Set((config.columns ?? []).filter((column) => column.editor).map((column) => column.field));
         const columns = config.selectableRows
             ? [
@@ -392,7 +528,205 @@ function initTabulators() {
                 }
             });
         }
+}
+
+/**
+ * Client-side (local) table: rows come inline from config.data, edits stay in
+ * memory, and on parent-form submit they serialize into formField[i][…] hidden
+ * inputs. No ajaxURL / remote modes / REST calls. Powers in-form editable grids.
+ */
+function initLocalTable(el, id, config) {
+    const columns = resolveColumnDefs(config.columns).map((def) => {
+        // Bind the row-delete action button (rendered by the rowDelete formatter).
+        if (def.__rowDelete) {
+            def.cellClick = (event, cell) => cell.getRow().delete();
+            delete def.__rowDelete;
+        }
+        return def;
     });
+
+    const table = new Tabulator(el, {
+        // Clone each seed row so rows never share an object reference (shared refs
+        // make edits on one row bleed into the others).
+        columns,
+        layout: config.layout ?? 'fitColumns',
+        data: (config.data ?? []).map((row) => ({ ...row })),
+        pagination: false,
+        placeholder: 'Belum ada item perbaikan',
+    });
+
+    el.tabulatorInstance = table;
+    el.dataset.tabulatorInitialized = '1';
+
+    const notifyChanged = () => el.dispatchEvent(new CustomEvent('tabulator:local-changed', { bubbles: true }));
+
+    table.on('cellEdited', (cell) => {
+        // Re-run the row's formatters so computed columns (e.g. Total) refresh.
+        cell.getRow().reformat();
+        notifyChanged();
+    });
+    table.on('rowAdded', notifyChanged);
+    table.on('rowDeleted', notifyChanged);
+
+    // Same toolbar as remote tables — search / column visibility / export, all local.
+    wireLocalToolbar(table, id);
+
+    const addButton = document.getElementById(`${id}-add`);
+    if (addButton && config.editable) {
+        addButton.addEventListener('click', () => {
+            // Spread into a fresh object so every new row gets its own data store
+            // (passing the shared addRowDefaults reference makes rows duplicate).
+            table.addRow({ ...(config.addRowDefaults ?? {}) }, false).then((row) => {
+                if (config.addRowFocusField) {
+                    row.getCell(config.addRowFocusField)?.edit();
+                }
+            });
+        });
+    }
+
+    if (config.editable && config.formTarget && config.formField) {
+        bindFormSerialization(table, config);
+    }
+}
+
+/**
+ * On parent-form submit, serialize the table rows into hidden inputs named
+ * formField[i][key] = row[field] (per config.formFieldMap). Rows whose first
+ * mapped field is empty are skipped. Re-runs cleanly on every submit.
+ */
+function bindFormSerialization(table, config) {
+    const form = document.querySelector(config.formTarget);
+    if (!form) {
+        return;
+    }
+
+    const field = config.formField;
+    const map = config.formFieldMap ?? {};
+    const keys = Object.keys(map);
+    if (keys.length === 0) {
+        return;
+    }
+
+    const requiredField = map[keys[0]];
+    const marker = `${field}-serialized`;
+
+    form.addEventListener('submit', () => {
+        form.querySelectorAll(`input[data-serialized="${marker}"]`).forEach((node) => node.remove());
+
+        let index = 0;
+        table.getData().forEach((row) => {
+            if (!row[requiredField]) {
+                return;
+            }
+
+            keys.forEach((key) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = `${field}[${index}][${key}]`;
+                input.value = row[map[key]] ?? '';
+                input.setAttribute('data-serialized', marker);
+                form.appendChild(input);
+            });
+
+            index++;
+        });
+    });
+}
+
+// Toggle a Bootstrap dropdown manually (this app loads two Bootstrap bundles, so
+// the data-api would fire twice and immediately re-close the menu).
+function setupTableDropdown(button, menu) {
+    const container = button.closest('.dropdown');
+
+    const close = () => {
+        menu.classList.remove('show');
+        button.setAttribute('aria-expanded', 'false');
+    };
+
+    button.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const isOpen = menu.classList.toggle('show');
+        button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!container.contains(event.target)) {
+            close();
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            close();
+        }
+    });
+
+    return close;
+}
+
+/**
+ * Wire the standard table toolbar (search / column-visibility / export) for a
+ * LOCAL table so it matches the remote tables. Search filters client-side; the
+ * filter only hides rows, getData() still returns every row for serialization.
+ */
+function wireLocalToolbar(table, id) {
+    const searchInput = document.getElementById(`${id}-search`);
+    if (searchInput) {
+        let searchTimer;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                const value = searchInput.value.trim().toLowerCase();
+                if (value) {
+                    table.setFilter((data) =>
+                        Object.values(data).some((cell) => String(cell ?? '').toLowerCase().includes(value))
+                    );
+                } else {
+                    table.clearFilter();
+                }
+            }, 250);
+        });
+    }
+
+    const exportButton = document.getElementById(`${id}-export`);
+    const exportMenu = document.getElementById(`${id}-export-menu`);
+    if (exportButton && exportMenu) {
+        const closeExport = setupTableDropdown(exportButton, exportMenu);
+        exportMenu.querySelectorAll('[data-export]').forEach((item) => {
+            item.addEventListener('click', async (event) => {
+                event.preventDefault();
+                closeExport();
+                await downloadTable(table, item.dataset.export, id);
+            });
+        });
+    }
+
+    const colvisButton = document.getElementById(`${id}-colvis`);
+    const colvisMenu = document.getElementById(`${id}-colvis-menu`);
+    if (colvisButton && colvisMenu) {
+        setupTableDropdown(colvisButton, colvisMenu);
+        table.on('tableBuilt', () => {
+            table.getColumns().forEach((column) => {
+                const def = column.getDefinition();
+                if (!def.title) {
+                    return;
+                }
+
+                const item = document.createElement('label');
+                item.className = 'dropdown-item d-flex align-items-center gap-2 mb-0';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'form-check-input m-0';
+                checkbox.checked = column.isVisible();
+                checkbox.addEventListener('change', () => (checkbox.checked ? column.show() : column.hide()));
+
+                item.append(checkbox, document.createTextNode(def.title));
+                colvisMenu.append(item);
+            });
+        });
+    }
 }
 
 document.addEventListener('shown.bs.tab', (event) => {

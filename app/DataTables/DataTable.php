@@ -90,6 +90,76 @@ abstract class DataTable
     }
 
     /**
+     * Data-source mode for the Tabulator engine: 'remote' (server-side, default)
+     * or 'local' (client-side editable sub-grid fed from clientData()). Remote is
+     * the only mode existing tables use; local powers in-form editable grids.
+     */
+    public function mode(): string
+    {
+        return 'remote';
+    }
+
+    /**
+     * RAW (un-rendered) rows for local mode. Unlike data(), this does NOT run the
+     * renderUsing / index / action closures — editable cells need raw scalar
+     * values, not HTML. Default [] so remote tables emit nothing.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function clientData(): array
+    {
+        return [];
+    }
+
+    /** Whether local-mode editors / add / delete are enabled (read-only => false). */
+    public function editable(): bool
+    {
+        return false;
+    }
+
+    /** Form field name to serialize local rows into (e.g. 'items'); null disables it. */
+    public function formField(): ?string
+    {
+        return null;
+    }
+
+    /** CSS selector of the parent form whose submit triggers serialization (e.g. '#mainForm'). */
+    public function formTarget(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * Map of serialized sub-keys to row-data fields, e.g.
+     * ['maintenance_name' => 'maintenance_name', 'price' => 'price', 'qty' => 'qty'].
+     * The JS builds formField[i][<key>] = row[<field>]. The FIRST key is the
+     * "required" field — rows with an empty value there are skipped.
+     *
+     * @return array<string, string>
+     */
+    public function formFieldMap(): array
+    {
+        return [];
+    }
+
+    /**
+     * Default values for a newly added local row, e.g.
+     * ['maintenance_name' => '', 'price' => 0, 'qty' => 1].
+     *
+     * @return array<string, mixed>
+     */
+    public function addRowDefaults(): array
+    {
+        return [];
+    }
+
+    /** Field whose editor opens immediately after a local add-row; null = none. */
+    public function addRowFocusField(): ?string
+    {
+        return null;
+    }
+
+    /**
      * Action descriptors for one row, consumed by <x-datatable.actions>.
      * Override when the table declares Column::action().
      *

@@ -37,6 +37,9 @@ class Column
 
     public ?array $tabulatorFormatterParams = null;
 
+    /** Arbitrary extra Tabulator column-def keys merged verbatim into toTabulator(). */
+    public ?array $tabulatorExtra = null;
+
     private function __construct(
         public string $key,
         public string $label,
@@ -141,6 +144,14 @@ class Column
         return $this;
     }
 
+    /** Merge arbitrary extra keys (hozAlign, width, minWidth, widthGrow, …) into the Tabulator def. */
+    public function tabulator(array $extra): self
+    {
+        $this->tabulatorExtra = $extra;
+
+        return $this;
+    }
+
     /** Client-side column config object for jQuery DataTables. */
     public function toJs(): array
     {
@@ -191,6 +202,10 @@ class Column
         if ($this->raw) {
             $config['formatter'] = 'html';
             $config['download'] = false;
+        }
+
+        if ($this->tabulatorExtra !== null) {
+            $config = array_merge($config, $this->tabulatorExtra);
         }
 
         return $config;
