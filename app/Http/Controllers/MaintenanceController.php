@@ -100,6 +100,8 @@ class MaintenanceController extends Controller
 
     public function update(Maintenance $maintenance, MaintenanceUpdateRequest $request): RedirectResponse
     {
+        $isDraft = $request->isDraft();
+
         $maintenance->update([
             'no_pol' => Str::upper((string) $request->input('no_pol', $maintenance->no_pol)),
             'date_in' => $request->input('date_in') ?: $maintenance->date_in,
@@ -107,6 +109,7 @@ class MaintenanceController extends Controller
             'mileage' => $request->input('mileage'),
             'description' => $request->input('desc'),
             'isServiceRoutine' => $request->input('isServiceRoutine', $maintenance->isServiceRoutine ? '1' : '0') === '0' ? false : true,
+            'status' => $isDraft ? Maintenance::STATUS_DRAFT : Maintenance::STATUS_COMPLETED,
             'requested_by_name' => $request->user()?->name,
         ]);
 
@@ -116,7 +119,9 @@ class MaintenanceController extends Controller
         $maintenance->details()->forceDelete();
         $this->storeDetails($request, $maintenance);
 
-        return redirect()->route('maintenances.show', $maintenance)->with('success', 'Berhasil diperbarui.');
+        $message = $isDraft ? 'Berhasil disimpan sebagai draft.' : 'Berhasil disimpan.';
+
+        return redirect()->route('maintenances.show', $maintenance)->with('success', $message);
     }
 
     public function status(Request $request, Maintenance $maintenance): RedirectResponse

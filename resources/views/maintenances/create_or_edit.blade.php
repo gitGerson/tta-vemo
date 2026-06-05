@@ -74,9 +74,10 @@
                 @if ($maintenance->status === 'DRAFT')
                     <span class="badge bg-secondary fs-6">DRAFT</span>
                 @elseif ($maintenance->status === 'COMPLETED')
-                    <span class="badge bg-success fs-6">SELESAI</span>
                     @if ($maintenance->is_confirmed)
                         <span class="badge bg-info fs-6">DIKONFIRMASI</span>
+                    @else
+                        <span class="badge bg-success fs-6">SELESAI</span>
                     @endif
                 @elseif ($maintenance->status === 'CANCELLED')
                     <span class="badge bg-danger fs-6">DIBATALKAN</span>

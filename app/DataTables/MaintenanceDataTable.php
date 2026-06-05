@@ -26,6 +26,7 @@ class MaintenanceDataTable extends DataTable
     {
         return [
             Column::index(),
+            Column::make('code_mt', 'Kode'),
             Column::make('no_pol', 'No Polisi'),
             Column::computed('date_in_label', 'Tanggal Masuk', fn (Maintenance $row): string => $row->date_in?->translatedFormat('d M Y') ?? '-')
                 ->searchable(false),
@@ -78,9 +79,13 @@ class MaintenanceDataTable extends DataTable
 
     private function statusBadge(Maintenance $row): string
     {
+        $completed = $row->is_confirmed
+            ? '<span class="badge bg-info">DIKONFIRMASI</span>'
+            : '<span class="badge bg-success">SELESAI</span>';
+
         $badge = match ($row->status) {
             Maintenance::STATUS_DRAFT => '<span class="badge bg-secondary">DRAFT</span>',
-            Maintenance::STATUS_COMPLETED => '<span class="badge bg-success">SELESAI</span>',
+            Maintenance::STATUS_COMPLETED => $completed,
             Maintenance::STATUS_CANCELLED => '<span class="badge bg-danger">DIBATALKAN</span>',
             default => '<span class="badge bg-secondary">'.e($row->status).'</span>',
         };
