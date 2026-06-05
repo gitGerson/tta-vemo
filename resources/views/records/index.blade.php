@@ -57,12 +57,147 @@
                     @endif
 
                     @if(auth()->user()->hasPermission('operational.records.create'))
-                        <a href="{{ route('records.create') }}" class="btn btn-sm btn-outline-primary">
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btn-tambah-record" data-bs-toggle="modal" data-bs-target="#record-modal">
                             <i class="bx bx-plus me-1"></i> Tambah
-                        </a>
+                        </button>
                     @endif
                 </div>
             </x-slot:actions>
         </x-table>
     </div>
+
+    <div class="modal fade" id="record-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="record-modal-title">Tambah Catatan Perjalanan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    @include('records.partials.form', [
+                        'action' => route('records.store'),
+                        'method' => 'POST',
+                        'submitLabel' => 'Simpan',
+                    ])
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    const modalEl = document.getElementById('record-modal');
+    if (!modalEl) return;
+
+    const createUrl = @json(route('records.store'));
+    const createLabel = 'Simpan';
+    let pendingEditData = null;
+
+    function getForm() {
+        return modalEl.querySelector('form');
+    }
+
+    function setField(name, value) {
+        const el = getForm().querySelector(`[name="${name}"]`);
+        if (!el) return;
+
+        el.value = value ?? '';
+
+        if (window.jQuery) {
+            const $el = window.jQuery(el);
+            const picker = $el.data('daterangepicker');
+            const format = el.dataset.dateFormat || 'YYYY-MM-DD';
+
+            if (picker && value && window.moment) {
+                const date = window.moment(value, format, true);
+
+                if (date.isValid()) {
+                    picker.setStartDate(date);
+                    picker.setEndDate(date);
+                }
+            }
+
+            $el.trigger('change');
+        } else {
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+
+    function setMode(action, method, title, submitLabel) {
+        const form = getForm();
+
+        form.action = action;
+        document.getElementById('record-form-method').value = method === 'POST' ? '' : method;
+        document.getElementById('record-form-action').value = action;
+        document.getElementById('record-modal-title').textContent = title;
+        form.querySelector('[type="submit"]').textContent = submitLabel;
+    }
+
+    function resetToCreate() {
+        getForm().reset();
+        setMode(createUrl, 'POST', 'Tambah Catatan Perjalanan', createLabel);
+
+        if (window.jQuery) {
+            window.jQuery(getForm()).find('select').trigger('change');
+        }
+    }
+
+    function applyEdit(d) {
+        setMode(d.updateUrl, 'PUT', 'Edit Catatan Perjalanan: ' + d.noPol, 'Perbarui');
+
+        setField('company_id', d.companyId);
+        setField('date', d.date);
+        setField('driver_1', d.driver1);
+        setField('driver_2', d.driver2);
+        setField('no_pol', d.noPol);
+        setField('destination', d.destination);
+        setField('start_km', d.startKm);
+        setField('finish_km', d.finishKm);
+        setField('bbm', d.bbm);
+        setField('fuel_type_id', d.fuelTypeId);
+    }
+
+    modalEl.addEventListener('shown.bs.modal', function () {
+        document.dispatchEvent(new Event('form:enhance'));
+
+        if (pendingEditData) {
+            applyEdit(pendingEditData);
+            pendingEditData = null;
+        }
+    });
+
+    modalEl.addEventListener('hidden.bs.modal', resetToCreate);
+
+    document.addEventListener('click', function (event) {
+        const btn = event.target.closest('.btn-edit-record');
+        if (!btn) return;
+
+        pendingEditData = {
+            updateUrl: btn.dataset.updateUrl,
+            date: btn.dataset.date,
+            companyId: btn.dataset.companyId,
+            driver1: btn.dataset.driver1,
+            driver2: btn.dataset.driver2,
+            noPol: btn.dataset.noPol,
+            destination: btn.dataset.destination,
+            startKm: btn.dataset.startKm,
+            finishKm: btn.dataset.finishKm,
+            bbm: btn.dataset.bbm,
+            fuelTypeId: btn.dataset.fuelTypeId,
+        };
+
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    });
+
+    @if($errors->any())
+        @if(old('_method') === 'PUT')
+            setMode(@json(old('_form_action')), 'PUT', 'Edit Catatan Perjalanan: ' + @json(old('no_pol')), 'Perbarui');
+        @endif
+
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    @endif
+})();
+</script>
+@endpush

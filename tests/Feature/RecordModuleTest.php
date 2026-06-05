@@ -33,7 +33,19 @@ class RecordModuleTest extends TestCase
 
         $this->get(route('records.index'))
             ->assertOk()
-            ->assertSee('Data Perjalanan');
+            ->assertSee('Data Perjalanan')
+            ->assertSee('record-modal')
+            ->assertSee('Tambah Catatan Perjalanan');
+    }
+
+    public function test_create_and_edit_pages_redirect_to_index_because_forms_are_modal_based(): void
+    {
+        $this->actingAs($this->userWithRecordPermissions());
+
+        $record = Record::factory()->create();
+
+        $this->get(route('records.create'))->assertRedirect(route('records.index'));
+        $this->get(route('records.edit', $record))->assertRedirect(route('records.index'));
     }
 
     public function test_index_forbidden_for_unauthorized_user(): void
@@ -57,7 +69,7 @@ class RecordModuleTest extends TestCase
         $payload = [
             'company_id' => $company->id,
             'fuel_type_id' => $fuelType->id,
-            'date' => '2026-06-01',
+            'date' => '01-06-2026',
             'driver_1' => $driver->id,
             'driver_2' => null,
             'no_pol' => $vehicle->plat_new,
@@ -75,6 +87,7 @@ class RecordModuleTest extends TestCase
             'driver_1' => 'Budi Santoso',
             'destination' => 'Surabaya',
             'company_id' => $company->id,
+            'date' => '2026-06-01 00:00:00',
             'start_km' => '100',
             'finish_km' => '250',
             'totals' => '150',
@@ -83,6 +96,33 @@ class RecordModuleTest extends TestCase
         ]);
 
         $this->assertSame('250', $vehicle->fresh()->mileage);
+    }
+
+    public function test_data_endpoint_renders_record_edit_modal_action(): void
+    {
+        $this->actingAs($this->userWithRecordPermissions());
+
+        $this->createProvince();
+        $company = Company::factory()->create();
+        $vehicle = Vehicle::factory()->create(['plat_new' => 'B 4321 XYZ']);
+        $driver = Driver::factory()->create(['name' => 'Slamet']);
+        $fuelType = FuelType::factory()->create();
+
+        Record::factory()->create([
+            'company_id' => $company->id,
+            'vehicle_id' => $vehicle->id,
+            'fuel_type_id' => $fuelType->id,
+            'driver_1' => $driver->name,
+            'no_pol' => $vehicle->plat_new,
+            'destination' => 'Jakarta Barat',
+            'date' => '2026-06-04',
+        ]);
+
+        $this->getJson(route('records.data', ['engine' => 'tabulator']))
+            ->assertOk()
+            ->assertJsonPath('data.0.action', fn (string $action): bool => str_contains($action, 'btn-edit-record')
+                && str_contains($action, 'data-update-url=')
+                && str_contains($action, 'data-driver-1="'.$driver->id.'"'));
     }
 
     public function test_store_defaults_start_km_from_last_record_finish_km(): void

@@ -16,7 +16,7 @@ class RecordDataTable extends DataTable
     public function query(): Builder
     {
         return Record::query()
-            ->with('company')
+            ->with(['company', 'driver1', 'driver2'])
             ->when($this->startDate && $this->endDate, fn (Builder $q) => $q->whereBetween('date', [$this->startDate, $this->endDate]))
             ->when($this->companyId, fn (Builder $q) => $q->where('company_id', $this->companyId))
             ->latest();
@@ -71,9 +71,22 @@ class RecordDataTable extends DataTable
                 'permission' => 'operational.records.view',
             ],
             [
-                'type' => 'edit-link',
-                'url' => route('records.edit', $row),
+                'type' => 'edit-modal',
                 'permission' => 'operational.records.edit',
+                'class' => 'btn-edit-record',
+                'data' => [
+                    'update-url' => route('records.update', $row),
+                    'date' => $row->date?->format('d-m-Y'),
+                    'company-id' => $row->company_id,
+                    'driver-1' => $row->driver1?->id,
+                    'driver-2' => $row->driver2?->id,
+                    'no-pol' => $row->no_pol,
+                    'destination' => $row->destination,
+                    'start-km' => $row->start_km,
+                    'finish-km' => $row->finish_km,
+                    'bbm' => $row->bbm,
+                    'fuel-type-id' => $row->fuel_type_id,
+                ],
             ],
             [
                 'type' => 'delete',

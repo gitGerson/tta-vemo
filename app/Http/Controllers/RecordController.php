@@ -31,12 +31,12 @@ class RecordController extends Controller
             'startDate' => $startDate,
             'endDate' => $endDate,
             'companyId' => $companyId,
-        ]);
+        ] + $this->formData());
     }
 
     public function create()
     {
-        return view('records.create', $this->formData());
+        return redirect()->route('records.index');
     }
 
     public function store(RecordStoreRequest $request)
@@ -79,7 +79,7 @@ class RecordController extends Controller
 
     public function edit(Record $record)
     {
-        return view('records.edit', array_merge($this->formData(), ['record' => $record]));
+        return redirect()->route('records.index');
     }
 
     public function update(Record $record, RecordUpdateRequest $request)
