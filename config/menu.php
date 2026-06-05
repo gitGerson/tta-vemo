@@ -234,6 +234,22 @@ return [
             'enabled' => true,
         ],
         [
+            'key' => 'maintenances-index',
+            'label' => 'Data Pemeliharaan',
+            'icon' => 'bx-wrench',
+            'route' => 'maintenances.index',
+            'route_params' => [],
+            'active_patterns' => ['maintenances.*'],
+            'permission' => 'operational.maintenances.view',
+            'section' => 'operational',
+            'contexts' => ['desktop', 'search'],
+            'search' => [
+                'description' => 'Vehicle maintenance and repair records',
+                'keywords' => ['maintenance', 'pemeliharaan', 'perbaikan', 'servis', 'kendaraan', 'operasional'],
+            ],
+            'enabled' => true,
+        ],
+        [
             'key' => 'users-index',
             'label' => 'Users',
             'icon' => 'bx-user',

@@ -7,6 +7,7 @@ use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\FormDemoController;
 use App\Http\Controllers\FuelTypeController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\RecordController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TypeMaintenanceController;
@@ -254,6 +255,46 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:operational.records.view'])->group(function () {
         Route::get('/records/{record}', [RecordController::class, 'show'])->name('records.show');
+    });
+
+    // Maintenance (Pemeliharaan) operational routes with permissions
+    Route::middleware(['permission:operational.maintenances.view'])->group(function () {
+        Route::get('/maintenances', [MaintenanceController::class, 'index'])->name('maintenances.index');
+        Route::get('/maintenances/data', [MaintenanceController::class, 'getData'])->name('maintenances.data');
+    });
+
+    Route::middleware(['permission:operational.maintenances.create'])->group(function () {
+        Route::get('/maintenances/create', [MaintenanceController::class, 'create'])->name('maintenances.create');
+        Route::post('/maintenances', [MaintenanceController::class, 'store'])->name('maintenances.store');
+    });
+
+    Route::middleware(['permission:operational.maintenances.edit'])->group(function () {
+        Route::put('/maintenances/{maintenance}', [MaintenanceController::class, 'update'])->name('maintenances.update');
+        Route::delete('/maintenances/details/{detail}', [MaintenanceController::class, 'deleteDetail'])->name('maintenances.detail.destroy');
+        Route::delete('/maintenances/notes/{note}', [MaintenanceController::class, 'deleteNote'])->name('maintenances.note.destroy');
+    });
+
+    Route::middleware(['permission:operational.maintenances.approve'])->group(function () {
+        Route::post('/maintenances/{maintenance}/status', [MaintenanceController::class, 'status'])->name('maintenances.status');
+        Route::post('/maintenances/{maintenance}/confirm', [MaintenanceController::class, 'confirm'])->name('maintenances.confirm');
+    });
+
+    Route::middleware(['permission:operational.maintenances.delete'])->group(function () {
+        Route::get('/maintenances/trash', [MaintenanceController::class, 'trash'])->name('maintenances.trash');
+        Route::get('/maintenances/trash/data', [MaintenanceController::class, 'getTrashData'])->name('maintenances.trash.data');
+        Route::delete('/maintenances/{maintenance}', [MaintenanceController::class, 'destroy'])->name('maintenances.destroy');
+    });
+
+    Route::middleware(['permission:operational.maintenances.restore'])->group(function () {
+        Route::post('/maintenances/{maintenance}/restore', [MaintenanceController::class, 'restore'])->withTrashed()->name('maintenances.restore');
+    });
+
+    Route::middleware(['permission:operational.maintenances.force_delete'])->group(function () {
+        Route::delete('/maintenances/{maintenance}/force-delete', [MaintenanceController::class, 'forceDelete'])->withTrashed()->name('maintenances.force-delete');
+    });
+
+    Route::middleware(['permission:operational.maintenances.view'])->group(function () {
+        Route::get('/maintenances/{maintenance}', [MaintenanceController::class, 'show'])->name('maintenances.show');
     });
 
     // Destination master data routes with permissions
