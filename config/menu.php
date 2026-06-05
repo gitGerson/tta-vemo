@@ -2,9 +2,15 @@
 
 return [
     'sections' => [
+        'operational' => [
+            'label' => 'Operasional',
+            'sidebar_label' => 'Operasional',
+            'order' => 5,
+            'contexts' => ['desktop', 'search'],
+        ],
         'general' => [
             'label' => 'General',
-            'sidebar_label' => null,
+            'sidebar_label' => '',
             'order' => 10,
             'contexts' => ['desktop', 'search'],
         ],
@@ -26,12 +32,6 @@ return [
             'order' => 30,
             'contexts' => ['desktop', 'search'],
         ],
-        'operational' => [
-            'label' => 'Operasional',
-            'sidebar_label' => 'Operasional',
-            'order' => 35,
-            'contexts' => ['desktop', 'search'],
-        ],
         'management' => [
             'label' => 'Management',
             'sidebar_label' => 'Management',
@@ -49,7 +49,8 @@ return [
             'route_params' => [],
             'active_patterns' => ['home'],
             'permission' => null,
-            'section' => 'general',
+            'section' => 'operational',
+            'order' => 1,
             'contexts' => ['desktop', 'search'],
             'search' => [
                 'description' => 'Main dashboard overview',
@@ -71,7 +72,7 @@ return [
                 'description' => 'Live examples for reusable Blade form components',
                 'keywords' => ['form', 'demo', 'components', 'input', 'select', 'date', 'editor'],
             ],
-            'enabled' => true,
+            'enabled' => false,
         ],
         [
             'key' => 'drivers-index',
@@ -226,6 +227,7 @@ return [
             'active_patterns' => ['records.*'],
             'permission' => 'operational.records.view',
             'section' => 'operational',
+            'order' => 2,
             'contexts' => ['desktop', 'search'],
             'search' => [
                 'description' => 'Trip records and fuel usage tracking',
@@ -242,6 +244,7 @@ return [
             'active_patterns' => ['maintenances.*'],
             'permission' => 'operational.maintenances.view',
             'section' => 'operational',
+            'order' => 3,
             'contexts' => ['desktop', 'search'],
             'search' => [
                 'description' => 'Vehicle maintenance and repair records',

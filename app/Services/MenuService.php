@@ -9,8 +9,7 @@ class MenuService
 {
     public function __construct(
         protected UrlGenerator $urlGenerator
-    ) {
-    }
+    ) {}
 
     /**
      * @return array<int, array<string, mixed>>
@@ -21,9 +20,9 @@ class MenuService
             ->values()
             ->map(fn (array $item, int $index): array => $item + ['_index' => $index])
             ->filter(fn (array $item): bool => $this->isVisible($item, $context, $user))
-            ->sortBy([
-                fn (array $item): int => $this->sectionOrder($item['section'] ?? null),
-                fn (array $item): int => $item['order'] ?? $item['_index'],
+            ->sortBy(fn (array $item): array => [
+                $this->sectionOrder($item['section'] ?? null),
+                $item['order'] ?? $item['_index'],
             ])
             ->map(fn (array $item): array => $this->resolveItem($item))
             ->values()
@@ -62,7 +61,7 @@ class MenuService
         }
 
         $contexts = $item['contexts'] ?? [];
-        if (!in_array($context, $contexts, true)) {
+        if (! in_array($context, $contexts, true)) {
             return false;
         }
 
