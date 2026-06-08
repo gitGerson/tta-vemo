@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Services\DiffrntHashId;
 use App\Services\JPayrollService;
 use App\Services\MenuService;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -48,6 +49,11 @@ class AppServiceProvider extends ServiceProvider
             $view->with(
                 'sidebarMenuSections',
                 $menuService->sectionsForContext('desktop', $user)
+            );
+
+            $view->with(
+                'navbarNotifications',
+                app(NotificationService::class)->forUser($user)
             );
         });
     }

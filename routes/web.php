@@ -8,6 +8,7 @@ use App\Http\Controllers\FormDemoController;
 use App\Http\Controllers\FuelTypeController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MaintenanceController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RecordController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TypeMaintenanceController;
@@ -30,6 +31,9 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
 
 // Route group middleware for authenticated users
 Route::middleware(['auth'])->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/read', [NotificationController::class, 'read'])->name('notifications.read');
+
     // User management routes with permissions
     Route::middleware(['permission:management.users.create'])->group(function () {
         Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
