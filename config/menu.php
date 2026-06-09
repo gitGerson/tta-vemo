@@ -152,7 +152,8 @@ return [
             'route_params' => [],
             'active_patterns' => ['vehicle-insurances.*'],
             'permission' => 'master.vehicle_insurances.view',
-            'section' => 'master-data',
+            'section' => 'operational',
+            'order' => 4,
             'contexts' => ['desktop', 'search'],
             'search' => [
                 'description' => 'Manage vehicle insurance records',
