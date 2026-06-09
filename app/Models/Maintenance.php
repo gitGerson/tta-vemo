@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\BelongsToCompanyTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Maintenance extends Model
 {
-    use Auditable, HasFactory, SoftDeletes;
+    use Auditable, BelongsToCompanyTenant, HasFactory, SoftDeletes;
 
     protected $table = 'maintenances';
 
@@ -21,9 +22,27 @@ class Maintenance extends Model
 
     public const STATUS_CANCELLED = 'CANCELLED';
 
+    protected static function booted(): void
+    {
+        // company_id always tracks the vehicle that owns the plate (denormalized
+        // for tenant scope). Maintenances link to vehicles by plate, not an FK.
+        static::saving(function (self $maintenance): void {
+            $maintenance->company_id = Vehicle::withoutGlobalScopes()
+                ->where('plat_new', $maintenance->no_pol)
+                ->value('company_id');
+        });
+    }
+
+    // Tenant company_id is derived from the vehicle, not assigned from the user.
+    public function getTenantAssignmentColumn(): ?string
+    {
+        return null;
+    }
+
     protected $fillable = [
         'code_mt',
         'no_pol',
+        'company_id',
         'total_amount',
         'date_in',
         'date_check',
@@ -54,6 +73,11 @@ class Maintenance extends Model
             'total_amount' => 'decimal:2',
             'deleted_at' => 'datetime',
         ];
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 
     public function details(): HasMany
