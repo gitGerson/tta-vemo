@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTables\UserDataTable;
 use App\Models\Company;
 use App\Models\Permission;
 use App\Models\Role;
@@ -24,8 +25,9 @@ class UserController extends Controller
             ->orderBy('display_name')
             ->get();
         $companies = Company::query()->orderBy('name')->get(['id', 'name', 'code']);
+        $table = new UserDataTable;
 
-        return view('users.index', compact('companies', 'roles'));
+        return view('users.index', compact('companies', 'roles', 'table'));
     }
 
     /**
@@ -248,24 +250,7 @@ class UserController extends Controller
      */
     public function getData(Request $request)
     {
-        $users = User::with(['companies', 'roles'])->select(['id', 'name', 'email', 'username']);
-
-        return datatables()->of($users)
-            ->addIndexColumn()
-            ->addColumn('roles', function ($user) {
-                return $user->roles->pluck('display_name')->join(', ') ?: '-';
-            })
-            ->addColumn('companies', function ($user) {
-                return $user->companies->pluck('name')->join(', ') ?: '-';
-            })
-            ->addColumn('row_url', function ($user) {
-                return route('users.show', $user);
-            })
-            ->addColumn('action', function ($user) {
-                return view('datatable.actions.users', compact('user'))->render();
-            })
-            ->rawColumns(['action'])
-            ->make(true);
+        return (new UserDataTable)->responseFor($request);
     }
 
     /**

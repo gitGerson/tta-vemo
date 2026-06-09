@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
+use App\DataTables\RoleDataTable;
 use App\Models\Permission;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -11,12 +12,13 @@ class RoleController extends Controller
 {
     public function index()
     {
-        return view('roles.index');
+        return view('roles.index', ['table' => new RoleDataTable]);
     }
 
     public function create()
     {
         $permissions = Permission::all()->groupBy('module');
+
         return view('roles.create', compact('permissions'));
     }
 
@@ -27,14 +29,14 @@ class RoleController extends Controller
             'display_name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'permissions' => 'array',
-            'permissions.*' => 'exists:permissions,id'
+            'permissions.*' => 'exists:permissions,id',
         ]);
 
         $role = Role::create([
             'name' => $request->name,
             'display_name' => $request->display_name,
             'description' => $request->description,
-            'guard_name' => 'web'
+            'guard_name' => 'web',
         ]);
 
         if ($request->has('permissions')) {
@@ -47,6 +49,7 @@ class RoleController extends Controller
     public function show(Role $role)
     {
         $role->load('permissions');
+
         return view('roles.show', compact('role'));
     }
 
@@ -55,6 +58,7 @@ class RoleController extends Controller
         $role->load('permissions');
         $permissions = Permission::all()->groupBy('module');
         $rolePermissions = $role->permissions->pluck('id')->toArray();
+
         return view('roles.edit', compact('role', 'permissions', 'rolePermissions'));
     }
 
@@ -65,7 +69,7 @@ class RoleController extends Controller
             'display_name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'permissions' => 'array',
-            'permissions.*' => 'exists:permissions,id'
+            'permissions.*' => 'exists:permissions,id',
         ]);
 
         $role->update([
@@ -93,23 +97,6 @@ class RoleController extends Controller
 
     public function getData(Request $request)
     {
-        $roles = Role::select(['id', 'name', 'display_name', 'description', 'created_at'])
-            ->withCount(['users', 'permissions']);
-
-        return datatables()->of($roles)
-            ->addColumn('users_count', function ($role) {
-                return $role->users_count;
-            })
-            ->addColumn('permissions_count', function ($role) {
-                return $role->permissions_count;
-            })
-            ->addColumn('row_url', function ($role) {
-                return route('roles.show', $role);
-            })
-            ->addColumn('action', function ($role) {
-                return view('datatable.actions.roles', compact('role'))->render();
-            })
-            ->rawColumns(['action'])
-            ->make(true);
+        return (new RoleDataTable)->responseFor($request);
     }
 }

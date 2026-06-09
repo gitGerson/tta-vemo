@@ -19,35 +19,30 @@
             </div>
         @endif
 
-        <x-datatable.card title="Daftar User">
+        <x-table :table="$table" engine="tabulator" layout="fitColumns" title="Daftar User">
             <x-slot:actions>
                 @if(auth()->user()->hasPermission('management.users.logs'))
-                    <a href="{{ route('users.logs') }}" class="btn btn-info me-2">
+                    <a href="{{ route('users.logs') }}" class="btn btn-sm btn-outline-info">
                         <i class="bx bx-history me-1"></i> Activity Logs
                     </a>
                 @endif
                 @if(auth()->user()->hasPermission('management.users.delete'))
-                    <a href="{{ route('users.trash') }}" class="btn btn-secondary me-2">
+                    <a href="{{ route('users.trash') }}" class="btn btn-sm btn-outline-secondary">
                         <i class="bx bx-trash me-1"></i> Tempat Sampah
                     </a>
                 @endif
                 @if(auth()->user()->hasPermission('management.roles.view'))
-                    <a href="{{ route('roles.index') }}" class="btn btn-warning me-2 d-none">
+                    <a href="{{ route('roles.index') }}" class="btn btn-sm btn-outline-warning d-none">
                         <i class="bx bx-shield me-1"></i> Kelola Role
                     </a>
                 @endif
                 @if(auth()->user()->hasPermission('management.users.create'))
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
                         <i class="bx bx-plus me-1"></i> Tambah User
                     </button>
                 @endif
             </x-slot:actions>
-
-            <x-datatable.table
-                id="users-table"
-                :columns="['No', 'Nama', 'Username', 'Email', 'Perusahaan', 'Role', 'Aksi']"
-            />
-        </x-datatable.card>
+        </x-table>
     </div>
 
     @if(auth()->user()->hasPermission('management.users.create'))
@@ -169,16 +164,6 @@
     </style>
 @endpush
 
-
-<x-datatable.scripts table-id="users-table" ajax="{{ route('users.data') }}" clickable-rows>
-    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-    { data: 'name', name: 'name' },
-    { data: 'username', name: 'username' },
-    { data: 'email', name: 'email' },
-    { data: 'companies', name: 'companies', orderable: false, searchable: false },
-    { data: 'roles', name: 'roles', orderable: false, searchable: false },
-    { data: 'action', name: 'action', orderable: false, searchable: false }
-</x-datatable.scripts>
 
 @push('scripts')
     <script>

@@ -62,6 +62,12 @@
                     </button>
                 </form>
                 @break
+
+            @case('disabled')
+                <button type="button" class="btn btn-sm btn-outline-secondary" title="{{ $action['label'] ?? '' }}" aria-label="{{ $action['label'] ?? '' }}" disabled>
+                    <i class="bx {{ $action['icon'] ?? 'bx-block' }}"></i>
+                </button>
+                @break
         @endswitch
     @endforeach
 </div>
