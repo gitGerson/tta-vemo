@@ -87,6 +87,32 @@ class ReportController extends Controller
         ]);
     }
 
+    public function maintenancesMonthly(Request $request)
+    {
+        $dateString = $request->query('date', Carbon::now()->format('Y-m'));
+        $month = Carbon::parse($dateString.'-01');
+        $startDate = $month->copy()->startOfMonth()->toDateString();
+        $endDate = $month->copy()->endOfMonth()->toDateString();
+        $unitPlate = $request->query('unit');
+        $companyId = $request->query('company') ? (int) $request->query('company') : null;
+
+        $unit = $unitPlate ? Vehicle::where('plat_new', $unitPlate)->first() : null;
+
+        $table = null;
+        if ($unitPlate) {
+            $table = new MaintenanceDailyReportDataTable($this->fetchMaintenanceDetails($unitPlate, $startDate, $endDate));
+        }
+
+        return view('reports.maintenances.monthly', [
+            'date' => $dateString,
+            'unit' => $unit,
+            'table' => $table,
+            'vehicles' => Vehicle::all(),
+            'companies' => $this->selectableCompanies(),
+            'companyId' => $companyId,
+        ]);
+    }
+
     public function maintenancesYear(Request $request)
     {
         $year = $request->query('year', Carbon::now()->year);
@@ -168,6 +194,27 @@ class ReportController extends Controller
         ])->setPaper('A4', 'portrait');
 
         return $pdf->download("laporan_pemeliharaan_{$unitPlate}_{$startDate}_{$endDate}.pdf");
+    }
+
+    public function maintenancesMonthlyPdf(Request $request)
+    {
+        $dateString = $request->query('date', Carbon::now()->format('Y-m'));
+        $month = Carbon::parse($dateString.'-01');
+        $startDate = $month->copy()->startOfMonth()->toDateString();
+        $endDate = $month->copy()->endOfMonth()->toDateString();
+        $unitPlate = $request->query('unit');
+
+        $unit = $unitPlate ? Vehicle::where('plat_new', $unitPlate)->first() : null;
+        $detailMtc = $unitPlate ? $this->fetchMaintenanceDetails($unitPlate, $startDate, $endDate) : collect();
+
+        $pdf = Pdf::loadView('reports.pdf.maintenances-daily', [
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'unit' => $unit,
+            'detailMtc' => $detailMtc,
+        ])->setPaper('A4', 'portrait');
+
+        return $pdf->download("laporan_pemeliharaan_bulanan_{$unitPlate}_{$month->format('Y_m')}.pdf");
     }
 
     public function maintenancesYearPdf(Request $request)

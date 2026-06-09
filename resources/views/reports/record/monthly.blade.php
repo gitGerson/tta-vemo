@@ -23,7 +23,7 @@
                         @foreach ($company as $row)
                             <option
                                 {{ (string) $selectedCompanyId === (string) $row->id ? 'selected' : '' }}
-                                value="{{ $row->id }}">{{ $row->code }}</option>
+                                value="{{ $row->id }}">{{ $row->code ?: $row->name }}</option>
                         @endforeach
                     </select>
                 </div>

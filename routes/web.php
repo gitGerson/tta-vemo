@@ -321,6 +321,12 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:reports.maintenances.daily.export'])->group(function () {
         Route::get('/report/maintenances/daily/pdf', [ReportController::class, 'maintenancesDailyPdf'])->name('report.maintenances.daily.pdf');
     });
+    Route::middleware(['permission:reports.maintenances.monthly.view'])->group(function () {
+        Route::get('/report/maintenances/monthly', [ReportController::class, 'maintenancesMonthly'])->name('report.maintenances.monthly');
+    });
+    Route::middleware(['permission:reports.maintenances.monthly.export'])->group(function () {
+        Route::get('/report/maintenances/monthly/pdf', [ReportController::class, 'maintenancesMonthlyPdf'])->name('report.maintenances.monthly.pdf');
+    });
     Route::middleware(['permission:reports.maintenances.year.view'])->group(function () {
         Route::get('/report/maintenances/year', [ReportController::class, 'maintenancesYear'])->name('report.maintenances.year');
     });

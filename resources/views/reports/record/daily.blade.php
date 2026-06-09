@@ -30,7 +30,7 @@
                         <option value="">Semua perusahaan</option>
                         @foreach ($company as $row)
                             <option value="{{ $row->id }}" {{ request()->query('company') == $row->id || (!request()->query('company') && $row->code === 'TTI') ? 'selected' : '' }}>
-                                {{ $row->code }}
+                                {{ $row->code ?: $row->name }}
                             </option>
                         @endforeach
                     </select>

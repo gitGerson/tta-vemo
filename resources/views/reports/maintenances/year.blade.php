@@ -32,7 +32,7 @@
             <select name="company" class="form-select form-select-sm select2" id="company">
                 <option value="">Semua perusahaan</option>
                 @foreach ($companies as $row)
-                    <option value="{{ $row->id }}" {{ (int) $companyId === (int) $row->id ? 'selected' : '' }}>{{ $row->code ?? $row->name }}</option>
+                    <option value="{{ $row->id }}" {{ (int) $companyId === (int) $row->id ? 'selected' : '' }}>{{ $row->code ?: $row->name }}</option>
                 @endforeach
             </select>
         </div>

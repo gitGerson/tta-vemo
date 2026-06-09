@@ -26,7 +26,7 @@
                         <option value="">Semua perusahaan</option>
                         @foreach ($companies as $row)
                             <option value="{{ $row->id }}" {{ (int) $companyId === (int) $row->id ? 'selected' : '' }}>
-                                {{ $row->code ?? $row->name }}
+                                {{ $row->code ?: $row->name }}
                             </option>
                         @endforeach
                     </select>
