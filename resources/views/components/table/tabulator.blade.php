@@ -11,6 +11,7 @@
     'showSearch' => true,
     'showColvis' => true,
     'showExport' => true,
+    'placeholder' => null,
 ])
 
 @php
@@ -41,6 +42,7 @@
         'formFieldMap' => $table->formFieldMap(),
         'addRowDefaults' => $table->addRowDefaults(),
         'addRowFocusField' => $table->addRowFocusField(),
+        'placeholder' => $placeholder,
     ];
 
     // Local editable grids show the Add button without a remote create URL.
@@ -148,6 +150,17 @@
                 font-size: 0.72rem;
                 font-weight: 600;
                 line-height: 1.15;
+            }
+
+            /* Vertically center single-level header titles so they line up with
+               grouped headers (e.g. BIAYA → QTY/HARGA/SUBTOTAL) instead of
+               top-aligning. No-op for normal single-row headers. The group parent
+               cell is excluded so its title stays above its child columns. */
+            .table-tabulator .tabulator-header .tabulator-col:not(.tabulator-col-group) .tabulator-col-content {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                height: 100%;
             }
 
             .table-tabulator .tabulator-header .tabulator-arrow {

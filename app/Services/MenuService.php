@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use Illuminate\Contracts\Routing\UrlGenerator;
+use Illuminate\Support\Collection;
 
 class MenuService
 {
@@ -47,11 +48,59 @@ class MenuService
                     'label' => $sectionConfig['sidebar_label'] ?? $sectionConfig['label'] ?? null,
                     'order' => $sectionConfig['order'] ?? 999,
                     'items' => $sectionItems->values()->all(),
+                    'nodes' => $this->buildSectionNodes($sectionItems),
                 ];
             })
             ->sortBy('order')
             ->values()
             ->all();
+    }
+
+    /**
+     * Build the sidebar render list for one section: items carrying a `group`
+     * key (matching config('menu.groups')) collapse into a single submenu node
+     * at the position of their first child; everything else stays a flat item.
+     * Search uses itemsForContext() and is unaffected by this nesting.
+     *
+     * @param  Collection<int, array<string, mixed>>  $items
+     * @return array<int, array<string, mixed>>
+     */
+    protected function buildSectionNodes($items): array
+    {
+        $groups = config('menu.groups', []);
+        $nodes = [];
+        $seen = [];
+
+        foreach ($items as $item) {
+            $groupKey = $item['group'] ?? null;
+
+            if ($groupKey !== null && isset($groups[$groupKey])) {
+                if (isset($seen[$groupKey])) {
+                    continue;
+                }
+                $seen[$groupKey] = true;
+
+                $children = collect($items)
+                    ->filter(fn (array $i): bool => ($i['group'] ?? null) === $groupKey)
+                    ->values()
+                    ->all();
+
+                $nodes[] = [
+                    'type' => 'group',
+                    'key' => $groupKey,
+                    'label' => $groups[$groupKey]['label'] ?? $groupKey,
+                    'icon' => $groups[$groupKey]['icon'] ?? null,
+                    'is_active' => collect($children)->contains(fn (array $i): bool => $i['is_active'] ?? false),
+                    'items' => $children,
+                ];
+
+                continue;
+            }
+
+            $nodes[] = ['type' => 'item'] + $item;
+        }
+
+        return $nodes;
     }
 
     protected function isVisible(array $item, string $context, ?User $user): bool
@@ -82,12 +131,14 @@ class MenuService
         return [
             'key' => $item['key'],
             'title' => $item['label'],
+            'sidebar_label' => $item['sidebar_label'] ?? $item['label'],
             'description' => $item['search']['description'] ?? $item['label'],
             'url' => $this->urlGenerator->route($item['route'], $item['route_params'] ?? []),
             'icon' => $item['icon'],
             'keywords' => array_values($item['search']['keywords'] ?? []),
             'permission' => $item['permission'] ?? null,
             'section' => $item['section'] ?? null,
+            'group' => $item['group'] ?? null,
             'active_patterns' => $item['active_patterns'] ?? [],
             'is_active' => $this->isActive($item['active_patterns'] ?? []),
         ];

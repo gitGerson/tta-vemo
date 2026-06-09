@@ -104,6 +104,13 @@ const EDITORS = {
     select2: makeSelect2Editor,
 };
 
+// Column calculations a DataTable can request by string name (config is JSON, so
+// it cannot ship a JS function). staticLabel renders a fixed footer label like
+// "JUMLAH" / "TOTAL" in a non-numeric column's bottomCalc cell.
+const CALCS = {
+    staticLabel: (params = {}) => params.label ?? '',
+};
+
 const FORMATTERS = {
     nameOrPlaceholder: (cell, params) =>
         cell.getValue() || `<span class="text-muted">${params.placeholder ?? ''}</span>`,
@@ -128,6 +135,11 @@ function resolveColumnDefs(columns) {
     return (columns ?? []).map((column) => {
         const def = { ...column };
 
+        // Grouped (nested) columns: resolve their children too.
+        if (Array.isArray(def.columns)) {
+            def.columns = resolveColumnDefs(def.columns);
+        }
+
         if (typeof def.editor === 'string' && EDITORS[def.editor]) {
             def.editor = EDITORS[def.editor](def.editorParams ?? {});
             delete def.editorParams;
@@ -140,6 +152,12 @@ function resolveColumnDefs(columns) {
             const fn = FORMATTERS[def.formatter];
             const params = def.formatterParams ?? {};
             def.formatter = (cell) => fn(cell, params);
+        }
+
+        if (typeof def.bottomCalc === 'string' && CALCS[def.bottomCalc]) {
+            const calc = CALCS[def.bottomCalc];
+            const params = def.bottomCalcParams ?? {};
+            def.bottomCalc = () => calc(params);
         }
 
         return def;
@@ -552,7 +570,7 @@ function initLocalTable(el, id, config) {
         layout: config.layout ?? 'fitColumns',
         data: (config.data ?? []).map((row) => ({ ...row })),
         pagination: false,
-        placeholder: 'Belum ada item perbaikan',
+        placeholder: config.placeholder ?? 'Belum ada item perbaikan',
     });
 
     el.tabulatorInstance = table;

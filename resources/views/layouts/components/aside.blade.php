@@ -25,13 +25,31 @@
                 </li>
             @endif
 
-            @foreach ($section['items'] as $item)
-                <li class="menu-item {{ $item['is_active'] ? 'active' : '' }}">
-                    <a href="{{ $item['url'] }}" class="menu-link">
-                        <i class="menu-icon tf-icons bx {{ $item['icon'] }}"></i>
-                        <div class="text-truncate" data-i18n="{{ $item['title'] }}">{{ $item['title'] }}</div>
-                    </a>
-                </li>
+            @foreach ($section['nodes'] ?? $section['items'] as $node)
+                @if (($node['type'] ?? 'item') === 'group')
+                    <li class="menu-item {{ $node['is_active'] ? 'active open' : '' }}">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx {{ $node['icon'] }}"></i>
+                            <div class="text-truncate" data-i18n="{{ $node['label'] }}">{{ $node['label'] }}</div>
+                        </a>
+                        <ul class="menu-sub">
+                            @foreach ($node['items'] as $child)
+                                <li class="menu-item {{ $child['is_active'] ? 'active' : '' }}">
+                                    <a href="{{ $child['url'] }}" class="menu-link">
+                                        <div class="text-truncate" data-i18n="{{ $child['sidebar_label'] }}">{{ $child['sidebar_label'] }}</div>
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </li>
+                @else
+                    <li class="menu-item {{ $node['is_active'] ? 'active' : '' }}">
+                        <a href="{{ $node['url'] }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx {{ $node['icon'] }}"></i>
+                            <div class="text-truncate" data-i18n="{{ $node['title'] }}">{{ $node['title'] }}</div>
+                        </a>
+                    </li>
+                @endif
             @endforeach
         @endforeach
     </ul>

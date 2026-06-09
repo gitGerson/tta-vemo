@@ -12,6 +12,7 @@
     'showSearch' => true,
     'showColvis' => true,
     'showExport' => true,
+    'placeholder' => null,
 ])
 
 {{--
@@ -33,6 +34,7 @@
     :show-search="$showSearch"
     :show-colvis="$showColvis"
     :show-export="$showExport"
+    :placeholder="$placeholder"
 >
     @isset($actions)
         <x-slot:actions>{{ $actions }}</x-slot:actions>

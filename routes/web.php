@@ -10,6 +10,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RecordController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TypeMaintenanceController;
 use App\Http\Controllers\UserController;
@@ -299,6 +300,33 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:operational.maintenances.view'])->group(function () {
         Route::get('/maintenances/{maintenance}', [MaintenanceController::class, 'show'])->name('maintenances.show');
+    });
+
+    // Reports (Rekap Laporan) routes with permissions
+    Route::middleware(['permission:reports.daily.view'])->group(function () {
+        Route::get('/report/daily', [ReportController::class, 'daily'])->name('report.daily');
+    });
+    Route::middleware(['permission:reports.daily.export'])->group(function () {
+        Route::get('/report/daily/pdf', [ReportController::class, 'dailyPdf'])->name('report.daily.pdf');
+    });
+    Route::middleware(['permission:reports.monthly.view'])->group(function () {
+        Route::get('/report/monthly', [ReportController::class, 'monthly'])->name('report.monthly');
+    });
+    Route::middleware(['permission:reports.monthly.export'])->group(function () {
+        Route::get('/report/monthly/pdf', [ReportController::class, 'monthlyPdf'])->name('report.monthly.pdf');
+    });
+    Route::middleware(['permission:reports.maintenances.daily.view'])->group(function () {
+        Route::get('/report/maintenances/daily', [ReportController::class, 'maintenancesDaily'])->name('report.maintenances.daily');
+    });
+    Route::middleware(['permission:reports.maintenances.daily.export'])->group(function () {
+        Route::get('/report/maintenances/daily/pdf', [ReportController::class, 'maintenancesDailyPdf'])->name('report.maintenances.daily.pdf');
+    });
+    Route::middleware(['permission:reports.maintenances.year.view'])->group(function () {
+        Route::get('/report/maintenances/year', [ReportController::class, 'maintenancesYear'])->name('report.maintenances.year');
+    });
+    Route::middleware(['permission:reports.maintenances.year.export'])->group(function () {
+        Route::get('/report/maintenances/year/pdf', [ReportController::class, 'maintenancesYearPdf'])->name('report.maintenances.year.pdf');
+        Route::get('/report/maintenances/year/excel', [ReportController::class, 'maintenancesYearExcel'])->name('report.maintenances.year.excel');
     });
 
     // Destination master data routes with permissions
