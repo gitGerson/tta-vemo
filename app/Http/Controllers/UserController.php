@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\DataTables\UserDataTable;
+use App\DataTables\UserTrashDataTable;
 use App\Models\Company;
 use App\Models\Permission;
 use App\Models\Role;
@@ -35,7 +36,7 @@ class UserController extends Controller
      */
     public function trash()
     {
-        return view('users.trash');
+        return view('users.trash', ['table' => new UserTrashDataTable]);
     }
 
     /**
@@ -258,25 +259,7 @@ class UserController extends Controller
      */
     public function getTrashData(Request $request)
     {
-        $users = User::onlyTrashed()
-            ->with(['creator', 'updater', 'deleter'])
-            ->select(['id', 'name', 'email', 'username', 'deleted_at', 'created_by', 'updated_by', 'deleted_by']);
-
-        return datatables()->of($users)
-            ->addColumn('created_by_name', function ($user) {
-                return $user->creator ? $user->creator->name : '-';
-            })
-            ->addColumn('updated_by_name', function ($user) {
-                return $user->updater ? $user->updater->name : '-';
-            })
-            ->addColumn('deleted_by_name', function ($user) {
-                return $user->deleter ? $user->deleter->name : '-';
-            })
-            ->addColumn('action', function ($user) {
-                return view('datatable.actions.users-trash', compact('user'))->render();
-            })
-            ->rawColumns(['action'])
-            ->make(true);
+        return (new UserTrashDataTable)->responseFor($request);
     }
 
     /**

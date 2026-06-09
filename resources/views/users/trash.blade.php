@@ -13,33 +13,12 @@
             </div>
         @endif
 
-        <x-datatable.card title="Tempat Sampah User">
+        <x-table :table="$table" engine="tabulator" layout="fitColumns" title="Tempat Sampah User">
             <x-slot:actions>
-                <a href="{{ route('users.index') }}" class="btn btn-secondary">
+                <a href="{{ route('users.index') }}" class="btn btn-sm btn-outline-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali ke Daftar User
                 </a>
             </x-slot:actions>
-
-            <x-datatable.table
-                id="trash-table"
-                :columns="['ID', 'Nama', 'Username', 'Email', 'Dihapus', 'Dihapus Oleh', 'Aksi']"
-            />
-        </x-datatable.card>
+        </x-table>
     </div>
 @endsection
-
-<x-datatable.scripts table-id="trash-table" ajax="{{ route('users.trash.data') }}">
-    { data: 'id', name: 'id' },
-    { data: 'name', name: 'name' },
-    { data: 'username', name: 'username' },
-    { data: 'email', name: 'email' },
-    {
-        data: 'deleted_at',
-        name: 'deleted_at',
-        render: function(data, type, row) {
-            return moment(data).format('DD MMM YYYY HH:mm');
-        }
-    },
-    { data: 'deleted_by_name', name: 'deleted_by_name' },
-    { data: 'action', name: 'action', orderable: false, searchable: false }
-</x-datatable.scripts>
