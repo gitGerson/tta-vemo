@@ -18,7 +18,7 @@
                 || auth()->user()->hasPermission('master.vehicle_brands.view');
         @endphp
 
-        <x-table :table="$table" engine="tabulator" layout="fitDataStretch" title="Daftar Kendaraan">
+        <x-table :table="$table" engine="tabulator" layout="fitDataFill" title="Daftar Kendaraan">
             <x-slot:actions>
                 <div class="d-flex gap-2">
                     @if($canManageReferences)

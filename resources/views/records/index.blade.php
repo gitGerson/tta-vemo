@@ -41,7 +41,7 @@
             </div>
         </div>
 
-        <x-table :table="$table" engine="tabulator" layout="fitDataStretch" title="Catatan Perjalanan">
+        <x-table :table="$table" engine="tabulator" layout="fitDataFill" title="Catatan Perjalanan">
             <x-slot:actions>
                 <div class="d-flex gap-2">
                     @if(auth()->user()->hasPermission('operational.records.delete'))
