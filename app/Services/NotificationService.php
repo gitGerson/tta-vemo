@@ -90,6 +90,7 @@ class NotificationService
     {
         $canView = $user->hasPermission('operational.maintenances.view') === true;
         $canApprove = $user->hasPermission('operational.maintenances.approve') === true;
+        $canRemind = $user->hasPermission('operational.maintenances.reminders') === true;
 
         $plates = Vehicle::pluck('plat_new');
         $items = [];
@@ -120,7 +121,12 @@ class NotificationService
                     'link' => route('maintenances.show', $maintenance),
                 ];
             }
+        }
 
+        // Service reminders are gated by a dedicated permission so the audience can be
+        // defined independently of maintenance access. dueVehicles() is company-scoped
+        // via the Vehicle CompanyTenantScope (bypassed by management.tenant.bypass).
+        if ($canRemind) {
             foreach ($this->serviceReminders->dueVehicles() as $due) {
                 $items[] = [
                     'key' => $this->serviceDueKey($due),

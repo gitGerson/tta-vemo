@@ -110,12 +110,16 @@ class HomeController extends Controller
             })
             ->all();
 
-        $due = $serviceReminders->dueVehicles();
+        // Gated by a dedicated permission so the reminder audience can be defined
+        // independently. dueVehicles() is company-scoped via the Vehicle
+        // CompanyTenantScope (bypassed by management.tenant.bypass).
+        $canRemind = auth()->user()?->hasPermission('operational.maintenances.reminders') === true;
+        $due = $canRemind ? $serviceReminders->dueVehicles() : collect();
 
         return view('home', [
             'conditionSummary' => $conditionSummary,
             'recentMaintenance' => $recentMaintenance,
-            'serviceReminders' => ['count' => $due->count(), 'items' => $due->all()],
+            'serviceReminders' => ['visible' => $canRemind, 'count' => $due->count(), 'items' => $due->all()],
         ]);
     }
 

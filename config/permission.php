@@ -615,6 +615,14 @@ return [
                     'parent' => 'operational.access',
                     'sort_order' => 14,
                 ],
+                [
+                    'name' => 'operational.maintenances.reminders',
+                    'display_name' => 'Maintenances - Service Reminders',
+                    'description' => 'Can receive vehicle service reminders (dashboard card and notifications), scoped to the user\'s companies unless tenant bypass is granted',
+                    'module' => 'operational',
+                    'parent' => 'operational.access',
+                    'sort_order' => 15,
+                ],
             ],
         ],
     ],
@@ -701,6 +709,7 @@ return [
                 'operational.maintenances.delete',
                 'operational.maintenances.restore',
                 'operational.maintenances.force_delete',
+                'operational.maintenances.reminders',
             ],
         ],
         [

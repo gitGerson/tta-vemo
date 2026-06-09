@@ -302,6 +302,7 @@
             <!--/ Vehicle Condition -->
 
             <!-- Service Reminder -->
+            @if ($serviceReminders['visible'])
             <div class="col-md-6 col-lg-4 order-1 mb-6">
                 <div class="card h-100">
                     <div class="card-header d-flex align-items-center justify-content-between">
@@ -342,6 +343,7 @@
                     </div>
                 </div>
             </div>
+            @endif
             <!--/ Service Reminder -->
 
             <!-- Recent Maintenance -->
