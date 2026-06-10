@@ -230,6 +230,8 @@ Route::middleware(['auth'])->group(function () {
     // Vehicle monthly photo (Foto Kendaraan) routes with permissions
     Route::middleware(['permission:operational.vehicle_photos.view'])->group(function () {
         Route::get('/vehicles/{vehicle}/photos/data', [VehiclePhotoController::class, 'getDataForVehicle'])->name('vehicles.photos.data');
+        Route::get('/vehicle-photos/data', [VehiclePhotoController::class, 'getData'])->name('vehicle-photos.data');
+        Route::get('/vehicle-photos/{vehiclePhoto}', [VehiclePhotoController::class, 'show'])->name('vehicle-photos.show')->whereNumber('vehiclePhoto');
     });
 
     Route::middleware(['permission:operational.vehicle_photos.create'])->group(function () {

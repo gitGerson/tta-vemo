@@ -59,12 +59,19 @@ class VehiclePhotoDataTable extends DataTable
 
     public function ajax(): string
     {
-        return route('vehicles.photos.data', $this->vehicle);
+        return $this->vehicle !== null
+            ? route('vehicles.photos.data', $this->vehicle)
+            : route('vehicle-photos.data');
     }
 
     public function actions(mixed $row): array
     {
         return [
+            [
+                'type' => 'view',
+                'url' => route('vehicle-photos.show', $row),
+                'permission' => 'operational.vehicle_photos.view',
+            ],
             [
                 'type' => 'edit-link',
                 'url' => route('vehicle-photos.edit', $row),

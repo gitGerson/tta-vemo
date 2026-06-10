@@ -1,7 +1,7 @@
 @php
     $photo = $photo ?? null;
     $vehicle = $vehicle ?? null;
-    $cancelUrl = $vehicle !== null ? route('vehicles.show', $vehicle) : route('vehicles.index');
+    $cancelUrl = route('vehicle-photos.create', ['vehicle_id' => $vehicle?->id]);
     $vehicleOptions = ($vehicles ?? collect())->mapWithKeys(fn ($v) => [
         $v->id => "{$v->plat_new}" . ($v->type ? " ({$v->type})" : ''),
     ])->all();

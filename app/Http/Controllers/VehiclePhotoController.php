@@ -27,6 +27,7 @@ class VehiclePhotoController extends Controller
             'selectedVehicleId' => $vehicle?->id,
             'periodsByVehicle' => $periodsByVehicle,
             'documentedPeriods' => $vehicle !== null ? ($periodsByVehicle[$vehicle->id] ?? []) : [],
+            'table' => new VehiclePhotoDataTable,
         ]);
     }
 
@@ -37,7 +38,17 @@ class VehiclePhotoController extends Controller
 
         $photo = VehiclePhoto::create($data);
 
-        return $this->redirectAfterWrite($photo->vehicle_id, 'Foto kendaraan berhasil disimpan.');
+        return redirect()
+            ->route('vehicle-photos.create', ['vehicle_id' => $photo->vehicle_id])
+            ->with('success', 'Foto kendaraan berhasil disimpan.');
+    }
+
+    public function show(VehiclePhoto $vehiclePhoto)
+    {
+        return view('vehicle-photos.show', [
+            'photo' => $vehiclePhoto->load('vehicle'),
+            'vehicle' => $vehiclePhoto->vehicle,
+        ]);
     }
 
     public function edit(VehiclePhoto $vehiclePhoto)
@@ -56,7 +67,9 @@ class VehiclePhotoController extends Controller
 
         $vehiclePhoto->update($data);
 
-        return $this->redirectAfterWrite($vehiclePhoto->vehicle_id, 'Foto kendaraan berhasil diperbarui.');
+        return redirect()
+            ->route('vehicle-photos.create', ['vehicle_id' => $vehiclePhoto->vehicle_id])
+            ->with('success', 'Foto kendaraan berhasil diperbarui.');
     }
 
     public function destroy(VehiclePhoto $vehiclePhoto)
@@ -82,6 +95,18 @@ class VehiclePhotoController extends Controller
 
     public function getDataForVehicle(Vehicle $vehicle, Request $request)
     {
+        return (new VehiclePhotoDataTable($vehicle))->responseFor($request);
+    }
+
+    /**
+     * Global photo table data, optionally narrowed to one vehicle via the
+     * `vehicle_id` ajax param (used by the upload page's filterable table).
+     */
+    public function getData(Request $request)
+    {
+        $vehicleId = $request->integer('vehicle_id') ?: null;
+        $vehicle = $vehicleId !== null ? Vehicle::query()->find($vehicleId) : null;
+
         return (new VehiclePhotoDataTable($vehicle))->responseFor($request);
     }
 
