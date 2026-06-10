@@ -13,6 +13,13 @@
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
 
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         {{-- Header --}}
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
             <div>
@@ -81,7 +88,73 @@
                 </div>
             </div>
         </div>
+
+        {{-- Comments & Activity --}}
+        @php $palette = ['primary', 'success', 'danger', 'warning', 'info', 'secondary']; @endphp
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Comments &amp; Activity</h5>
+                <span class="badge bg-label-secondary rounded-pill">{{ $photo->comments->count() }}</span>
+            </div>
+            <div class="card-body">
+                {{-- Composer --}}
+                <form method="POST" action="{{ route('vehicle-photos.comments.store', $photo) }}" class="mb-4">
+                    @csrf
+                    <x-form.rich-editor name="body" label="Tambah komentar" placeholder="Tulis komentar..." minHeight="140px" />
+                    <div class="d-flex justify-content-end mt-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bx bx-send me-1"></i> Kirim
+                        </button>
+                    </div>
+                </form>
+
+                {{-- Thread --}}
+                @forelse ($photo->comments as $comment)
+                    @php
+                        $name = $comment->user?->name ?? 'Pengguna';
+                        $initials = collect(explode(' ', trim($name)))->filter()->take(2)->map(fn (string $w): string => mb_strtoupper(mb_substr($w, 0, 1)))->implode('');
+                        $color = $palette[($comment->user_id ?? 0) % count($palette)];
+                        $isOwn = $comment->user_id === auth()->id();
+                    @endphp
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="avatar avatar-sm flex-shrink-0">
+                            <span class="avatar-initial rounded-circle bg-label-{{ $color }}">{{ $initials ?: '?' }}</span>
+                        </div>
+                        <div class="flex-grow-1 rounded p-3 {{ $isOwn ? 'bg-label-primary' : 'bg-lighter border' }}">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-semibold">{{ $name }}</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <small class="text-muted">{{ $comment->created_at?->diffForHumans() }}</small>
+                                    @if ($isOwn)
+                                        <form method="POST" action="{{ route('vehicle-photos.comments.destroy', [$photo, $comment]) }}"
+                                            onsubmit="return confirm('Hapus komentar ini?');" class="lh-1">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm p-0 border-0 text-danger" title="Hapus">
+                                                <i class="bx bx-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="comment-body">{!! $comment->body !!}</div>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-muted mb-0">Belum ada komentar.</p>
+                @endforelse
+            </div>
+        </div>
     </div>
+
+    @push('styles')
+        <style>
+            .comment-body :last-child { margin-bottom: 0; }
+            .comment-body p { margin-bottom: 0.4rem; }
+            .comment-body img { max-width: 100%; height: auto; border-radius: 0.375rem; }
+            .bg-lighter { background-color: var(--bs-gray-100, #f5f5f9); }
+        </style>
+    @endpush
 
     {{-- Lightbox --}}
     <div class="modal fade" id="photoLightbox" tabindex="-1" aria-hidden="true">

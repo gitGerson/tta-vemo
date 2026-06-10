@@ -232,6 +232,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/vehicles/{vehicle}/photos/data', [VehiclePhotoController::class, 'getDataForVehicle'])->name('vehicles.photos.data');
         Route::get('/vehicle-photos/data', [VehiclePhotoController::class, 'getData'])->name('vehicle-photos.data');
         Route::get('/vehicle-photos/{vehiclePhoto}', [VehiclePhotoController::class, 'show'])->name('vehicle-photos.show')->whereNumber('vehiclePhoto');
+        Route::post('/vehicle-photos/{vehiclePhoto}/comments', [VehiclePhotoController::class, 'storeComment'])->name('vehicle-photos.comments.store')->whereNumber('vehiclePhoto');
+        Route::delete('/vehicle-photos/{vehiclePhoto}/comments/{comment}', [VehiclePhotoController::class, 'destroyComment'])->name('vehicle-photos.comments.destroy')->whereNumber(['vehiclePhoto', 'comment']);
     });
 
     Route::middleware(['permission:operational.vehicle_photos.create'])->group(function () {

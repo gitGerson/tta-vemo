@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToCompanyTenant;
+use App\Models\Concerns\HasComments;
 use Closure;
 use Database\Factories\VehiclePhotoFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,7 +16,7 @@ use Illuminate\Validation\Rule;
 class VehiclePhoto extends Model
 {
     /** @use HasFactory<VehiclePhotoFactory> */
-    use BelongsToCompanyTenant, HasFactory, SoftDeletes;
+    use BelongsToCompanyTenant, HasComments, HasFactory, SoftDeletes;
 
     /**
      * The four documented sides of the vehicle (key => label). A month is complete only

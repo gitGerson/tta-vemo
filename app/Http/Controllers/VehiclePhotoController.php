@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\DataTables\VehiclePhotoDataTable;
 use App\Http\Requests\VehiclePhotoStoreRequest;
 use App\Http\Requests\VehiclePhotoUpdateRequest;
+use App\Models\Comment;
 use App\Models\Vehicle;
 use App\Models\VehiclePhoto;
 use App\Services\FilePondUploadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Stevebauman\Purify\Facades\Purify;
 
 class VehiclePhotoController extends Controller
 {
@@ -46,9 +48,44 @@ class VehiclePhotoController extends Controller
     public function show(VehiclePhoto $vehiclePhoto)
     {
         return view('vehicle-photos.show', [
-            'photo' => $vehiclePhoto->load('vehicle'),
+            'photo' => $vehiclePhoto->load('vehicle', 'comments.user'),
             'vehicle' => $vehiclePhoto->vehicle,
         ]);
+    }
+
+    public function storeComment(VehiclePhoto $vehiclePhoto, Request $request)
+    {
+        $data = $request->validate(Comment::validationRules());
+
+        // The rich editor posts HTML — sanitize it before persisting (rendered raw on show).
+        $body = Purify::clean($data['body']);
+
+        // An "empty" editor still posts markup like <p></p>; reject when there is no
+        // visible text and no image.
+        if (trim(strip_tags($body)) === '' && ! str_contains($body, '<img')) {
+            return back()->withErrors(['body' => 'Komentar tidak boleh kosong.'])->withInput();
+        }
+
+        $vehiclePhoto->comments()->create([
+            'body' => $body,
+            'user_id' => auth()->id(),
+        ]);
+
+        return back()->with('success', 'Komentar ditambahkan.');
+    }
+
+    public function destroyComment(VehiclePhoto $vehiclePhoto, Comment $comment)
+    {
+        abort_unless(
+            $comment->commentable_id === $vehiclePhoto->id
+                && $comment->commentable_type === $vehiclePhoto->getMorphClass()
+                && $comment->user_id === auth()->id(),
+            403
+        );
+
+        $comment->delete();
+
+        return back()->with('success', 'Komentar dihapus.');
     }
 
     public function edit(VehiclePhoto $vehiclePhoto)
