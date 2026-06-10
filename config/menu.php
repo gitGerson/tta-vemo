@@ -60,6 +60,11 @@ return [
             'icon' => 'bx-wrench',
             'section' => 'reports',
         ],
+        'master-data.vehicle' => [
+            'label' => 'Vehicle',
+            'icon' => 'bx-car',
+            'section' => 'master-data',
+        ],
     ],
 
     'items' => [
@@ -131,12 +136,15 @@ return [
         [
             'key' => 'vehicles-index',
             'label' => 'Vehicle',
+            'sidebar_label' => 'Daftar Kendaraan',
             'icon' => 'bx-car',
             'route' => 'vehicles.index',
             'route_params' => [],
-            'active_patterns' => ['vehicles.*', 'vehicle-types.*', 'vehicle-brands.*'],
+            'active_patterns' => ['vehicles.*'],
             'permission' => 'master.vehicles.view',
             'section' => 'master-data',
+            'group' => 'master-data.vehicle',
+            'order' => 9,
             'contexts' => ['desktop', 'search'],
             'search' => [
                 'description' => 'Manage vehicle master data',
@@ -229,13 +237,16 @@ return [
         [
             'key' => 'vehicle-types-index',
             'label' => 'Vehicle Type',
+            'sidebar_label' => 'Tipe Kendaraan',
             'icon' => 'bx-category',
             'route' => 'vehicle-types.index',
             'route_params' => [],
             'active_patterns' => ['vehicle-types.*'],
             'permission' => 'master.vehicle_types.view',
             'section' => 'master-data',
-            'contexts' => ['search'],
+            'group' => 'master-data.vehicle',
+            'order' => 10,
+            'contexts' => ['desktop', 'search'],
             'search' => [
                 'description' => 'Manage vehicle type master data',
                 'keywords' => ['vehicle type', 'vehicle', 'kendaraan', 'jenis kendaraan', 'master'],
@@ -245,13 +256,16 @@ return [
         [
             'key' => 'vehicle-brands-index',
             'label' => 'Vehicle Brand',
+            'sidebar_label' => 'Brand Kendaraan',
             'icon' => 'bx-purchase-tag',
             'route' => 'vehicle-brands.index',
             'route_params' => [],
             'active_patterns' => ['vehicle-brands.*'],
             'permission' => 'master.vehicle_brands.view',
             'section' => 'master-data',
-            'contexts' => ['search'],
+            'group' => 'master-data.vehicle',
+            'order' => 11,
+            'contexts' => ['desktop', 'search'],
             'search' => [
                 'description' => 'Manage vehicle brand master data',
                 'keywords' => ['vehicle brand', 'brand', 'kendaraan', 'merk kendaraan', 'master'],
