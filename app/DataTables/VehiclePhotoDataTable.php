@@ -27,8 +27,13 @@ class VehiclePhotoDataTable extends DataTable
             Column::index(),
             Column::computed('period_label', 'Bulan', fn (VehiclePhoto $photo): string => $photo->period?->translatedFormat('F Y') ?? '-')
                 ->searchable(false),
-            Column::computed('photo_count', 'Jumlah Foto', fn (VehiclePhoto $photo): string => (string) count($photo->photos ?? []))
-                ->searchable(false),
+            Column::computed('completeness', 'Kelengkapan', fn (VehiclePhoto $photo): string => sprintf(
+                '<span class="badge %s">%d/%d %s</span>',
+                $photo->isComplete() ? 'bg-label-success' : 'bg-label-warning',
+                $photo->completedCount(),
+                count(VehiclePhoto::SIDES),
+                $photo->isComplete() ? 'Lengkap' : 'Belum lengkap',
+            ))->searchable(false)->raw(),
         ];
 
         if ($this->vehicle === null) {

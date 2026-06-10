@@ -10,7 +10,6 @@ use App\Models\VehiclePhoto;
 use App\Services\FilePondUploadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class VehiclePhotoController extends Controller
 {
@@ -34,7 +33,7 @@ class VehiclePhotoController extends Controller
     public function store(VehiclePhotoStoreRequest $request)
     {
         $data = $request->validated();
-        $data['photos'] = $this->resolveImages($request, null, 'photos');
+        $data['photos'] = $this->resolveSidePhotos($request, null);
 
         $photo = VehiclePhoto::create($data);
 
@@ -53,7 +52,7 @@ class VehiclePhotoController extends Controller
     public function update(VehiclePhoto $vehiclePhoto, VehiclePhotoUpdateRequest $request)
     {
         $data = $request->validated();
-        $data['photos'] = $this->resolveImages($request, $vehiclePhoto, 'photos');
+        $data['photos'] = $this->resolveSidePhotos($request, $vehiclePhoto);
 
         $vehiclePhoto->update($data);
 
@@ -103,27 +102,35 @@ class VehiclePhotoController extends Controller
     }
 
     /**
-     * Merge kept existing photos (re-submitted as their URL) with newly uploaded ones,
-     * returning the resulting list of stored S3 paths.
+     * Resolve the four side images into a `side => stored S3 path` map. Per side, a newly
+     * uploaded file/temp takes precedence; otherwise the existing image is kept when it was
+     * re-submitted as its current S3 URL; otherwise the side is left empty (removed).
      *
-     * @return array<int, string>
+     * @return array<string, string>
      */
-    private function resolveImages(Request $request, ?VehiclePhoto $photo, string $field): array
+    private function resolveSidePhotos(Request $request, ?VehiclePhoto $photo): array
     {
-        $existingPaths = $photo?->{$field} ?? [];
+        $result = [];
 
-        $urlToPath = collect($existingPaths)->mapWithKeys(fn (string $path): array => [
-            (str_starts_with($path, 'http') ? $path : Storage::disk('s3')->url($path)) => $path,
-        ]);
+        foreach (array_keys(VehiclePhoto::SIDES) as $side) {
+            $field = "photos.$side";
 
-        $kept = collect((array) $request->input($field, []))
-            ->filter(fn ($value): bool => is_string($value) && $urlToPath->has($value))
-            ->map(fn (string $url): string => $urlToPath->get($url))
-            ->values()
-            ->all();
+            $new = $this->filePond->storeFromRequestField($request, $field, 'vehicle_photos', 's3');
+            if ($new !== null) {
+                $result[$side] = $new;
 
-        $new = $this->filePond->storeManyFromRequestField($request, $field, 'vehicle_photos', 's3');
+                continue;
+            }
 
-        return array_values(array_merge($kept, $new));
+            $existingPath = $photo?->photos[$side] ?? null;
+            $existingUrl = $existingPath !== null ? $photo->sideUrl($side) : null;
+            $submitted = $request->input($field);
+
+            if (is_string($submitted) && $existingUrl !== null && $submitted === $existingUrl) {
+                $result[$side] = $existingPath;
+            }
+        }
+
+        return $result;
     }
 }

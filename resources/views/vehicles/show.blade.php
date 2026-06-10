@@ -57,8 +57,9 @@
                             <span class="badge {{ $vehicle->isprivate ? 'bg-label-info' : 'bg-label-secondary' }}">
                                 {{ $vehicle->isprivate ? 'Kendaraan Pribadi' : 'Kendaraan Umum' }}
                             </span>
-                            <span class="badge {{ $photoDoneThisMonth ? 'bg-label-success' : 'bg-label-warning' }}">
-                                <i class="bx bx-camera me-1"></i>{{ $photoDoneThisMonth ? 'Foto bulan ini ✓' : 'Foto bulan ini belum' }}
+                            @php $photoComplete = $photoThisMonth?->isComplete() ?? false; $photoSides = $photoThisMonth?->completedCount() ?? 0; @endphp
+                            <span class="badge {{ $photoComplete ? 'bg-label-success' : 'bg-label-warning' }}">
+                                <i class="bx bx-camera me-1"></i>{{ $photoComplete ? 'Foto bulan ini lengkap' : 'Foto bulan ini belum lengkap (' . $photoSides . '/4)' }}
                             </span>
                         </div>
                         <div class="d-flex justify-content-around border-top pt-3">

@@ -159,6 +159,39 @@ class VehiclePhotoModuleTest extends TestCase
         $this->assertFalse($monitor->incompleteVehicles()->contains('vehicle_id', $vehicle->id));
     }
 
+    public function test_partial_current_month_record_still_flags_vehicle_until_all_sides_present(): void
+    {
+        $this->actingAs($this->userWithPhotoPermissions());
+
+        $vehicle = Vehicle::factory()->create(['status' => 'ACTIVE']);
+        $photo = VehiclePhoto::factory()->currentMonth()->partial(2)->create(['vehicle_id' => $vehicle->id]);
+
+        $monitor = app(VehiclePhotoMonitorService::class);
+        $flagged = $monitor->incompleteVehicles()->firstWhere('vehicle_id', $vehicle->id);
+        $this->assertNotNull($flagged);
+        $this->assertSame(2, $flagged['completed']);
+
+        // Completing all four sides clears the flag.
+        $photo->update([
+            'photos' => collect(VehiclePhoto::SIDES)->keys()
+                ->mapWithKeys(fn (string $side): array => [$side => 'vehicle_photos/'.$side.'.jpg'])
+                ->all(),
+        ]);
+
+        $this->assertFalse($monitor->incompleteVehicles()->contains('vehicle_id', $vehicle->id));
+    }
+
+    public function test_completeness_helpers_count_only_known_sides(): void
+    {
+        $complete = new VehiclePhoto(['photos' => ['front' => 'a', 'rear' => 'b', 'left' => 'c', 'right' => 'd']]);
+        $this->assertSame(4, $complete->completedCount());
+        $this->assertTrue($complete->isComplete());
+
+        $partial = new VehiclePhoto(['photos' => ['front' => 'a', 'left' => 'c']]);
+        $this->assertSame(2, $partial->completedCount());
+        $this->assertFalse($partial->isComplete());
+    }
+
     private function userWithPhotoPermissions(bool $includeVehicleView = true): User
     {
         $user = User::factory()->create();

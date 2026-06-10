@@ -20,7 +20,12 @@ class VehiclePhotoUpdateRequest extends VehiclePhotoStoreRequest
     {
         $photo = $this->photo();
         $rules = VehiclePhoto::validationRules($photo);
-        $rules['photos.*'] = [app(FilePondUploadService::class)->imageUploadValidationRule(existingReferences: $photo?->photoUrls() ?? [])];
+
+        $filePond = app(FilePondUploadService::class);
+        foreach (array_keys(VehiclePhoto::SIDES) as $side) {
+            $existing = $photo?->sideUrl($side);
+            $rules["photos.$side"] = [$filePond->imageUploadValidationRule(existingReferences: $existing ? [$existing] : [])];
+        }
 
         return $rules;
     }

@@ -155,7 +155,7 @@ class NotificationService
                     'icon' => 'bx-camera',
                     'color' => 'warning',
                     'title' => $missing['plate'],
-                    'subtitle' => 'Foto bulan '.$missing['period_label'].' belum ada',
+                    'subtitle' => 'Foto '.$missing['period_label'].' belum lengkap ('.$missing['completed'].'/'.$missing['total'].')',
                     'link' => $missing['link'],
                 ];
             }

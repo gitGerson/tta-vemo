@@ -353,7 +353,7 @@
                     <div class="card-header d-flex align-items-center justify-content-between">
                         <div class="card-title mb-0">
                             <h5 class="mb-1 me-2">Foto Kendaraan</h5>
-                            <p class="card-subtitle">{{ $photoReminders['count'] }} Belum ada</p>
+                            <p class="card-subtitle">{{ $photoReminders['count'] }} Belum lengkap</p>
                         </div>
                     </div>
                     <div class="card-body pt-4">
@@ -368,10 +368,10 @@
                                         class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2 text-body">
                                         <div class="me-2">
                                             <h6 class="mb-0">{{ $item['plate'] }}</h6>
-                                            <small>Foto bulan {{ $item['period_label'] }} belum ada</small>
+                                            <small>Foto {{ $item['period_label'] }} belum lengkap</small>
                                         </div>
                                         <div class="user-progress">
-                                            <span class="badge bg-label-warning">Belum ada</span>
+                                            <span class="badge bg-label-warning">{{ $item['completed'] }}/{{ $item['total'] }}</span>
                                         </div>
                                     </a>
                                 </li>
@@ -379,7 +379,7 @@
                                 <li class="text-center text-body-secondary py-4">
                                     <i class="icon-base bx bx-check-circle text-success mb-2 d-block"
                                         style="font-size: 2rem;"></i>
-                                    Semua kendaraan sudah ada foto bulan ini.
+                                    Semua kendaraan sudah lengkap foto bulan ini.
                                 </li>
                             @endforelse
                         </ul>

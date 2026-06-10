@@ -17,6 +17,17 @@ class VehiclePhoto extends Model
     /** @use HasFactory<VehiclePhotoFactory> */
     use BelongsToCompanyTenant, HasFactory, SoftDeletes;
 
+    /**
+     * The four documented sides of the vehicle (key => label). A month is complete only
+     * when every side has an image.
+     */
+    public const SIDES = [
+        'front' => 'Depan',
+        'rear' => 'Belakang',
+        'left' => 'Samping Kiri',
+        'right' => 'Samping Kanan',
+    ];
+
     protected $table = 'vehicle_photos';
 
     protected static function booted(): void
@@ -113,14 +124,57 @@ class VehiclePhoto extends Model
     }
 
     /**
-     * Resolve the stored photo paths to absolute URLs (S3), passing through full URLs.
+     * The stored side => path map, limited to known sides with a non-empty path.
+     *
+     * @return array<string, string>
+     */
+    public function sidePhotos(): array
+    {
+        return array_filter(array_intersect_key($this->photos ?? [], self::SIDES));
+    }
+
+    /**
+     * Resolve a single side's stored path to an absolute S3 URL (passing through full URLs).
+     */
+    public function sideUrl(string $side): ?string
+    {
+        $path = $this->photos[$side] ?? null;
+
+        if (! is_string($path) || $path === '') {
+            return null;
+        }
+
+        return str_starts_with($path, 'http') ? $path : Storage::disk('s3')->url($path);
+    }
+
+    /**
+     * Side keys that have an image for this month.
+     *
+     * @return array<int, string>
+     */
+    public function completedSides(): array
+    {
+        return array_keys($this->sidePhotos());
+    }
+
+    public function completedCount(): int
+    {
+        return count($this->sidePhotos());
+    }
+
+    public function isComplete(): bool
+    {
+        return $this->completedCount() === count(self::SIDES);
+    }
+
+    /**
+     * Resolve all present side photos to absolute URLs (S3), passing through full URLs.
      *
      * @return array<int, string>
      */
     public function photoUrls(): array
     {
-        return collect($this->photos ?? [])
-            ->filter()
+        return collect($this->sidePhotos())
             ->map(fn (string $path): string => str_starts_with($path, 'http')
                 ? $path
                 : Storage::disk('s3')->url($path))

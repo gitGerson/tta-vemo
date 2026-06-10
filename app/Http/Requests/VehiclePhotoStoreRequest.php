@@ -21,7 +21,11 @@ class VehiclePhotoStoreRequest extends FormRequest
     public function rules(): array
     {
         $rules = VehiclePhoto::validationRules();
-        $rules['photos.*'] = [app(FilePondUploadService::class)->imageUploadValidationRule()];
+
+        $filePond = app(FilePondUploadService::class);
+        foreach (array_keys(VehiclePhoto::SIDES) as $side) {
+            $rules["photos.$side"] = [$filePond->imageUploadValidationRule()];
+        }
 
         return $rules;
     }

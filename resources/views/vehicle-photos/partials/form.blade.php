@@ -55,13 +55,13 @@
             </x-form.group>
         </div>
 
-        <div class="col-12">
-            <div class="filepond-grid-2">
-                <x-form.file name="photos" label="Foto Kendaraan" mode="filepond" multiple accept="image/*"
+        @foreach (\App\Models\VehiclePhoto::SIDES as $side => $label)
+            <div class="col-md-6">
+                <x-form.file name="photos[{{ $side }}]" label="Foto {{ $label }}" mode="filepond" accept="image/*"
                     :acceptedFileTypes="['image/jpeg', 'image/png', 'image/gif', 'image/webp']" maxFileSize="2MB"
-                    :existingFiles="$photo?->photoUrls() ?? []" />
+                    :existingFiles="$photo?->sideUrl($side) ? [$photo->sideUrl($side)] : []" />
             </div>
-        </div>
+        @endforeach
     </div>
 
     <hr class="my-4 border-2 opacity-50">
@@ -81,11 +81,6 @@
 
 @push('styles')
     <style>
-        /* Render FilePond uploaded/preview items in two columns. */
-        .filepond-grid-2 .filepond--item {
-            width: calc(50% - 0.5em);
-        }
-
         /* Render the select2 widgets at the small (form-select-sm) size. */
         .form-select-sm+.select2-container--bootstrap-5 .select2-selection {
             min-height: calc(1.5em + 0.5rem + 2px);

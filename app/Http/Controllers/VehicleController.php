@@ -60,7 +60,7 @@ class VehicleController extends Controller
             'snapshotTable' => new VehicleSnapshotDataTable($vehicle),
             'vehicleInsuranceTable' => new VehicleInsuranceDataTable($vehicle),
             'photoTable' => new VehiclePhotoDataTable($vehicle),
-            'photoDoneThisMonth' => $vehicle->photos()->whereDate('period', now()->startOfMonth()->toDateString())->exists(),
+            'photoThisMonth' => $vehicle->photos()->whereDate('period', now()->startOfMonth()->toDateString())->first(),
         ]);
     }
 
