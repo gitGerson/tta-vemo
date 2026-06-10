@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Maintenance;
 use App\Models\Vehicle;
 use App\Services\ServiceReminderService;
+use App\Services\VehicleInsuranceMonitorService;
 use App\Services\VehiclePhotoMonitorService;
 use Illuminate\Contracts\Support\Renderable;
 
@@ -25,7 +26,7 @@ class HomeController extends Controller
      *
      * @return Renderable
      */
-    public function index(ServiceReminderService $serviceReminders, VehiclePhotoMonitorService $photoMonitor)
+    public function index(ServiceReminderService $serviceReminders, VehiclePhotoMonitorService $photoMonitor, VehicleInsuranceMonitorService $insuranceMonitor)
     {
         $activePlates = Vehicle::where('status', 'ACTIVE')->pluck('plat_new');
         $passive = Vehicle::where('status', 'PASSIVE')->count();
@@ -122,11 +123,20 @@ class HomeController extends Controller
         $canPhotoRemind = auth()->user()?->hasPermission('operational.vehicle_photos.reminders') === true;
         $missingPhotos = $canPhotoRemind ? $photoMonitor->incompleteVehicles() : collect();
 
+        // Insurance expiry reminders (H-30/14/7/3), gated by a dedicated permission and
+        // company-scoped via the VehicleInsurance CompanyTenantScope.
+        $canInsuranceRemind = auth()->user()?->hasPermission('master.vehicle_insurances.reminders') === true;
+        // Overdue (lapsed) policies first, then those approaching expiry.
+        $insurance = $canInsuranceRemind
+            ? $insuranceMonitor->overduePolicies()->concat($insuranceMonitor->expiringPolicies())
+            : collect();
+
         return view('home', [
             'conditionSummary' => $conditionSummary,
             'recentMaintenance' => $recentMaintenance,
             'serviceReminders' => ['visible' => $canRemind, 'count' => $due->count(), 'items' => $due->all()],
             'photoReminders' => ['visible' => $canPhotoRemind, 'count' => $missingPhotos->count(), 'items' => $missingPhotos->all()],
+            'insuranceReminders' => ['visible' => $canInsuranceRemind, 'count' => $insurance->count(), 'items' => $insurance->all()],
         ]);
     }
 

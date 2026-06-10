@@ -24,6 +24,7 @@ class NotificationService
     public function __construct(
         private readonly ServiceReminderService $serviceReminders,
         private readonly VehiclePhotoMonitorService $photoMonitor,
+        private readonly VehicleInsuranceMonitorService $insuranceMonitor,
     ) {}
 
     /**
@@ -95,6 +96,7 @@ class NotificationService
         $canApprove = $user->hasPermission('operational.maintenances.approve') === true;
         $canRemind = $user->hasPermission('operational.maintenances.reminders') === true;
         $canPhotoRemind = $user->hasPermission('operational.vehicle_photos.reminders') === true;
+        $canInsuranceRemind = $user->hasPermission('master.vehicle_insurances.reminders') === true;
 
         $plates = Vehicle::pluck('plat_new');
         $items = [];
@@ -161,6 +163,35 @@ class NotificationService
             }
         }
 
+        // Insurance expiry reminders (H-30/14/7/3), gated by a dedicated permission and
+        // company-scoped via the VehicleInsurance CompanyTenantScope (bypassed by
+        // management.tenant.bypass).
+        if ($canInsuranceRemind) {
+            foreach ($this->insuranceMonitor->overduePolicies() as $policy) {
+                $items[] = [
+                    'key' => 'vehicle:insurance-overdue:'.$policy['insurance_id'],
+                    'type' => 'vehicle.insurance-overdue',
+                    'icon' => 'bx-shield-x',
+                    'color' => 'danger',
+                    'title' => $policy['plate'],
+                    'subtitle' => 'Asuransi kedaluwarsa '.$policy['end_date'].' · '.$policy['days_overdue'].' hari lalu',
+                    'link' => $policy['link'],
+                ];
+            }
+
+            foreach ($this->insuranceMonitor->expiringPolicies() as $policy) {
+                $items[] = [
+                    'key' => $this->insuranceExpiringKey($policy),
+                    'type' => 'vehicle.insurance-expiring',
+                    'icon' => 'bx-shield-quarter',
+                    'color' => $policy['threshold'] <= 7 ? 'danger' : 'warning',
+                    'title' => $policy['plate'],
+                    'subtitle' => 'Asuransi berakhir '.$policy['end_date'].' · H-'.$policy['days_left'],
+                    'link' => $policy['link'],
+                ];
+            }
+        }
+
         return $items;
     }
 
@@ -187,6 +218,16 @@ class NotificationService
     private function maintenanceKey(string $type, Maintenance $maintenance): string
     {
         return "maintenance:{$type}:{$maintenance->id}:".($maintenance->updated_at?->timestamp ?? 0);
+    }
+
+    /**
+     * @param  array<string, mixed>  $policy
+     */
+    private function insuranceExpiringKey(array $policy): string
+    {
+        // The threshold bucket in the key rolls the reminder forward as expiry nears,
+        // so a tighter bucket (e.g. H-7) re-fires even after H-30 was dismissed.
+        return 'vehicle:insurance-expiring:'.$policy['insurance_id'].':'.$policy['threshold_value'];
     }
 
     /**

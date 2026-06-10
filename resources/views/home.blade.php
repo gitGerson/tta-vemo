@@ -389,6 +389,55 @@
             @endif
             <!--/ Foto Kendaraan -->
 
+            <!-- Insurance Reminder -->
+            @if ($insuranceReminders['visible'])
+            <div class="col-md-6 col-lg-4 order-1 mb-6">
+                <div class="card h-100">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <div class="card-title mb-0">
+                            <h5 class="mb-1 me-2">Insurance Reminder</h5>
+                            <p class="card-subtitle">{{ $insuranceReminders['count'] }} Perlu perhatian</p>
+                        </div>
+                        <a href="{{ route('vehicle-insurances.index') }}" class="btn btn-sm btn-outline-primary">Lihat</a>
+                    </div>
+                    <div class="card-body pt-4">
+                        <ul class="p-0 m-0">
+                            @forelse ($insuranceReminders['items'] as $item)
+                                @php $overdue = ($item['state'] ?? null) === 'overdue'; @endphp
+                                <li class="d-flex align-items-center {{ $loop->last ? '' : 'mb-6' }}">
+                                    <div class="avatar flex-shrink-0 me-3">
+                                        <span class="avatar-initial rounded bg-label-{{ $overdue || $item['threshold'] <= 7 ? 'danger' : 'warning' }}"><i
+                                                class="icon-base bx {{ $overdue ? 'bx-shield-x' : 'bx-shield-quarter' }}"></i></span>
+                                    </div>
+                                    <a href="{{ $item['link'] }}"
+                                        class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2 text-body">
+                                        <div class="me-2">
+                                            <h6 class="mb-0">{{ $item['plate'] }}</h6>
+                                            <small>{{ $item['insurer'] }} · {{ $overdue ? 'kedaluwarsa' : 'berakhir' }} {{ $item['end_date'] }}</small>
+                                        </div>
+                                        <div class="user-progress">
+                                            @if ($overdue)
+                                                <span class="badge bg-label-danger">Overdue {{ $item['days_overdue'] }}h</span>
+                                            @else
+                                                <span class="badge bg-label-{{ $item['threshold'] <= 7 ? 'danger' : 'warning' }}">H-{{ $item['days_left'] }}</span>
+                                            @endif
+                                        </div>
+                                    </a>
+                                </li>
+                            @empty
+                                <li class="text-center text-body-secondary py-4">
+                                    <i class="icon-base bx bx-check-circle text-success mb-2 d-block"
+                                        style="font-size: 2rem;"></i>
+                                    Tidak ada asuransi yang perlu perhatian.
+                                </li>
+                            @endforelse
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            @endif
+            <!--/ Insurance Reminder -->
+
             <!-- Recent Maintenance -->
             <div class="col-md-6 col-lg-4 order-2 mb-6">
                 <div class="card h-100">

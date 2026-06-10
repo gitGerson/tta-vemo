@@ -498,6 +498,14 @@ return [
                     'parent' => 'master.access',
                     'sort_order' => 47,
                 ],
+                [
+                    'name' => 'master.vehicle_insurances.reminders',
+                    'display_name' => 'Vehicle Insurances - Expiry Reminders',
+                    'description' => 'Can receive insurance expiry reminders at H-30/14/7/3 (dashboard card and notifications), scoped to the user\'s companies unless tenant bypass is granted',
+                    'module' => 'master',
+                    'parent' => 'master.access',
+                    'sort_order' => 48,
+                ],
             ],
         ],
         'operational' => [
@@ -828,6 +836,7 @@ return [
                 'master.vehicle_insurances.delete',
                 'master.vehicle_insurances.restore',
                 'master.vehicle_insurances.force_delete',
+                'master.vehicle_insurances.reminders',
                 'operational.access',
                 'operational.records.view',
                 'operational.records.create',
