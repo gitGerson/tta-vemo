@@ -57,6 +57,9 @@
                             <span class="badge {{ $vehicle->isprivate ? 'bg-label-info' : 'bg-label-secondary' }}">
                                 {{ $vehicle->isprivate ? 'Kendaraan Pribadi' : 'Kendaraan Umum' }}
                             </span>
+                            <span class="badge {{ $photoDoneThisMonth ? 'bg-label-success' : 'bg-label-warning' }}">
+                                <i class="bx bx-camera me-1"></i>{{ $photoDoneThisMonth ? 'Foto bulan ini ✓' : 'Foto bulan ini belum' }}
+                            </span>
                         </div>
                         <div class="d-flex justify-content-around border-top pt-3">
                             <div>
@@ -203,6 +206,20 @@
                         @if(auth()->user()->hasPermission('master.vehicle_insurances.create'))
                             <a href="{{ route('vehicle-insurances.create', ['vehicle_id' => $vehicle->id]) }}" class="btn btn-sm btn-outline-primary">
                                 <i class="bx bx-plus me-1"></i> Tambah Asuransi
+                            </a>
+                        @endif
+                    </x-slot:actions>
+                </x-table>
+            </div>
+        @endif
+
+        @if(auth()->user()->hasPermission('operational.vehicle_photos.view'))
+            <div class="mb-4">
+                <x-table :table="$photoTable" engine="tabulator" layout="fitDataStretch" title="Foto Kendaraan">
+                    <x-slot:actions>
+                        @if(auth()->user()->hasPermission('operational.vehicle_photos.create'))
+                            <a href="{{ route('vehicle-photos.create', ['vehicle_id' => $vehicle->id]) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bx bx-plus me-1"></i> Upload Foto
                             </a>
                         @endif
                     </x-slot:actions>

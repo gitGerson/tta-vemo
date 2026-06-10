@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\DataTables\VehicleDataTable;
 use App\DataTables\VehicleInsuranceDataTable;
+use App\DataTables\VehiclePhotoDataTable;
 use App\DataTables\VehicleSnapshotDataTable;
 use App\DataTables\VehicleTrashDataTable;
 use App\Http\Requests\VehicleStoreRequest;
@@ -58,6 +59,8 @@ class VehicleController extends Controller
             'vehicle' => $vehicle,
             'snapshotTable' => new VehicleSnapshotDataTable($vehicle),
             'vehicleInsuranceTable' => new VehicleInsuranceDataTable($vehicle),
+            'photoTable' => new VehiclePhotoDataTable($vehicle),
+            'photoDoneThisMonth' => $vehicle->photos()->whereDate('period', now()->startOfMonth()->toDateString())->exists(),
         ]);
     }
 

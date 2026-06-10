@@ -346,6 +346,49 @@
             @endif
             <!--/ Service Reminder -->
 
+            <!-- Foto Kendaraan -->
+            @if ($photoReminders['visible'])
+            <div class="col-md-6 col-lg-4 order-1 mb-6">
+                <div class="card h-100">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <div class="card-title mb-0">
+                            <h5 class="mb-1 me-2">Foto Kendaraan</h5>
+                            <p class="card-subtitle">{{ $photoReminders['count'] }} Belum ada</p>
+                        </div>
+                    </div>
+                    <div class="card-body pt-4">
+                        <ul class="p-0 m-0">
+                            @forelse ($photoReminders['items'] as $item)
+                                <li class="d-flex align-items-center {{ $loop->last ? '' : 'mb-6' }}">
+                                    <div class="avatar flex-shrink-0 me-3">
+                                        <span class="avatar-initial rounded bg-label-warning"><i
+                                                class="icon-base bx bx-camera"></i></span>
+                                    </div>
+                                    <a href="{{ $item['link'] }}"
+                                        class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2 text-body">
+                                        <div class="me-2">
+                                            <h6 class="mb-0">{{ $item['plate'] }}</h6>
+                                            <small>Foto bulan {{ $item['period_label'] }} belum ada</small>
+                                        </div>
+                                        <div class="user-progress">
+                                            <span class="badge bg-label-warning">Belum ada</span>
+                                        </div>
+                                    </a>
+                                </li>
+                            @empty
+                                <li class="text-center text-body-secondary py-4">
+                                    <i class="icon-base bx bx-check-circle text-success mb-2 d-block"
+                                        style="font-size: 2rem;"></i>
+                                    Semua kendaraan sudah ada foto bulan ini.
+                                </li>
+                            @endforelse
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            @endif
+            <!--/ Foto Kendaraan -->
+
             <!-- Recent Maintenance -->
             <div class="col-md-6 col-lg-4 order-2 mb-6">
                 <div class="card h-100">

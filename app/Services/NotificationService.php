@@ -21,7 +21,10 @@ class NotificationService
      */
     public const PAGE_SIZE = 7;
 
-    public function __construct(private readonly ServiceReminderService $serviceReminders) {}
+    public function __construct(
+        private readonly ServiceReminderService $serviceReminders,
+        private readonly VehiclePhotoMonitorService $photoMonitor,
+    ) {}
 
     /**
      * Build the live navbar notifications for a user: maintenance awaiting confirmation,
@@ -91,6 +94,7 @@ class NotificationService
         $canView = $user->hasPermission('operational.maintenances.view') === true;
         $canApprove = $user->hasPermission('operational.maintenances.approve') === true;
         $canRemind = $user->hasPermission('operational.maintenances.reminders') === true;
+        $canPhotoRemind = $user->hasPermission('operational.vehicle_photos.reminders') === true;
 
         $plates = Vehicle::pluck('plat_new');
         $items = [];
@@ -140,6 +144,23 @@ class NotificationService
             }
         }
 
+        // Monthly photo reminders are gated by a dedicated permission so the audience can be
+        // defined independently of maintenance access. incompleteVehicles() is company-scoped
+        // via the Vehicle CompanyTenantScope (bypassed by management.tenant.bypass).
+        if ($canPhotoRemind) {
+            foreach ($this->photoMonitor->incompleteVehicles() as $missing) {
+                $items[] = [
+                    'key' => $this->photoMissingKey($missing),
+                    'type' => 'vehicle.photo-missing',
+                    'icon' => 'bx-camera',
+                    'color' => 'warning',
+                    'title' => $missing['plate'],
+                    'subtitle' => 'Foto bulan '.$missing['period_label'].' belum ada',
+                    'link' => $missing['link'],
+                ];
+            }
+        }
+
         return $items;
     }
 
@@ -166,6 +187,15 @@ class NotificationService
     private function maintenanceKey(string $type, Maintenance $maintenance): string
     {
         return "maintenance:{$type}:{$maintenance->id}:".($maintenance->updated_at?->timestamp ?? 0);
+    }
+
+    /**
+     * @param  array<string, mixed>  $missing
+     */
+    private function photoMissingKey(array $missing): string
+    {
+        // The Y-m period makes the key roll over each month so the reminder re-fires monthly.
+        return 'vehicle:photo-missing:'.$missing['vehicle_id'].':'.$missing['period_value'];
     }
 
     /**

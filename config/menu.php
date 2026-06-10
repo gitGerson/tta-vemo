@@ -162,6 +162,23 @@ return [
             'enabled' => true,
         ],
         [
+            'key' => 'vehicle-photos-create',
+            'label' => 'Foto Kendaraan',
+            'icon' => 'bx-camera',
+            'route' => 'vehicle-photos.create',
+            'route_params' => [],
+            'active_patterns' => ['vehicle-photos.*'],
+            'permission' => 'operational.vehicle_photos.create',
+            'section' => 'operational',
+            'order' => 5,
+            'contexts' => ['desktop', 'search'],
+            'search' => [
+                'description' => 'Upload monthly vehicle photo documentation',
+                'keywords' => ['foto', 'photo', 'kendaraan', 'vehicle', 'bulanan', 'monthly', 'dokumentasi'],
+            ],
+            'enabled' => true,
+        ],
+        [
             'key' => 'destinations-index',
             'label' => 'Destination',
             'icon' => 'bx-map',

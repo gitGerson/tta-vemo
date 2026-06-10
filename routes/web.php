@@ -17,6 +17,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleBrandController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\VehicleInsuranceController;
+use App\Http\Controllers\VehiclePhotoController;
 use App\Http\Controllers\VehicleTypeController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -224,6 +225,25 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:master.vehicle_insurances.view'])->group(function () {
         Route::get('/vehicle-insurances/{vehicleInsurance}', [VehicleInsuranceController::class, 'show'])->name('vehicle-insurances.show');
+    });
+
+    // Vehicle monthly photo (Foto Kendaraan) routes with permissions
+    Route::middleware(['permission:operational.vehicle_photos.view'])->group(function () {
+        Route::get('/vehicles/{vehicle}/photos/data', [VehiclePhotoController::class, 'getDataForVehicle'])->name('vehicles.photos.data');
+    });
+
+    Route::middleware(['permission:operational.vehicle_photos.create'])->group(function () {
+        Route::get('/vehicle-photos/create', [VehiclePhotoController::class, 'create'])->name('vehicle-photos.create');
+        Route::post('/vehicle-photos', [VehiclePhotoController::class, 'store'])->name('vehicle-photos.store');
+    });
+
+    Route::middleware(['permission:operational.vehicle_photos.edit'])->group(function () {
+        Route::get('/vehicle-photos/{vehiclePhoto}/edit', [VehiclePhotoController::class, 'edit'])->name('vehicle-photos.edit');
+        Route::put('/vehicle-photos/{vehiclePhoto}', [VehiclePhotoController::class, 'update'])->name('vehicle-photos.update');
+    });
+
+    Route::middleware(['permission:operational.vehicle_photos.delete'])->group(function () {
+        Route::delete('/vehicle-photos/{vehiclePhoto}', [VehiclePhotoController::class, 'destroy'])->name('vehicle-photos.destroy');
     });
 
     // Record (Data Perjalanan) operational routes with permissions

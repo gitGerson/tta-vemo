@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Maintenance;
 use App\Models\Vehicle;
 use App\Services\ServiceReminderService;
+use App\Services\VehiclePhotoMonitorService;
 use Illuminate\Contracts\Support\Renderable;
 
 class HomeController extends Controller
@@ -24,7 +25,7 @@ class HomeController extends Controller
      *
      * @return Renderable
      */
-    public function index(ServiceReminderService $serviceReminders)
+    public function index(ServiceReminderService $serviceReminders, VehiclePhotoMonitorService $photoMonitor)
     {
         $activePlates = Vehicle::where('status', 'ACTIVE')->pluck('plat_new');
         $passive = Vehicle::where('status', 'PASSIVE')->count();
@@ -116,10 +117,16 @@ class HomeController extends Controller
         $canRemind = auth()->user()?->hasPermission('operational.maintenances.reminders') === true;
         $due = $canRemind ? $serviceReminders->dueVehicles() : collect();
 
+        // Monthly photo reminders, gated by a dedicated permission and company-scoped via
+        // the Vehicle CompanyTenantScope (bypassed by management.tenant.bypass).
+        $canPhotoRemind = auth()->user()?->hasPermission('operational.vehicle_photos.reminders') === true;
+        $missingPhotos = $canPhotoRemind ? $photoMonitor->incompleteVehicles() : collect();
+
         return view('home', [
             'conditionSummary' => $conditionSummary,
             'recentMaintenance' => $recentMaintenance,
             'serviceReminders' => ['visible' => $canRemind, 'count' => $due->count(), 'items' => $due->all()],
+            'photoReminders' => ['visible' => $canPhotoRemind, 'count' => $missingPhotos->count(), 'items' => $missingPhotos->all()],
         ]);
     }
 

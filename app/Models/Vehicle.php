@@ -132,6 +132,11 @@ class Vehicle extends Model
         return $this->hasMany(VehicleInsurance::class)->latest('end_date');
     }
 
+    public function photos(): HasMany
+    {
+        return $this->hasMany(VehiclePhoto::class)->latest('period');
+    }
+
     /** @return array<int, string> */
     public function bpkbImageUrls(): array
     {
