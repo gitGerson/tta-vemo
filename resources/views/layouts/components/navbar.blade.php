@@ -133,7 +133,7 @@
                 <button type="button" class="nav-link dropdown-toggle hide-arrow p-0 border-0 bg-transparent"
                     id="navbar-user-dropdown" aria-expanded="false">
                     <div class="avatar avatar-online">
-                        <img src="{{ Avatar::create(Auth::user()->name) }}" alt
+                        <img src="data:image/svg+xml;base64,{{ base64_encode(Avatar::create(Auth::user()->name)->toSvg()) }}" alt
                             class="w-px-40 h-auto rounded-circle" />
                     </div>
                 </button>
@@ -150,7 +150,7 @@
                                  <div class="d-flex">
                                      <div class="flex-shrink-0 me-3">
                                          <div class="avatar avatar-online">
-                                             <img src="{{ Avatar::create(Auth::user()->name) }}" alt
+                                             <img src="data:image/svg+xml;base64,{{ base64_encode(Avatar::create(Auth::user()->name)->toSvg()) }}" alt
                                                  class="w-px-40 h-auto rounded-circle" />
                                          </div>
                                      </div>
@@ -171,7 +171,7 @@
                                  <div class="d-flex">
                                      <div class="flex-shrink-0 me-3">
                                          <div class="avatar avatar-online">
-                                             <img src="{{ Avatar::create(Auth::user()->name) }}" alt
+                                             <img src="data:image/svg+xml;base64,{{ base64_encode(Avatar::create(Auth::user()->name)->toSvg()) }}" alt
                                                  class="w-px-40 h-auto rounded-circle" />
                                          </div>
                                      </div>
