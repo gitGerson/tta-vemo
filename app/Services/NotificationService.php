@@ -88,6 +88,19 @@ class NotificationService
     }
 
     /**
+     * All current reminder items for a user, without the in-app read-receipt
+     * filtering. Used by the Telegram dispatcher, which dedupes via its own send
+     * ledger rather than the navbar read state. Shares the exact source of truth
+     * (and permission gating) as the navbar dropdown.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function pushableItemsForUser(User $user): array
+    {
+        return $this->itemsForUser($user);
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     private function itemsForUser(User $user): array

@@ -202,6 +202,11 @@
                          </li>
                      @endif
                      <li>
+                         <a class="dropdown-item" href="{{ route('account.telegram') }}">
+                             <i class="icon-base bx bxl-telegram icon-md me-3"></i><span>Connect Telegram</span>
+                         </a>
+                     </li>
+                     <li>
                          <a class="dropdown-item" href="{{ route('logout') }}"
                              onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">

@@ -45,4 +45,16 @@ return [
         'token' => env('JPAYROLL_TOKEN'),
     ],
 
+    // Token consumed by laravel-notification-channels/telegram when sending messages.
+    'telegram-bot-api' => [
+        'token' => env('TELEGRAM_BOT_TOKEN'),
+    ],
+
+    // Used to build the deep link (t.me/<username>?start=<token>) and to verify
+    // the secret token Telegram sends with each webhook call.
+    'telegram_bot' => [
+        'username' => env('TELEGRAM_BOT_USERNAME'),
+        'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'),
+    ],
+
 ];

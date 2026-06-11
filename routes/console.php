@@ -3,6 +3,11 @@
 use App\Services\PermissionSyncService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
+
+// Push reminder notifications to users who linked Telegram. Requires a running
+// scheduler (php artisan schedule:work or a system cron entry).
+Schedule::command('telegram:dispatch-reminders')->dailyAt('08:00');
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());

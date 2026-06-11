@@ -12,6 +12,8 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RecordController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\TelegramLinkController;
+use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\TypeMaintenanceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleBrandController;
@@ -31,10 +33,17 @@ Auth::routes();
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 
+// Public Telegram bot webhook (verified via secret header; CSRF-exempt in bootstrap/app.php).
+Route::post('/telegram/webhook', [TelegramWebhookController::class, 'handle'])->name('telegram.webhook');
+
 // Route group middleware for authenticated users
 Route::middleware(['auth'])->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/read', [NotificationController::class, 'read'])->name('notifications.read');
+
+    // Self-service Telegram linking (any authenticated user).
+    Route::get('/account/telegram', [TelegramLinkController::class, 'show'])->name('account.telegram');
+    Route::delete('/account/telegram', [TelegramLinkController::class, 'unlink'])->name('account.telegram.unlink');
 
     // User management routes with permissions
     Route::middleware(['permission:management.users.create'])->group(function () {
