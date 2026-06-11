@@ -19,6 +19,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleBrandController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\VehicleInsuranceController;
+use App\Http\Controllers\VehicleLabelController;
 use App\Http\Controllers\VehiclePhotoController;
 use App\Http\Controllers\VehicleTypeController;
 use Illuminate\Support\Facades\Auth;
@@ -198,6 +199,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::middleware(['permission:master.vehicles.view'])->group(function () {
+        Route::get('/vehicles/{vehicle}/label', VehicleLabelController::class)->name('vehicles.label');
         Route::get('/vehicles/{vehicle}', [VehicleController::class, 'show'])->name('vehicles.show');
     });
 

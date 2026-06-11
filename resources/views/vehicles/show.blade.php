@@ -30,6 +30,9 @@
                         <i class="bx bx-edit me-1"></i> Edit
                     </a>
                 @endif
+                <a href="{{ route('vehicles.label', $vehicle) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                    <i class="bx bx-barcode me-1"></i> Label
+                </a>
                 <a href="{{ route('vehicles.index') }}" class="btn btn-sm btn-outline-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali
                 </a>

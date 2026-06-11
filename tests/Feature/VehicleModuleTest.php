@@ -194,6 +194,32 @@ class VehicleModuleTest extends TestCase
             ->assertSee('H 9999 QA');
     }
 
+    public function test_show_page_renders_label_link(): void
+    {
+        $this->actingAs($this->userWithVehiclePermissions());
+        $vehicle = Vehicle::factory()->create();
+
+        $this->get(route('vehicles.show', $vehicle))
+            ->assertOk()
+            ->assertSee(route('vehicles.label', $vehicle), false);
+    }
+
+    public function test_authorized_user_can_view_vehicle_label(): void
+    {
+        $this->actingAs($this->userWithVehiclePermissions());
+        $company = Company::factory()->create(['name' => 'PT Label Test']);
+        $vehicle = Vehicle::factory()->create([
+            'company_id' => $company->id,
+            'plat_new' => 'H 4321 LBL',
+        ]);
+
+        $this->get(route('vehicles.label', $vehicle))
+            ->assertOk()
+            ->assertSee('H 4321 LBL')
+            ->assertSee('PT Label Test')
+            ->assertSee(route('vehicles.show', $vehicle), false);
+    }
+
     public function test_vehicle_data_endpoint_returns_rows_with_actions(): void
     {
         $this->actingAs($this->userWithVehiclePermissions());
