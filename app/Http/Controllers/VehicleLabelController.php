@@ -13,7 +13,9 @@ class VehicleLabelController extends Controller
 
         return view('vehicles.label', [
             'vehicle' => $vehicle,
-            'vehicleUrl' => route('vehicles.show', $vehicle),
+            // QR points to the scan page with the plate prefilled, so scanning the
+            // printed sticker opens the in-app scan/quick-action flow.
+            'scanUrl' => route('qr-scan.index', ['barcode' => $vehicle->plat_new]),
         ]);
     }
 }

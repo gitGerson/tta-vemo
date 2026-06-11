@@ -307,6 +307,23 @@ return [
             'enabled' => true,
         ],
         [
+            'key' => 'qr-scan',
+            'label' => 'Scan QR Kendaraan',
+            'icon' => 'bx-qr-scan',
+            'route' => 'qr-scan.index',
+            'route_params' => [],
+            'active_patterns' => ['qr-scan.*'],
+            'permission' => 'operational.qr_scan.view',
+            'section' => 'operational',
+            'order' => 4,
+            'contexts' => ['desktop', 'search'],
+            'search' => [
+                'description' => 'Scan QR pada label kendaraan untuk aksi cepat',
+                'keywords' => ['scan', 'qr', 'barcode', 'label', 'plat', 'kendaraan'],
+            ],
+            'enabled' => true,
+        ],
+        [
             'key' => 'report-daily',
             'label' => 'Laporan Harian BBM',
             'sidebar_label' => 'Harian',

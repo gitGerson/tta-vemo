@@ -217,7 +217,7 @@ class VehicleModuleTest extends TestCase
             ->assertOk()
             ->assertSee('H 4321 LBL')
             ->assertSee('PT Label Test')
-            ->assertSee(route('vehicles.show', $vehicle), false);
+            ->assertSee(route('qr-scan.index', ['barcode' => 'H 4321 LBL']), false);
     }
 
     public function test_vehicle_data_endpoint_returns_rows_with_actions(): void

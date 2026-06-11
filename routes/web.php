@@ -9,6 +9,7 @@ use App\Http\Controllers\FuelTypeController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\QrScanController;
 use App\Http\Controllers\RecordController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
@@ -201,6 +202,12 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:master.vehicles.view'])->group(function () {
         Route::get('/vehicles/{vehicle}/label', VehicleLabelController::class)->name('vehicles.label');
         Route::get('/vehicles/{vehicle}', [VehicleController::class, 'show'])->name('vehicles.show');
+    });
+
+    // QR scan: look up a vehicle by plate and reach quick actions
+    Route::middleware(['permission:operational.qr_scan.view'])->group(function () {
+        Route::get('/qr-scan', [QrScanController::class, 'index'])->name('qr-scan.index');
+        Route::post('/qr-scan/resolve', [QrScanController::class, 'resolve'])->name('qr-scan.resolve');
     });
 
     // Vehicle insurance master data routes with permissions

@@ -166,9 +166,9 @@
     @endphp
     <div class="label-print-page">
         <div class="vehicle-label">
-            <div class="vehicle-label__qr" data-qr-url="{{ $vehicleUrl }}">
+            <div class="vehicle-label__qr" data-qr-url="{{ $scanUrl }}">
                 <div class="vehicle-label__qr-code">
-                    {!! QrCode::size(110)->margin(0)->generate($vehicleUrl) !!}
+                    {!! QrCode::size(110)->margin(0)->generate($scanUrl) !!}
                 </div>
                 <div class="vehicle-label__tag">{{ $vehicle->plat_new }}</div>
             </div>
