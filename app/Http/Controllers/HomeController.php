@@ -12,6 +12,12 @@ use Illuminate\Contracts\Support\Renderable;
 class HomeController extends Controller
 {
     /**
+     * Maximum number of rows rendered in each dashboard list card. Header counts
+     * still report the true total; only the visible list is capped.
+     */
+    private const MAX_LIST_ITEMS = 5;
+
+    /**
      * Create a new controller instance.
      *
      * @return void
@@ -94,7 +100,7 @@ class HomeController extends Controller
 
         $recentMaintenance = Maintenance::whereIn('no_pol', $plates)
             ->latest('updated_at')
-            ->limit(7)
+            ->limit(self::MAX_LIST_ITEMS)
             ->get()
             ->map(function (Maintenance $maintenance): array {
                 $state = $this->classifyMaintenance($maintenance);
@@ -131,12 +137,37 @@ class HomeController extends Controller
             ? $insuranceMonitor->overduePolicies()->concat($insuranceMonitor->expiringPolicies())
             : collect();
 
+        // At-a-glance KPI cards. Actionable reminder counts are shown first (when the
+        // user may see them), padded with always-available fleet stats so the row never
+        // looks sparse. The top 4 are rendered on the dashboard.
+        $kpis = collect([
+            ['visible' => $canRemind, 'label' => 'Due for Service', 'value' => $due->count(), 'sub' => 'past service threshold', 'icon' => 'bx-wrench', 'color' => 'warning', 'link' => route('maintenances.index')],
+            ['visible' => $canInsuranceRemind, 'label' => 'Insurance Attention', 'value' => $insurance->count(), 'sub' => 'expiring or overdue', 'icon' => 'bx-shield-quarter', 'color' => 'danger', 'link' => route('vehicle-insurances.index')],
+            ['visible' => $canPhotoRemind, 'label' => 'Photos Incomplete', 'value' => $missingPhotos->count(), 'sub' => 'missing this month', 'icon' => 'bx-camera', 'color' => 'info', 'link' => route('vehicles.index')],
+            ['visible' => true, 'label' => 'Total Vehicles', 'value' => $conditionSummary['total'], 'sub' => $conditionSummary['active'].' active', 'icon' => 'bx-car', 'color' => 'primary', 'link' => route('vehicles.index')],
+            ['visible' => true, 'label' => 'Under Maintenance', 'value' => $underMaintenance, 'sub' => 'service in progress', 'icon' => 'bx-cog', 'color' => 'warning', 'link' => route('maintenances.index')],
+            ['visible' => true, 'label' => 'Awaiting Confirmation', 'value' => $awaiting, 'sub' => 'completed, needs review', 'icon' => 'bx-time-five', 'color' => 'info', 'link' => route('maintenances.index')],
+        ])->filter(fn (array $kpi): bool => $kpi['visible'])->take(4)->values()->all();
+
+        // Quick-action buttons, gated so each only appears when the user can use it.
+        $user = auth()->user();
+        $quickActions = collect([
+            ['label' => 'Log Service', 'icon' => 'bx-wrench', 'route' => 'maintenances.create', 'perm' => 'operational.maintenances.create'],
+            ['label' => 'Scan QR', 'icon' => 'bx-qr-scan', 'route' => 'qr-scan.index', 'perm' => 'operational.qr_scan.view'],
+            ['label' => 'Add Vehicle', 'icon' => 'bx-car', 'route' => 'vehicles.create', 'perm' => 'master.vehicles.create'],
+            ['label' => 'All Vehicles', 'icon' => 'bx-list-ul', 'route' => 'vehicles.index', 'perm' => 'master.vehicles.view'],
+        ])->filter(fn (array $action): bool => $user?->hasPermission($action['perm']) === true)
+            ->map(fn (array $action): array => ['label' => $action['label'], 'icon' => $action['icon'], 'url' => route($action['route'])])
+            ->values()->all();
+
         return view('home', [
             'conditionSummary' => $conditionSummary,
             'recentMaintenance' => $recentMaintenance,
-            'serviceReminders' => ['visible' => $canRemind, 'count' => $due->count(), 'items' => $due->all()],
-            'photoReminders' => ['visible' => $canPhotoRemind, 'count' => $missingPhotos->count(), 'items' => $missingPhotos->all()],
-            'insuranceReminders' => ['visible' => $canInsuranceRemind, 'count' => $insurance->count(), 'items' => $insurance->all()],
+            'kpis' => $kpis,
+            'quickActions' => $quickActions,
+            'serviceReminders' => ['visible' => $canRemind, 'count' => $due->count(), 'items' => $due->take(self::MAX_LIST_ITEMS)->all()],
+            'photoReminders' => ['visible' => $canPhotoRemind, 'count' => $missingPhotos->count(), 'items' => $missingPhotos->take(self::MAX_LIST_ITEMS)->all()],
+            'insuranceReminders' => ['visible' => $canInsuranceRemind, 'count' => $insurance->count(), 'items' => $insurance->take(self::MAX_LIST_ITEMS)->all()],
         ]);
     }
 
