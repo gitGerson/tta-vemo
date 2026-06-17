@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Maintenance;
 use App\Models\Vehicle;
+use App\Services\DashboardMetricsService;
 use App\Services\ServiceReminderService;
 use App\Services\VehicleInsuranceMonitorService;
 use App\Services\VehiclePhotoMonitorService;
@@ -32,7 +33,7 @@ class HomeController extends Controller
      *
      * @return Renderable
      */
-    public function index(ServiceReminderService $serviceReminders, VehiclePhotoMonitorService $photoMonitor, VehicleInsuranceMonitorService $insuranceMonitor)
+    public function index(ServiceReminderService $serviceReminders, VehiclePhotoMonitorService $photoMonitor, VehicleInsuranceMonitorService $insuranceMonitor, DashboardMetricsService $metrics)
     {
         $activePlates = Vehicle::where('status', 'ACTIVE')->pluck('plat_new');
         $passive = Vehicle::where('status', 'PASSIVE')->count();
@@ -160,6 +161,10 @@ class HomeController extends Controller
             ->map(fn (array $action): array => ['label' => $action['label'], 'icon' => $action['icon'], 'url' => route($action['route'])])
             ->values()->all();
 
+        // Financial summary widgets are gated so cost data is only shown to roles
+        // granted the dedicated permission; utilization/composition stay ungated.
+        $canViewFinancials = $user?->hasPermission('dashboard.financials.view') === true;
+
         return view('home', [
             'conditionSummary' => $conditionSummary,
             'recentMaintenance' => $recentMaintenance,
@@ -168,6 +173,14 @@ class HomeController extends Controller
             'serviceReminders' => ['visible' => $canRemind, 'count' => $due->count(), 'items' => $due->take(self::MAX_LIST_ITEMS)->all()],
             'photoReminders' => ['visible' => $canPhotoRemind, 'count' => $missingPhotos->count(), 'items' => $missingPhotos->take(self::MAX_LIST_ITEMS)->all()],
             'insuranceReminders' => ['visible' => $canInsuranceRemind, 'count' => $insurance->count(), 'items' => $insurance->take(self::MAX_LIST_ITEMS)->all()],
+            'financials' => [
+                'visible' => $canViewFinancials,
+                'summary' => $canViewFinancials ? $metrics->financialSummary() : null,
+                'trend' => $canViewFinancials ? $metrics->spendTrend() : null,
+            ],
+            'utilization' => $metrics->utilizationSummary(),
+            'fleetComposition' => $metrics->fleetComposition(),
+            'maintenanceVolume' => $metrics->maintenanceVolumeTrend(),
         ]);
     }
 

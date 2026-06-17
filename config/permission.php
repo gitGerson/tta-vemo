@@ -774,6 +774,19 @@ return [
                 ],
             ],
         ],
+        'dashboard' => [
+            'sort_order' => 5,
+            'items' => [
+                [
+                    'name' => 'dashboard.financials.view',
+                    'display_name' => 'Dashboard - Financial Summary',
+                    'description' => 'Can view financial summary widgets on the dashboard (maintenance & fuel spend, spend trend), scoped to the user\'s companies unless tenant bypass is granted',
+                    'module' => 'dashboard',
+                    'parent' => null,
+                    'sort_order' => 1,
+                ],
+            ],
+        ],
     ],
     'role_templates' => [
         [
@@ -877,6 +890,7 @@ return [
                 'reports.maintenances.monthly.export',
                 'reports.maintenances.year.view',
                 'reports.maintenances.year.export',
+                'dashboard.financials.view',
             ],
         ],
         [
@@ -920,6 +934,7 @@ return [
                 'reports.maintenances.daily.view',
                 'reports.maintenances.monthly.view',
                 'reports.maintenances.year.view',
+                'dashboard.financials.view',
             ],
         ],
     ],
