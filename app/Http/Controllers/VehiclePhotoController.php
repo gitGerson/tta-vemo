@@ -40,9 +40,7 @@ class VehiclePhotoController extends Controller
 
         $photo = VehiclePhoto::create($data);
 
-        return redirect()
-            ->route('vehicle-photos.create', ['vehicle_id' => $photo->vehicle_id])
-            ->with('success', 'Foto kendaraan berhasil disimpan.');
+        return $this->redirectAfterWrite($photo->vehicle_id, 'Foto kendaraan berhasil disimpan.');
     }
 
     public function show(VehiclePhoto $vehiclePhoto)
@@ -104,9 +102,7 @@ class VehiclePhotoController extends Controller
 
         $vehiclePhoto->update($data);
 
-        return redirect()
-            ->route('vehicle-photos.create', ['vehicle_id' => $vehiclePhoto->vehicle_id])
-            ->with('success', 'Foto kendaraan berhasil diperbarui.');
+        return $this->redirectAfterWrite($vehiclePhoto->vehicle_id, 'Foto kendaraan berhasil diperbarui.');
     }
 
     public function destroy(VehiclePhoto $vehiclePhoto)

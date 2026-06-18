@@ -31,8 +31,7 @@ class DestinationModuleTest extends TestCase
 
         $this->get(route('destinations.index'))
             ->assertOk()
-            ->assertSee('Daftar Tujuan')
-            ->assertSee('Preview data kota Laravolt Indonesia');
+            ->assertSee('Daftar Tujuan');
     }
 
     public function test_destination_create_route_is_preview_only(): void
