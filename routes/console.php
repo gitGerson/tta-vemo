@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Schedule;
 // scheduler (php artisan schedule:work or a system cron entry).
 Schedule::command('telegram:dispatch-reminders')->dailyAt('08:00');
 
+// Account linking (the bot's /start <token> messages) is received by long-polling,
+// not an inbound webhook. Run `php artisan telegram:poll-updates` as a long-lived
+// supervised process (systemd/Supervisor, like queue:work).
+
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');

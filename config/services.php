@@ -50,11 +50,10 @@ return [
         'token' => env('TELEGRAM_BOT_TOKEN'),
     ],
 
-    // Used to build the deep link (t.me/<username>?start=<token>) and to verify
-    // the secret token Telegram sends with each webhook call.
+    // Used to build the deep link (t.me/<username>?start=<token>) the user taps to
+    // link their account; the /start message is received via long-polling.
     'telegram_bot' => [
         'username' => env('TELEGRAM_BOT_USERNAME'),
-        'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'),
     ],
 
 ];

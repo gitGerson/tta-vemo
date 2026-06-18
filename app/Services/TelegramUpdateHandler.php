@@ -1,34 +1,27 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Services;
 
 use App\Models\User;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
-class TelegramWebhookController extends Controller
+class TelegramUpdateHandler
 {
     /**
-     * Receive bot updates from Telegram. Handles the `/start <token>` deep-link
-     * message by binding the chat to the user that owns the token. This route is
-     * public (Telegram is unauthenticated) and verified via the secret header set
-     * on setWebhook.
+     * Process a single Telegram "update" array (as returned by getUpdates or a
+     * webhook body). Handles the `/start <token>` deep-link message by binding the
+     * chat to the user that owns the token. Non-`/start` messages are ignored.
+     *
+     * @param  array<string, mixed>  $update
      */
-    public function handle(Request $request): JsonResponse
+    public function handle(array $update): void
     {
-        $secret = config('services.telegram_bot.webhook_secret');
-
-        if ($secret && ! hash_equals((string) $secret, (string) $request->header('X-Telegram-Bot-Api-Secret-Token'))) {
-            abort(403);
-        }
-
-        $message = $request->input('message', []);
+        $message = $update['message'] ?? [];
         $text = trim((string) ($message['text'] ?? ''));
         $chatId = $message['chat']['id'] ?? null;
 
         if ($chatId === null || ! str_starts_with($text, '/start')) {
-            return response()->json(['ok' => true]);
+            return;
         }
 
         $token = trim(substr($text, strlen('/start')));
@@ -36,7 +29,7 @@ class TelegramWebhookController extends Controller
         if ($token === '') {
             $this->reply($chatId, 'Buka aplikasi VEMO → menu Connect Telegram untuk menautkan akun Anda.');
 
-            return response()->json(['ok' => true]);
+            return;
         }
 
         $user = User::where('telegram_link_token', $token)->first();
@@ -44,7 +37,7 @@ class TelegramWebhookController extends Controller
         if ($user === null) {
             $this->reply($chatId, 'Tautan tidak valid atau sudah kedaluwarsa. Silakan buat ulang dari aplikasi VEMO.');
 
-            return response()->json(['ok' => true]);
+            return;
         }
 
         $user->forceFill([
@@ -53,9 +46,7 @@ class TelegramWebhookController extends Controller
             'telegram_linked_at' => now(),
         ])->save();
 
-        $this->reply($chatId, "✅ Akun *{$user->name}* berhasil ditautkan. Anda akan menerima notifikasi pengingat di sini.");
-
-        return response()->json(['ok' => true]);
+        $this->reply($chatId, '✅ Akun *'.$this->escape($user->name).'* berhasil ditautkan. Anda akan menerima notifikasi pengingat di sini.');
     }
 
     private function reply(int|string $chatId, string $text): void
@@ -71,5 +62,14 @@ class TelegramWebhookController extends Controller
             'text' => $text,
             'parse_mode' => 'Markdown',
         ]);
+    }
+
+    /**
+     * Escape Telegram Markdown control characters in user-supplied text so names
+     * containing `_`/`*`/etc. don't break (or get rejected by) the reply.
+     */
+    private function escape(string $text): string
+    {
+        return str_replace(['_', '*', '`', '['], ['\_', '\*', '\`', '\['], $text);
     }
 }

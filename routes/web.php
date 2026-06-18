@@ -14,7 +14,6 @@ use App\Http\Controllers\RecordController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TelegramLinkController;
-use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Controllers\TypeMaintenanceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleBrandController;
@@ -35,8 +34,8 @@ Auth::routes();
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-// Public Telegram bot webhook (verified via secret header; CSRF-exempt in bootstrap/app.php).
-Route::post('/telegram/webhook', [TelegramWebhookController::class, 'handle'])->name('telegram.webhook');
+// Telegram bot updates are received via long-polling (telegram:poll-updates),
+// not an inbound webhook — see app/Console/Commands/PollTelegramUpdates.php.
 
 // Route group middleware for authenticated users
 Route::middleware(['auth'])->group(function () {
