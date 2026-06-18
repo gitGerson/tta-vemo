@@ -273,6 +273,21 @@
     white-space: nowrap;
 }
 
+.search-group-header {
+    padding: 0.5rem 1rem 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--bs-secondary-color);
+}
+
+.search-group-loading {
+    padding: 0.25rem 1rem 0.5rem;
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+}
+
 @media (max-width: 576px) {
     .search-dropdown {
         width: 280px !important;
