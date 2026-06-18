@@ -13,102 +13,12 @@
             </div>
         @endif
 
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Tempat Sampah User</h5>
-                <a href="{{ route('users.index') }}" class="btn btn-secondary">
+        <x-table :table="$table" engine="tabulator" layout="fitColumns" title="Tempat Sampah User">
+            <x-slot:actions>
+                <a href="{{ route('users.index') }}" class="btn btn-sm btn-outline-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali ke Daftar User
                 </a>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive text-nowrap">
-
-                    <table id="trash-table" class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nama</th>
-                                <th>Username</th>
-                                <th>Email</th>
-                                <th>Dihapus</th>
-                                <th>Dihapus Oleh</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-            </div>
-        </div>
+            </x-slot:actions>
+        </x-table>
     </div>
 @endsection
-
-
-@push('scripts')
-    <script>
-        $(function() {
-            $('#trash-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: '{{ route('users.trash.data') }}',
-                columns: [{
-                        data: 'id',
-                        name: 'id'
-                    },
-                    {
-                        data: 'name',
-                        name: 'name'
-                    },
-                    {
-                        data: 'username',
-                        name: 'username'
-                    },
-                    {
-                        data: 'email',
-                        name: 'email'
-                    },
-                    {
-                        data: 'deleted_at',
-                        name: 'deleted_at',
-                        render: function(data, type, row) {
-                            return moment(data).format('DD MMM YYYY HH:mm');
-                        }
-                    },
-                    {
-                        data: 'deleted_by_name',
-                        name: 'deleted_by_name'
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false
-                    }
-                ],
-                dom: 'lBfrtip',
-                buttons: [
-                    {
-                        extend: 'copy',
-                        exportOptions: { columns: ':not(:last-child)' }
-                    },
-                    {
-                        extend: 'csv',
-                        exportOptions: { columns: ':not(:last-child)' }
-                    },
-                    {
-                        extend: 'excel',
-                        exportOptions: { columns: ':not(:last-child)' }
-                    },
-                    {
-                        extend: 'pdf',
-                        exportOptions: { columns: ':not(:last-child)' }
-                    },
-                    {
-                        extend: 'print',
-                        exportOptions: { columns: ':not(:last-child)' }
-                    },
-                    'colvis'
-                ],
-            });
-        });
-    </script>
-@endpush

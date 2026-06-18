@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class Permission extends Model
 {
+    use Auditable;
+
     protected $fillable = [
         'name',
         'display_name',
@@ -47,22 +50,5 @@ class Permission extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
-    }
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (auth()->check()) {
-                $model->created_by = auth()->id();
-            }
-        });
-
-        static::updating(function ($model) {
-            if (auth()->check()) {
-                $model->updated_by = auth()->id();
-            }
-        });
     }
 }

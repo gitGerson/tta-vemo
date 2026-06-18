@@ -33,85 +33,57 @@
                 <div class="collapse" id="collapseFeature">
                     <div class="tea-features">
                         <div class="feature-item" style="--delay: 0s">
-                            <div class="feature-icon"><i class="bx bx-notepad"></i></div>
+                            <div class="feature-icon">📦</div>
                             <div class="feature-content">
-                                <h5>Setelah Versi 2.0.2</h5>
-                                <p>Perubahan terbaru ini belum masuk ke tag rilis dan berfokus pada peningkatan laporan BBM bulanan.</p>
+                                <h5>Version 1.0.0 - Initial Release</h5>
+                                <p>✅ LDAP Authentication Integration<br>
+                                    ✅ User Management System<br>
+                                    ✅ DataTables with Server-side Processing</p>
                             </div>
                         </div>
 
+                        <!-- Collapsible Updates Section -->
                         <div class="feature-item collapsible-section" style="--delay: 0.1s">
-                            <div class="feature-icon"><i class="bx bx-receipt"></i></div>
+                            <div class="feature-icon">🚀</div>
                             <div class="feature-content">
                                 <h5>
                                     <button
                                         class="btn btn-link text-white p-0 text-start w-100 d-flex align-items-center justify-content-between collapsed"
-                                        type="button" data-bs-toggle="collapse" data-bs-target="#monthlyReportCollapse"
-                                        aria-expanded="false" aria-controls="monthlyReportCollapse">
-                                        <span>Pembaruan Laporan Bulanan</span>
+                                        type="button" data-bs-toggle="collapse" data-bs-target="#updatesCollapse"
+                                        aria-expanded="false" aria-controls="updatesCollapse">
+                                        <span>Updates</span>
                                         <i class="bx bx-chevron-down ms-2 collapse-icon"></i>
                                     </button>
                                 </h5>
-                                <div class="collapse" id="monthlyReportCollapse">
-                                    <p class="collapse-content">
-                                        - Laporan BBM bulanan versi web dan PDF kini memakai tabel yang lebih padat.<br>
-                                        - Ditambahkan rincian kilometer, liter, rupiah, supir, dan kolom skala.<br>
-                                        - Ditambahkan baris total, blok tanda tangan, dan metadata cetak yang lebih rapi.<br>
-                                        - PDF laporan bulanan sekarang dicetak dengan orientasi portrait.<br>
-                                        - Pilihan perusahaan sekarang tetap konsisten saat export PDF.
-                                    </p>
+                                <div class="collapse" id="updatesCollapse">
+                                    <p class="collapse-content">• Sneat Admin Template Integration<br>
+                                        • Enhanced Login UI with Tea Theme<br>
+                                        • Responsive Design Implementation<br>
+                                        • Audit Trail Implementation<br>
+                                        • Soft Delete Functionality</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="feature-item" style="--delay: 0.2s">
-                            <div class="feature-icon"><i class="bx bx-calendar"></i></div>
-                            <div class="feature-content">
-                                <h5>Versi 2.0.2</h5>
-                                <p>Perombakan laporan BBM harian untuk tampilan web dan PDF.</p>
-                            </div>
-                        </div>
-
-                        <div class="feature-item collapsible-section" style="--delay: 0.3s">
-                            <div class="feature-icon"><i class="bx bx-line-chart"></i></div>
+                        <!-- Collapsible Fix Section -->
+                        <div class="feature-item collapsible-section" style="--delay: 0.2s">
+                            <div class="feature-icon">🔧</div>
                             <div class="feature-content">
                                 <h5>
                                     <button
                                         class="btn btn-link text-white p-0 text-start w-100 d-flex align-items-center justify-content-between collapsed"
-                                        type="button" data-bs-toggle="collapse" data-bs-target="#dailyReportCollapse"
-                                        aria-expanded="false" aria-controls="dailyReportCollapse">
-                                        <span>Pembaruan Laporan Harian</span>
+                                        type="button" data-bs-toggle="collapse" data-bs-target="#fixCollapse"
+                                        aria-expanded="false" aria-controls="fixCollapse">
+                                        <span>Fix</span>
                                         <i class="bx bx-chevron-down ms-2 collapse-icon"></i>
                                     </button>
                                 </h5>
-                                <div class="collapse" id="dailyReportCollapse">
-                                    <p class="collapse-content">
-                                        - Ditambahkan kolom jenis kendaraan, detail kilometer, liter, rupiah, dan skala.<br>
-                                        - Ditambahkan baris total serta toolbar export dan pencarian yang lebih rapi di tampilan web.<br>
-                                        - PDF laporan harian sekarang memakai orientasi portrait.<br>
-                                        - Total pada PDF sekarang mengikuti filter kategori yang dipilih.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="feature-item collapsible-section" style="--delay: 0.4s">
-                            <div class="feature-icon"><i class="bx bx-git-branch"></i></div>
-                            <div class="feature-content">
-                                <h5>
-                                    <button
-                                        class="btn btn-link text-white p-0 text-start w-100 d-flex align-items-center justify-content-between collapsed"
-                                        type="button" data-bs-toggle="collapse" data-bs-target="#devopsCollapse"
-                                        aria-expanded="false" aria-controls="devopsCollapse">
-                                        <span>Versi 2.0.2 - Pembaruan DevOps</span>
-                                        <i class="bx bx-chevron-down ms-2 collapse-icon"></i>
-                                    </button>
-                                </h5>
-                                <div class="collapse" id="devopsCollapse">
-                                    <p class="collapse-content">
-                                        - Menambahkan job deployment GitLab CI untuk branch `development`.<br>
-                                        - Memperbarui dokumentasi proyek agar sesuai dengan modul dan setup VEMO saat ini.
-                                    </p>
+                                <div class="collapse" id="fixCollapse">
+                                    <p class="collapse-content">• Advanced User Roles & Permissions<br>
+                                        • Export Functionality Enhancement<br>
+                                        • Real-time Notifications<br>
+                                        • Mobile Responsive Improvements<br>
+                                        • Performance Optimizations</p>
                                 </div>
                             </div>
                         </div>
@@ -419,6 +391,15 @@
             color: rgba(0, 0, 0, 0.4) !important;
         }
 
+        .flat-input-white:-webkit-autofill,
+        .flat-input-white:-webkit-autofill:hover,
+        .flat-input-white:-webkit-autofill:focus,
+        .flat-input-white:-webkit-autofill:active {
+            -webkit-text-fill-color: #212529 !important;
+            box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.95) inset !important;
+            caret-color: #212529 !important;
+        }
+
         .flat-input-addon-white {
             background: transparent !important;
             border: 0 !important;
@@ -572,32 +553,25 @@
             // Function to handle responsive collapse behavior
             function handleResponsiveCollapse() {
                 const isMobile = window.innerWidth <= 768;
-                const collapseConfigs = [{
-                        collapse: document.getElementById('monthlyReportCollapse'),
-                        button: document.querySelector('[data-bs-target="#monthlyReportCollapse"]')
-                    },
-                    {
-                        collapse: document.getElementById('dailyReportCollapse'),
-                        button: document.querySelector('[data-bs-target="#dailyReportCollapse"]')
-                    },
-                    {
-                        collapse: document.getElementById('devopsCollapse'),
-                        button: document.querySelector('[data-bs-target="#devopsCollapse"]')
-                    }
-                ];
+                const updateCollapse = document.getElementById('updatesCollapse');
+                const fixCollapse = document.getElementById('fixCollapse');
+                const updateButton = document.querySelector('[data-bs-target="#updatesCollapse"]');
+                const fixButton = document.querySelector('[data-bs-target="#fixCollapse"]');
 
                 if (!isMobile) {
-                    collapseConfigs.forEach(({
-                        collapse,
-                        button
-                    }) => {
-                        if (collapse && button && !collapse.classList.contains('show')) {
-                            collapse.classList.add('show');
-                            button.classList.remove('collapsed');
-                            button.setAttribute('aria-expanded', 'true');
-                        }
-                    });
+                    // On desktop: show both sections by default
+                    if (updateCollapse && !updateCollapse.classList.contains('show')) {
+                        updateCollapse.classList.add('show');
+                        updateButton.classList.remove('collapsed');
+                        updateButton.setAttribute('aria-expanded', 'true');
+                    }
+                    if (fixCollapse && !fixCollapse.classList.contains('show')) {
+                        fixCollapse.classList.add('show');
+                        fixButton.classList.remove('collapsed');
+                        fixButton.setAttribute('aria-expanded', 'true');
+                    }
                 }
+                // On mobile: keep them collapsed (default state)
             }
 
             // Initialize on page load

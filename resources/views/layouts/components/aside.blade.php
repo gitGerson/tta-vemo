@@ -17,58 +17,40 @@
 
     <div class="menu-inner-shadow"></div>
 
-    @php
-        $menu = config('menu');
-        $user = auth()->user();
-        $canView = function ($permission) use ($user) {
-            return !$permission || $user?->hasPermission($permission);
-        };
-        $isVisible = function ($item) use ($canView) {
-            return $canView($item['permission'] ?? null);
-        };
-        $hasVisibleItem = function ($items) use ($isVisible) {
-            foreach ($items as $item) {
-                if ($isVisible($item)) {
-                    return true;
-                }
-            }
-            return false;
-        };
-        $isActive = function ($item) {
-            $pattern = $item['routePattern'] ?? $item['route'];
-            return request()->routeIs($pattern);
-        };
-    @endphp
-
     <ul class="menu-inner py-1">
-        @foreach ($menu['main'] as $item)
-            @if ($isVisible($item))
-                <li class="menu-item {{ $isActive($item) ? 'active' : '' }}">
-                    <a href="{{ route($item['route']) }}" class="menu-link">
-                        <i class="menu-icon tf-icons bx {{ $item['icon'] }}"></i>
-                        <div class="text-truncate">{{ $item['title'] }}</div>
-                    </a>
-                </li>
-            @endif
-        @endforeach
-
-        @foreach ($menu['sections'] as $section)
-            @if ($hasVisibleItem($section['items']))
+        @foreach ($sidebarMenuSections ?? [] as $section)
+            @if (filled($section['label']))
                 <li class="menu-header small text-uppercase">
-                    <span class="menu-header-text">{{ $section['header'] }}</span>
+                    <span class="menu-header-text">{{ $section['label'] }}</span>
                 </li>
-
-                @foreach ($section['items'] as $item)
-                    @if ($isVisible($item))
-                        <li class="menu-item {{ $isActive($item) ? 'active' : '' }}">
-                            <a href="{{ route($item['route']) }}" class="menu-link">
-                                <i class="menu-icon tf-icons bx {{ $item['icon'] }}"></i>
-                                <div class="text-truncate">{{ $item['title'] }}</div>
-                            </a>
-                        </li>
-                    @endif
-                @endforeach
             @endif
+
+            @foreach ($section['nodes'] ?? $section['items'] as $node)
+                @if (($node['type'] ?? 'item') === 'group')
+                    <li class="menu-item {{ $node['is_active'] ? 'active open' : '' }}">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx {{ $node['icon'] }}"></i>
+                            <div class="text-truncate" data-i18n="{{ $node['label'] }}">{{ $node['label'] }}</div>
+                        </a>
+                        <ul class="menu-sub">
+                            @foreach ($node['items'] as $child)
+                                <li class="menu-item {{ $child['is_active'] ? 'active' : '' }}">
+                                    <a href="{{ $child['url'] }}" class="menu-link">
+                                        <div class="text-truncate" data-i18n="{{ $child['sidebar_label'] }}">{{ $child['sidebar_label'] }}</div>
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </li>
+                @else
+                    <li class="menu-item {{ $node['is_active'] ? 'active' : '' }}">
+                        <a href="{{ $node['url'] }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx {{ $node['icon'] }}"></i>
+                            <div class="text-truncate" data-i18n="{{ $node['title'] }}">{{ $node['title'] }}</div>
+                        </a>
+                    </li>
+                @endif
+            @endforeach
         @endforeach
     </ul>
 </aside>

@@ -15,21 +15,13 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        if (!User::where('username', 'stagingpurpose')->exists()) {
-            User::factory()->create([
+        User::factory()->create([
             'username' => 'stagingpurpose',
             'name' => 'stagingpurpose',
             'password' => bcrypt('P@ssw0rd1938'),
-            ]);
-        }
-
-        $this->call([
-            RolePermissionSeeder::class,
-            CompanySeeder::class,
-            DriverSeeder::class,
-            VehicleSeeder::class,
-            DestinationSeeder::class,
-            TypeMaintenanceSeeder::class,
         ]);
+
+        // run RolePermissionSeeder
+        $this->call(RolePermissionSeeder::class);
     }
 }

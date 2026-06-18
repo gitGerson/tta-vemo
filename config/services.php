@@ -35,4 +35,25 @@ return [
         ],
     ],
 
+    'product_esb' => [
+        'url' => env('PRODUCT_ESB_URL'),
+        'token' => env('PRODUCT_ESB_TOKEN'),
+    ],
+
+    'jpayroll' => [
+        'url' => env('JPAYROLL_URL'),
+        'token' => env('JPAYROLL_TOKEN'),
+    ],
+
+    // Token consumed by laravel-notification-channels/telegram when sending messages.
+    'telegram-bot-api' => [
+        'token' => env('TELEGRAM_BOT_TOKEN'),
+    ],
+
+    // Used to build the deep link (t.me/<username>?start=<token>) the user taps to
+    // link their account; the /start message is received via long-polling.
+    'telegram_bot' => [
+        'username' => env('TELEGRAM_BOT_USERNAME'),
+    ],
+
 ];

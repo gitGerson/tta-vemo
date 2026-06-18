@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTables\MaintenanceDailyReportDataTable;
+use App\DataTables\MaintenanceYearReportDataTable;
+use App\DataTables\RecordDailyReportDataTable;
+use App\DataTables\RecordMonthlyReportDataTable;
 use App\Models\Company;
-use App\Models\Maintenances;
-use App\Models\MaintenancesDetails;
+use App\Models\Maintenance;
+use App\Models\MaintenanceDetail;
 use App\Models\Record;
 use App\Models\Vehicle;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -28,10 +32,9 @@ class ReportController extends Controller
             ->orderBy('date', 'desc')
             ->get();
 
-        return view('pages.report.record.daily', [
+        return view('reports.record.daily', [
             'category' => $category,
-            'record' => $records,
-            'vehicle' => Vehicle::all(),
+            'table' => new RecordDailyReportDataTable($records, Vehicle::all(), $category),
             'company' => Company::all(),
             'defaluteCompany' => $this->defaultCompany(),
             'QueryCompany' => $companyId,
@@ -46,11 +49,12 @@ class ReportController extends Controller
         $unit = $request->query('unit');
 
         $records = $this->fetchMonthlyRecords($date, $companyId, $unit);
+        $vehicles = Vehicle::all();
 
-        return view('pages.report.record.monthly', [
-            'record' => $records,
+        return view('reports.record.monthly', [
+            'table' => new RecordMonthlyReportDataTable($records, $vehicles),
             'company' => Company::all(),
-            'vehicles' => Vehicle::all(),
+            'vehicles' => $vehicles,
             'date' => $dateString,
             'defaluteCompany' => $this->defaultCompany(),
         ]);
@@ -61,34 +65,65 @@ class ReportController extends Controller
         $startDate = Carbon::parse($request->query('start_date', Carbon::now()->startOfMonth()->toDateString()))->toDateString();
         $endDate = Carbon::parse($request->query('end_date', Carbon::now()->toDateString()))->toDateString();
         $unitPlate = $request->query('unit');
+        $companyId = $request->query('company') ? (int) $request->query('company') : null;
 
         $unit = $unitPlate
-            ? Vehicle::where('plat_new', $unitPlate)->orWhere('plat_old', $unitPlate)->first()
+            ? Vehicle::where('plat_new', $unitPlate)->first()
             : null;
 
-        $detailMtc = collect();
+        $table = null;
         if ($unitPlate) {
-            $detailMtc = $this->fetchMaintenanceDetails($unitPlate, $startDate, $endDate);
+            $table = new MaintenanceDailyReportDataTable($this->fetchMaintenanceDetails($unitPlate, $startDate, $endDate));
         }
 
-        return view('pages.report.maintenances.daily', [
+        return view('reports.maintenances.daily', [
             'start_date' => $startDate,
             'end_date' => $endDate,
             'unit' => $unit,
-            'detailMtc' => $detailMtc,
+            'table' => $table,
             'vehicles' => Vehicle::all(),
+            'companies' => $this->selectableCompanies(),
+            'companyId' => $companyId,
+        ]);
+    }
+
+    public function maintenancesMonthly(Request $request)
+    {
+        $dateString = $request->query('date', Carbon::now()->format('Y-m'));
+        $month = Carbon::parse($dateString.'-01');
+        $startDate = $month->copy()->startOfMonth()->toDateString();
+        $endDate = $month->copy()->endOfMonth()->toDateString();
+        $unitPlate = $request->query('unit');
+        $companyId = $request->query('company') ? (int) $request->query('company') : null;
+
+        $unit = $unitPlate ? Vehicle::where('plat_new', $unitPlate)->first() : null;
+
+        $table = null;
+        if ($unitPlate) {
+            $table = new MaintenanceDailyReportDataTable($this->fetchMaintenanceDetails($unitPlate, $startDate, $endDate));
+        }
+
+        return view('reports.maintenances.monthly', [
+            'date' => $dateString,
+            'unit' => $unit,
+            'table' => $table,
+            'vehicles' => Vehicle::all(),
+            'companies' => $this->selectableCompanies(),
+            'companyId' => $companyId,
         ]);
     }
 
     public function maintenancesYear(Request $request)
     {
         $year = $request->query('year', Carbon::now()->year);
+        $companyId = $request->query('company') ? (int) $request->query('company') : null;
 
-        [$mtc, $vehicles] = $this->fetchYearlyMaintenance($year);
+        [$mtc, $vehicles] = $this->fetchYearlyMaintenance($year, $companyId);
 
-        return view('pages.report.maintenances.year', [
-            'mtc' => $mtc,
-            'vehicles' => $vehicles,
+        return view('reports.maintenances.year', [
+            'table' => new MaintenanceYearReportDataTable($mtc, $vehicles),
+            'companies' => $this->selectableCompanies(),
+            'companyId' => $companyId,
         ]);
     }
 
@@ -106,7 +141,7 @@ class ReportController extends Controller
 
         $vehicles = Vehicle::all();
 
-        $pdf = Pdf::loadView('pages.report.pdf.daily', [
+        $pdf = Pdf::loadView('reports.pdf.daily', [
             'records' => $records,
             'category' => $category,
             'date' => $date,
@@ -126,7 +161,7 @@ class ReportController extends Controller
 
         $records = $this->fetchMonthlyRecords($date, $companyId, $unit);
 
-        $pdf = Pdf::loadView('pages.report.pdf.monthly', [
+        $pdf = Pdf::loadView('reports.pdf.monthly', [
             'records' => $records,
             'date' => $date,
             'unit' => $unit,
@@ -144,14 +179,14 @@ class ReportController extends Controller
         $unitPlate = $request->query('unit');
 
         $unit = $unitPlate
-            ? Vehicle::where('plat_new', $unitPlate)->orWhere('plat_old', $unitPlate)->first()
+            ? Vehicle::where('plat_new', $unitPlate)->first()
             : null;
 
         $detailMtc = $unitPlate
             ? $this->fetchMaintenanceDetails($unitPlate, $startDate, $endDate)
             : collect();
 
-        $pdf = Pdf::loadView('pages.report.pdf.maintenances-daily', [
+        $pdf = Pdf::loadView('reports.pdf.maintenances-daily', [
             'start_date' => $startDate,
             'end_date' => $endDate,
             'unit' => $unit,
@@ -161,12 +196,34 @@ class ReportController extends Controller
         return $pdf->download("laporan_pemeliharaan_{$unitPlate}_{$startDate}_{$endDate}.pdf");
     }
 
+    public function maintenancesMonthlyPdf(Request $request)
+    {
+        $dateString = $request->query('date', Carbon::now()->format('Y-m'));
+        $month = Carbon::parse($dateString.'-01');
+        $startDate = $month->copy()->startOfMonth()->toDateString();
+        $endDate = $month->copy()->endOfMonth()->toDateString();
+        $unitPlate = $request->query('unit');
+
+        $unit = $unitPlate ? Vehicle::where('plat_new', $unitPlate)->first() : null;
+        $detailMtc = $unitPlate ? $this->fetchMaintenanceDetails($unitPlate, $startDate, $endDate) : collect();
+
+        $pdf = Pdf::loadView('reports.pdf.maintenances-daily', [
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'unit' => $unit,
+            'detailMtc' => $detailMtc,
+        ])->setPaper('A4', 'portrait');
+
+        return $pdf->download("laporan_pemeliharaan_bulanan_{$unitPlate}_{$month->format('Y_m')}.pdf");
+    }
+
     public function maintenancesYearPdf(Request $request)
     {
         $year = (int) $request->query('year', Carbon::now()->year);
-        [$mtc, $vehicles] = $this->fetchYearlyMaintenance($year);
+        $companyId = $request->query('company') ? (int) $request->query('company') : null;
+        [$mtc, $vehicles] = $this->fetchYearlyMaintenance($year, $companyId);
 
-        $pdf = Pdf::loadView('pages.report.pdf.maintenances-year', [
+        $pdf = Pdf::loadView('reports.pdf.maintenances-year', [
             'mtc' => $mtc,
             'vehicles' => $vehicles,
             'year' => $year,
@@ -178,9 +235,10 @@ class ReportController extends Controller
     public function maintenancesYearExcel(Request $request): StreamedResponse
     {
         $year = $request->query('year', Carbon::now()->year);
-        [$mtc, $vehicles] = $this->fetchYearlyMaintenance($year);
+        $companyId = $request->query('company') ? (int) $request->query('company') : null;
+        [$mtc, $vehicles] = $this->fetchYearlyMaintenance($year, $companyId);
 
-        $header = ['KENDARAAN'];
+        $header = ['KENDARAAN', 'TAHUN MASUK'];
         foreach (['JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'] as $label) {
             $header[] = $label;
         }
@@ -200,11 +258,11 @@ class ReportController extends Controller
                 $total += $item->total_amount;
             }
 
-            $vehicleLabel = optional($vehicles->where('plat_new', $noPol)->first())->plat_new
-                ?? optional($vehicles->where('plat_old', $noPol)->first())->plat_old
-                ?? $noPol;
+            $vehicle = $vehicles->where('plat_new', $noPol)->first();
 
-            $row = [$vehicleLabel];
+            $vehicleLabel = $vehicle?->plat_new ?? $noPol;
+
+            $row = [$vehicleLabel, $vehicle?->entry_year ?? '-'];
             for ($i = 1; $i <= 12; $i++) {
                 $row[] = $sums[$i];
             }
@@ -213,7 +271,7 @@ class ReportController extends Controller
             $rows[] = $row;
         }
 
-        $totalRow = ['TOTAL'];
+        $totalRow = ['TOTAL', ''];
         $overall = 0;
         for ($i = 1; $i <= 12; $i++) {
             $totalRow[] = $monthlyTotals[$i];
@@ -254,23 +312,35 @@ class ReportController extends Controller
 
     private function fetchMaintenanceDetails(string $plate, string $startDate, string $endDate): Collection
     {
-        return MaintenancesDetails::query()
+        return MaintenanceDetail::query()
             ->select([
+                'maintenances_details.id',
                 'maintenances_details.maintenance_name',
-                DB::raw('SUM(COALESCE(NULLIF(maintenances_details.qty, \'\'), 0)) as total_qty'),
-                DB::raw('SUM(maintenances_details.price) as total_price'),
+                'maintenances_details.material',
+                'maintenances_details.qty',
+                'maintenances_details.price',
+                'maintenances_details.subtotal',
+                'maintenances.code_mt',
+                'maintenances.date_in',
+                'maintenances.date_out',
+                'maintenances.mileage',
+                'maintenances.status',
+                'maintenances.description',
             ])
             ->join('maintenances', 'maintenances.id', '=', 'maintenances_details.maintenance_id')
             ->where('maintenances.no_pol', $plate)
+            ->where('maintenances.status', Maintenance::STATUS_COMPLETED)
             ->whereBetween(DB::raw('COALESCE(maintenances.date_out, maintenances.date_in)'), [$startDate, $endDate])
-            ->groupBy('maintenances_details.maintenance_name')
-            ->orderBy('maintenances_details.maintenance_name')
+            ->orderByRaw('COALESCE(maintenances.date_out, maintenances.date_in) ASC')
+            ->orderBy('maintenances.code_mt')
+            ->orderBy('maintenances_details.id')
             ->get();
     }
 
-    private function fetchYearlyMaintenance(int $year): array
+    private function fetchYearlyMaintenance(int $year, ?int $companyId = null): array
     {
-        $mtc = Maintenances::query()
+        $mtc = Maintenance::query()
+            ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
             ->selectRaw('no_pol, MONTH(COALESCE(date_out, date_in)) as month, SUM(total_amount) as total_amount')
             ->whereYear(DB::raw('COALESCE(date_out, date_in)'), $year)
             ->groupBy('no_pol', 'month')
@@ -280,6 +350,18 @@ class ReportController extends Controller
         $vehicles = Vehicle::all();
 
         return [$mtc, $vehicles];
+    }
+
+    /**
+     * Companies the current user may pick from: their assigned companies, or
+     * all companies when granted the tenant-bypass permission. The global
+     * CompanyTenantScope already enforces this on the Company query.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, Company>
+     */
+    private function selectableCompanies()
+    {
+        return Company::query()->orderBy('name')->get(['id', 'name', 'code']);
     }
 
     private function fetchMonthlyRecords(Carbon $date, ?int $companyId, ?string $unit): Collection

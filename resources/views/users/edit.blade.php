@@ -6,6 +6,20 @@
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         <div class="row">
             <!-- User Basic Info -->
             <div class="col-md-4">
@@ -47,6 +61,32 @@
                                 </button>
                             </form>
                         </div>
+
+                        <form action="{{ route('users.update', $user) }}" method="POST" class="mt-4">
+                            @csrf
+                            @method('PUT')
+
+                            <div class="mb-3">
+                                <label for="company_ids" class="form-label">Perusahaan</label>
+                                <select name="company_ids[]" id="company_ids" class="form-select @error('company_ids') is-invalid @enderror @error('company_ids.*') is-invalid @enderror" multiple>
+                                    @foreach($companies as $company)
+                                        <option value="{{ $company->id }}" @selected(in_array($company->id, old('company_ids', $user->companies->pluck('id')->all())))>
+                                            {{ $company->name }} ({{ $company->code }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('company_ids')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                @error('company_ids.*')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bx bx-save me-1"></i> Update Perusahaan
+                            </button>
+                        </form>
                     </div>
                 </div>
 
@@ -62,7 +102,7 @@
                                 <select name="role_template" class="form-select" required>
                                     <option value="">Select Template</option>
                                     @foreach($roleTemplates as $role)
-                                        <option value="{{ $role->id }}">{{ $role->display_name }}</option>
+                                        <option value="{{ $role->id }}" data-permissions-url="{{ route('roles.permissions', $role) }}">{{ $role->display_name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -216,13 +256,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (roleTemplateSelect) {
         roleTemplateSelect.addEventListener('change', function() {
             const roleId = this.value;
+            const permissionsUrl = this.selectedOptions[0]?.dataset.permissionsUrl;
 
-            if (!roleId) {
+            if (!roleId || !permissionsUrl) {
                 return;
             }
 
             // Fetch permissions for the selected template
-            fetch(`/roles/${roleId}/permissions`)
+            fetch(permissionsUrl)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {

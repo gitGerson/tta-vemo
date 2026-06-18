@@ -10,12 +10,14 @@ return new class extends Migration
     {
         Schema::create('vehicles', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('company_id')->nullable()->constrained('companies')->nullOnDelete();
             $table->string('type', 50);
             $table->string('entry_year', 5);
             $table->string('mileage')->nullable();
             $table->string('plat_new', 20)->unique();
             $table->string('plat_old', 20)->unique()->nullable();
             $table->enum('status', ['ACTIVE', 'PASSIVE']);
+            $table->string('fuel_type')->default('BBM');
             $table->enum('mtc', ['NO', 'YES'])->default('NO');
             $table->text('desc')->nullable();
             $table->boolean('isprivate');

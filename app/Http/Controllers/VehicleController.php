@@ -2,175 +2,153 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTables\VehicleDataTable;
+use App\DataTables\VehicleInsuranceDataTable;
+use App\DataTables\VehiclePhotoDataTable;
+use App\DataTables\VehicleSnapshotDataTable;
+use App\DataTables\VehicleTrashDataTable;
+use App\Http\Requests\VehicleStoreRequest;
+use App\Http\Requests\VehicleUpdateRequest;
+use App\Models\Company;
+use App\Models\FuelType;
 use App\Models\Vehicle;
+use App\Models\VehicleBrand;
+use App\Models\VehicleType;
+use App\Services\FilePondUploadService;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class VehicleController extends Controller
 {
+    public function __construct(protected FilePondUploadService $filePond) {}
+
     public function index()
     {
-        return view('pages.vehicle.index');
+        return view('vehicles.index', [
+            'companies' => Company::query()->orderBy('name')->get(['id', 'name', 'code']),
+            'table' => new VehicleDataTable,
+        ]);
     }
 
-    public function store(Request $request)
+    public function create()
     {
-        $request->validate([
-            'type' => ['required', 'string'],
-            'entry_year' => ['required', 'string'],
-            'mileage' => ['nullable', 'string'],
-            'plat_new' => ['required', 'string', Rule::unique('vehicles', 'plat_new')],
-            'plat_old' => ['nullable', 'string', Rule::unique('vehicles', 'plat_old')],
-            'status' => ['required', Rule::in(['ACTIVE', 'PASSIVE'])],
-            'mtc' => ['required', Rule::in(['YES', 'NO'])],
-            'desc' => ['nullable', 'string'],
-            'isprivate' => ['required', 'boolean'],
+        return view('vehicles.create', [
+            'companies' => Company::query()->orderBy('name')->get(['id', 'name', 'code']),
+            'fuelTypes' => FuelType::query()->orderBy('merk')->orderBy('name')->get(['id', 'name', 'type', 'merk']),
+            'vehicleTypes' => VehicleType::query()->orderBy('name')->get(['id', 'code', 'name']),
+            'vehicleBrands' => VehicleBrand::query()->orderBy('name')->get(['id', 'code', 'name']),
         ]);
-
-        $vehicleData = $request->only([
-            'type',
-            'entry_year',
-            'mileage',
-            'plat_new',
-            'plat_old',
-            'status',
-            'mtc',
-            'desc',
-            'isprivate',
-        ]);
-
-        $vehicleData['mileage'] = blank($vehicleData['mileage']) ? '0' : $vehicleData['mileage'];
-
-        $created = Vehicle::create($vehicleData);
-
-        if (! $created) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat menambahkan kendaraan');
-        }
-
-        return redirect()->route('vehicle.index')->with('success', 'Kendaraan berhasil ditambahkan');
     }
 
-    public function update(Request $request, string $id)
+    public function store(VehicleStoreRequest $request)
     {
-        $vehicle = Vehicle::findOrFail($id);
+        $data = $request->validated();
+        $data['bpkb_image'] = $this->resolveImages($request, null, 'bpkb_image');
+        $data['stnk_image'] = $this->resolveImages($request, null, 'stnk_image');
 
-        $request->validate([
-            'type' => ['required', 'string'],
-            'entry_year' => ['required', 'string'],
-            'mileage' => ['nullable', 'string'],
-            'plat_new' => ['required', 'string', Rule::unique('vehicles', 'plat_new')->ignore($vehicle->id)],
-            'plat_old' => ['nullable', 'string', Rule::unique('vehicles', 'plat_old')->ignore($vehicle->id)],
-            'status' => ['required', Rule::in(['ACTIVE', 'PASSIVE'])],
-            'mtc' => ['required', Rule::in(['YES', 'NO'])],
-            'desc' => ['nullable', 'string'],
-            'isprivate' => ['required', 'boolean'],
-        ]);
+        Vehicle::create($data);
 
-        $vehicleData = $request->only([
-            'type',
-            'entry_year',
-            'mileage',
-            'plat_new',
-            'plat_old',
-            'status',
-            'mtc',
-            'desc',
-            'isprivate',
-        ]);
-
-        $vehicleData['mileage'] = blank($vehicleData['mileage']) ? '0' : $vehicleData['mileage'];
-
-        $updated = $vehicle->update($vehicleData);
-
-        if (! $updated) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat memperbarui kendaraan');
-        }
-
-        return redirect()->route('vehicle.index')->with('success', 'Kendaraan berhasil diperbarui');
+        return redirect()->route('vehicles.index')->with('success', 'Kendaraan berhasil ditambahkan.');
     }
 
-    public function destroy(string $id)
+    public function show(Vehicle $vehicle)
     {
-        $vehicle = Vehicle::findOrFail($id);
+        $vehicle->load(['company', 'fuelType', 'vehicleType', 'vehicleBrand']);
 
-        if (! $vehicle->delete()) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat menghapus kendaraan');
-        }
+        return view('vehicles.show', [
+            'vehicle' => $vehicle,
+            'snapshotTable' => new VehicleSnapshotDataTable($vehicle),
+            'vehicleInsuranceTable' => new VehicleInsuranceDataTable($vehicle),
+            'photoTable' => new VehiclePhotoDataTable($vehicle),
+            'photoThisMonth' => $vehicle->photos()->whereDate('period', now()->startOfMonth()->toDateString())->first(),
+        ]);
+    }
 
-        return redirect()->route('vehicle.index')->with('success', 'Kendaraan berhasil dihapus');
+    public function edit(Vehicle $vehicle)
+    {
+        return view('vehicles.edit', [
+            'vehicle' => $vehicle->load(['company', 'fuelType', 'vehicleType', 'vehicleBrand']),
+            'companies' => Company::query()->orderBy('name')->get(['id', 'name', 'code']),
+            'fuelTypes' => FuelType::query()->orderBy('merk')->orderBy('name')->get(['id', 'name', 'type', 'merk']),
+            'vehicleTypes' => VehicleType::query()->orderBy('name')->get(['id', 'code', 'name']),
+            'vehicleBrands' => VehicleBrand::query()->orderBy('name')->get(['id', 'code', 'name']),
+        ]);
+    }
+
+    public function update(Vehicle $vehicle, VehicleUpdateRequest $request)
+    {
+        $data = $request->validated();
+        $data['bpkb_image'] = $this->resolveImages($request, $vehicle, 'bpkb_image');
+        $data['stnk_image'] = $this->resolveImages($request, $vehicle, 'stnk_image');
+
+        $vehicle->update($data);
+
+        return redirect()->route('vehicles.index')->with('success', 'Kendaraan berhasil diperbarui.');
+    }
+
+    public function destroy(Vehicle $vehicle)
+    {
+        $vehicle->delete();
+
+        return redirect()->route('vehicles.index')->with('success', 'Kendaraan berhasil disimpan di sampah.');
+    }
+
+    public function trash()
+    {
+        return view('vehicles.trash', ['table' => new VehicleTrashDataTable]);
+    }
+
+    public function restore(Vehicle $vehicle)
+    {
+        $vehicle->restore();
+
+        return redirect()->route('vehicles.trash')->with('success', 'Kendaraan berhasil dipulihkan.');
+    }
+
+    public function forceDelete(Vehicle $vehicle)
+    {
+        $vehicle->forceDelete();
+
+        return redirect()->route('vehicles.trash')->with('success', 'Kendaraan berhasil dihapus permanen.');
     }
 
     public function getData(Request $request)
     {
-        $vehicles = Vehicle::select([
-            'id',
-            'type',
-            'entry_year',
-            'mileage',
-            'plat_new',
-            'plat_old',
-            'status',
-            'mtc',
-            'desc',
-            'isprivate',
+        return (new VehicleDataTable)->responseFor($request);
+    }
+
+    public function getSnapshotData(Vehicle $vehicle, Request $request)
+    {
+        return (new VehicleSnapshotDataTable($vehicle))->responseFor($request);
+    }
+
+    public function getTrashData(Request $request)
+    {
+        return (new VehicleTrashDataTable)->responseFor($request);
+    }
+
+    /**
+     * Merge kept existing document images (re-submitted as their URL) with newly
+     * uploaded ones, returning the resulting list of stored S3 paths.
+     *
+     * @return array<int, string>
+     */
+    private function resolveImages(Request $request, ?Vehicle $vehicle, string $field): array
+    {
+        $existingPaths = $vehicle?->{$field} ?? [];
+
+        $urlToPath = collect($existingPaths)->mapWithKeys(fn (string $path): array => [
+            (str_starts_with($path, 'http') ? $path : Storage::disk('s3')->url($path)) => $path,
         ]);
 
-        return datatables()->of($vehicles)
-            ->addIndexColumn()
-            ->addColumn('isprivate_label', function ($vehicle) {
-                return $vehicle->isprivate ? 'Yes' : 'No';
-            })
-            ->addColumn('action', function ($vehicle) {
-                $canEdit = auth()->user()->hasPermission('master.vehicles.edit');
-                $canDelete = auth()->user()->hasPermission('master.vehicles.delete');
+        $kept = collect((array) $request->input($field, []))
+            ->filter(fn ($value): bool => is_string($value) && $urlToPath->has($value))
+            ->map(fn (string $url): string => $urlToPath->get($url))
+            ->values()
+            ->all();
 
-                $attrs = [
-                    'type' => e($vehicle->type),
-                    'entry_year' => e($vehicle->entry_year),
-                    'mileage' => e($vehicle->mileage),
-                    'plat_new' => e($vehicle->plat_new),
-                    'plat_old' => e($vehicle->plat_old),
-                    'status' => e($vehicle->status),
-                    'mtc' => e($vehicle->mtc),
-                    'desc' => e($vehicle->desc),
-                    'isprivate' => $vehicle->isprivate,
-                ];
+        $new = $this->filePond->storeManyFromRequestField($request, $field, 'vehicle_documents', 's3');
 
-                $actions = '<div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                        <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">';
-                if ($canEdit) {
-                    $actions .= '<a class="dropdown-item btn-edit-vehicle"
-                            href="#"
-                            data-update-url="'.route('vehicle.update', $vehicle->id).'"
-                            data-type="'.$attrs['type'].'"
-                            data-entry_year="'.$attrs['entry_year'].'"
-                            data-mileage="'.$attrs['mileage'].'"
-                            data-plat_new="'.$attrs['plat_new'].'"
-                            data-plat_old="'.$attrs['plat_old'].'"
-                            data-status="'.$attrs['status'].'"
-                            data-mtc="'.$attrs['mtc'].'"
-                            data-desc="'.e($vehicle->desc ?? '').'"
-                            data-isprivate="'.($attrs['isprivate'] ? 1 : 0).'">
-                            <i class="bx bx-edit-alt me-1"></i> Edit
-                        </a>';
-                }
-                if ($canDelete) {
-                    $actions .= '<form action="'.route('vehicle.destroy', $vehicle->id).'" method="POST" style="display: inline;">
-                            '.csrf_field().'
-                            '.method_field('DELETE').'
-                            <button type="submit" class="dropdown-item text-danger" onclick="return confirm(\'Yakin ingin menghapus kendaraan ini?\')">
-                                <i class="bx bx-trash me-1"></i> Hapus
-                            </button>
-                        </form>';
-                }
-                $actions .= '</div></div>';
-
-                return $actions;
-            })
-            ->rawColumns(['action'])
-            ->make(true);
+        return array_values(array_merge($kept, $new));
     }
 }
