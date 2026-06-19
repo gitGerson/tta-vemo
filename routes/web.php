@@ -13,6 +13,7 @@ use App\Http\Controllers\QrScanController;
 use App\Http\Controllers\RecordController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TelegramLinkController;
 use App\Http\Controllers\TypeMaintenanceController;
 use App\Http\Controllers\UserController;
@@ -41,6 +42,9 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
 Route::middleware(['auth'])->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/read', [NotificationController::class, 'read'])->name('notifications.read');
+
+    // Global record search (per-model view permissions filtered inside the service).
+    Route::get('/search', SearchController::class)->name('search');
 
     // Self-service Telegram linking (any authenticated user).
     Route::get('/account/telegram', [TelegramLinkController::class, 'show'])->name('account.telegram');

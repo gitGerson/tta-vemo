@@ -97,7 +97,13 @@
                 <!-- Logo -->
                 <div class="app-brand justify-content-center mb-4 text-center">
                     <a href="#" class="app-brand-link d-inline-block">
-                        <img src="{{ asset('appicon.png') }}" alt="Logo" class="img-fluid" style="width: 80px;">
+                        <img src="{{ asset('assets/logo.png') }}" alt="Logo" class="img-fluid" style="width: 130px;">
+                    </a>
+                </div>
+
+                <div class="app-brand justify-content-center mb-4 text-center">
+                    <a href="#" class="app-brand-link d-inline-block">
+                        <img src="{{ asset('images/logo_vemo_2.svg') }}" alt="Logo" class="img-fluid" style="width: 120px;">
                     </a>
                 </div>
 

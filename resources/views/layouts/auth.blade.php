@@ -14,7 +14,7 @@
     <meta name="description" content="" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('appicon.png') }}" />
+    <link rel="icon" type="image/png" href="{{ asset('images/logo_vemo.svg') }}" />
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />

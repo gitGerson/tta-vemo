@@ -1,3 +1,8 @@
+import Fuse from 'fuse.js';
+import axios from 'axios';
+
+const RECORD_DEBOUNCE_MS = 250;
+
 function normalizeText(value) {
     return String(value || '').toLowerCase();
 }
@@ -32,6 +37,13 @@ function createResultItem(item, onClick) {
     return resultItem;
 }
 
+function createGroupHeader(label) {
+    const header = document.createElement('div');
+    header.className = 'search-group-header';
+    header.textContent = label;
+    return header;
+}
+
 function initSneatMenuSearch() {
     const menuSearch = document.getElementById('menu-search');
     const searchResults = document.getElementById('search-results');
@@ -45,7 +57,22 @@ function initSneatMenuSearch() {
     menuSearch.dataset.searchInitialized = 'true';
 
     const menuItems = Array.isArray(window.sneatSearchMenuItems) ? window.sneatSearchMenuItems : [];
+    const fuse = new Fuse(menuItems, {
+        keys: [
+            { name: 'title', weight: 0.5 },
+            { name: 'keywords', weight: 0.3 },
+            { name: 'description', weight: 0.2 },
+        ],
+        threshold: 0.4,
+        ignoreLocation: true,
+        minMatchCharLength: 2,
+    });
+
     let currentFocusIndex = -1;
+    let recordResults = [];
+    let recordsLoading = false;
+    let recordAbort = null;
+    let recordDebounceTimer = null;
 
     const showSearchResults = () => {
         searchResults.classList.remove('d-none');
@@ -62,37 +89,91 @@ function initSneatMenuSearch() {
         });
     };
 
-    const renderResults = (results) => {
-        searchResultsContent.innerHTML = '';
+    const onItemClick = () => {
+        hideSearchResults();
+        menuSearch.value = '';
+    };
 
-        if (results.length === 0) {
+    const render = (pages) => {
+        searchResultsContent.innerHTML = '';
+        currentFocusIndex = -1;
+
+        const hasPages = pages.length > 0;
+        const hasRecords = recordResults.length > 0;
+
+        if (!hasPages && !hasRecords && !recordsLoading) {
             noResults.classList.remove('d-none');
             return;
         }
 
         noResults.classList.add('d-none');
 
-        results.forEach((item) => {
-            searchResultsContent.appendChild(createResultItem(item, () => {
-                hideSearchResults();
-                menuSearch.value = '';
-            }));
-        });
+        if (hasPages) {
+            searchResultsContent.appendChild(createGroupHeader('Pages'));
+            pages.forEach((item) => {
+                searchResultsContent.appendChild(createResultItem(item, onItemClick));
+            });
+        }
+
+        if (hasRecords || recordsLoading) {
+            searchResultsContent.appendChild(createGroupHeader('Records'));
+
+            recordResults.forEach((item) => {
+                searchResultsContent.appendChild(createResultItem(item, onItemClick));
+            });
+
+            if (recordsLoading && !hasRecords) {
+                const loading = document.createElement('div');
+                loading.className = 'search-group-loading';
+                loading.textContent = 'Searching records…';
+                searchResultsContent.appendChild(loading);
+            }
+        }
+    };
+
+    const searchPages = (query) => fuse.search(query).map((result) => result.item);
+
+    const fetchRecords = (query) => {
+        if (recordAbort) {
+            recordAbort.abort();
+        }
+        recordAbort = new AbortController();
+        recordsLoading = true;
+
+        axios
+            .get('/search', {
+                params: { q: query },
+                signal: recordAbort.signal,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            })
+            .then(({ data }) => {
+                // Ignore stale responses for an input that has since changed.
+                if (menuSearch.value.trim() !== query) {
+                    return;
+                }
+                recordResults = Array.isArray(data.results) ? data.results : [];
+                recordsLoading = false;
+                render(searchPages(query));
+            })
+            .catch((error) => {
+                if (axios.isCancel?.(error) || error.name === 'CanceledError' || error.name === 'AbortError') {
+                    return;
+                }
+                if (menuSearch.value.trim() !== query) {
+                    return;
+                }
+                recordResults = [];
+                recordsLoading = false;
+                render(searchPages(query));
+            });
     };
 
     const performSearch = (query) => {
-        const searchTerms = query.toLowerCase().split(' ').filter(Boolean);
-        const results = menuItems.filter((item) => {
-            const keywords = Array.isArray(item.keywords) ? item.keywords : [];
+        recordResults = [];
+        render(searchPages(query));
 
-            return searchTerms.every((term) => (
-                keywords.some((keyword) => normalizeText(keyword).includes(term))
-                || normalizeText(item.title).includes(term)
-                || normalizeText(item.description).includes(term)
-            ));
-        });
-
-        renderResults(results);
+        clearTimeout(recordDebounceTimer);
+        recordDebounceTimer = setTimeout(() => fetchRecords(query), RECORD_DEBOUNCE_MS);
     };
 
     menuSearch.addEventListener('input', (event) => {
@@ -104,6 +185,12 @@ function initSneatMenuSearch() {
             return;
         }
 
+        clearTimeout(recordDebounceTimer);
+        if (recordAbort) {
+            recordAbort.abort();
+        }
+        recordResults = [];
+        recordsLoading = false;
         hideSearchResults();
     });
 
