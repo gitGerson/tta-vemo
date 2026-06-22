@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\DataTables\VehicleBrandDataTable;
+use App\DataTables\VehicleBrandTrashDataTable;
 use App\Http\Requests\VehicleBrandStoreRequest;
 use App\Http\Requests\VehicleBrandUpdateRequest;
 use App\Models\VehicleBrand;
@@ -50,8 +51,32 @@ class VehicleBrandController extends Controller
         return redirect()->route('vehicle-brands.index')->with('success', 'Vehicle brand berhasil dihapus.');
     }
 
+    public function trash()
+    {
+        return view('vehicle-brands.trash', ['table' => new VehicleBrandTrashDataTable]);
+    }
+
+    public function restore(VehicleBrand $vehicleBrand)
+    {
+        $vehicleBrand->restore();
+
+        return redirect()->route('vehicle-brands.trash')->with('success', 'Vehicle brand berhasil dipulihkan.');
+    }
+
+    public function forceDelete(VehicleBrand $vehicleBrand)
+    {
+        $vehicleBrand->forceDelete();
+
+        return redirect()->route('vehicle-brands.trash')->with('success', 'Vehicle brand berhasil dihapus permanen.');
+    }
+
     public function getData(Request $request)
     {
         return (new VehicleBrandDataTable)->responseFor($request);
+    }
+
+    public function getTrashData(Request $request)
+    {
+        return (new VehicleBrandTrashDataTable)->responseFor($request);
     }
 }

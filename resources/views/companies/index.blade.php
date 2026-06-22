@@ -15,11 +15,18 @@
 
         <x-table :table="$table" engine="tabulator" title="Daftar Perusahaan">
             <x-slot:actions>
-                @if(auth()->user()->hasPermission('master.companies.create'))
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="btn-tambah-company" data-bs-toggle="modal" data-bs-target="#company-modal">
-                        <i class="bx bx-plus me-1"></i> Tambah Perusahaan
-                    </button>
-                @endif
+                <div class="d-flex gap-2">
+                    @if(auth()->user()->hasPermission('master.companies.delete'))
+                        <a href="{{ route('companies.trash') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bx bx-trash me-1"></i> Trash
+                        </a>
+                    @endif
+                    @if(auth()->user()->hasPermission('master.companies.create'))
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btn-tambah-company" data-bs-toggle="modal" data-bs-target="#company-modal">
+                            <i class="bx bx-plus me-1"></i> Tambah Perusahaan
+                        </button>
+                    @endif
+                </div>
             </x-slot:actions>
         </x-table>
     </div>

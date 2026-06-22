@@ -15,11 +15,18 @@
 
         <x-table :table="$table" engine="tabulator" title="Daftar Fuel Type">
             <x-slot:actions>
-                @if(auth()->user()->hasPermission('master.fuel_types.create'))
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="btn-tambah-fuel-type" data-bs-toggle="modal" data-bs-target="#fuel-type-modal">
-                        <i class="bx bx-plus me-1"></i> Tambah Fuel Type
-                    </button>
-                @endif
+                <div class="d-flex gap-2">
+                    @if(auth()->user()->hasPermission('master.fuel_types.delete'))
+                        <a href="{{ route('fuel-types.trash') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bx bx-trash me-1"></i> Trash
+                        </a>
+                    @endif
+                    @if(auth()->user()->hasPermission('master.fuel_types.create'))
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btn-tambah-fuel-type" data-bs-toggle="modal" data-bs-target="#fuel-type-modal">
+                            <i class="bx bx-plus me-1"></i> Tambah Fuel Type
+                        </button>
+                    @endif
+                </div>
             </x-slot:actions>
         </x-table>
     </div>

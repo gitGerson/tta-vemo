@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\DataTables\CompanyDataTable;
 use App\DataTables\CompanyDriverDataTable;
+use App\DataTables\CompanyTrashDataTable;
 use App\DataTables\CompanyUserDataTable;
 use App\DataTables\CompanyVehicleDataTable;
 use App\Http\Requests\CompanyStoreRequest;
@@ -53,9 +54,33 @@ class CompanyController extends Controller
         return redirect()->route('companies.index')->with('success', 'Perusahaan berhasil dihapus.');
     }
 
+    public function trash()
+    {
+        return view('companies.trash', ['table' => new CompanyTrashDataTable]);
+    }
+
+    public function restore(Company $company)
+    {
+        $company->restore();
+
+        return redirect()->route('companies.trash')->with('success', 'Perusahaan berhasil dipulihkan.');
+    }
+
+    public function forceDelete(Company $company)
+    {
+        $company->forceDelete();
+
+        return redirect()->route('companies.trash')->with('success', 'Perusahaan berhasil dihapus permanen.');
+    }
+
     public function getData(Request $request)
     {
         return (new CompanyDataTable)->responseFor($request);
+    }
+
+    public function getTrashData(Request $request): JsonResponse
+    {
+        return (new CompanyTrashDataTable)->responseFor($request);
     }
 
     public function getDriverData(Request $request, Company $company): JsonResponse
