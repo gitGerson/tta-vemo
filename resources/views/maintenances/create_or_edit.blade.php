@@ -219,11 +219,11 @@
                                         @endphp
                                         <div class="d-flex align-items-center justify-content-between p-2 bg-light rounded mb-2">
                                             @if ($isImage)
-                                                <a href="javascript:void(0)" class="text-decoration-none text-truncate preview-existing-image" data-url="{{ $note->url }}" style="max-width: 200px; cursor: pointer;">
+                                                <a href="javascript:void(0)" class="text-decoration-none text-truncate preview-existing-image" data-url="{{ $note->imageUrl() }}" style="max-width: 200px; cursor: pointer;">
                                                     <i class="bx bx-image me-1"></i> {{ basename($note->image) }}
                                                 </a>
                                             @else
-                                                <a href="{{ $note->url }}" target="_blank" class="text-decoration-none text-truncate" style="max-width: 200px;">
+                                                <a href="{{ $note->imageUrl() }}" target="_blank" class="text-decoration-none text-truncate" style="max-width: 200px;">
                                                     <i class="bx bx-file me-1"></i> {{ basename($note->image) }}
                                                 </a>
                                             @endif

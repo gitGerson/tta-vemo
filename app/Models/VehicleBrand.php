@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Support\S3Url;
 use Database\Factories\VehicleBrandFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class VehicleBrand extends Model
@@ -50,15 +50,7 @@ class VehicleBrand extends Model
 
     public function logoUrl(): ?string
     {
-        if (! $this->logo) {
-            return null;
-        }
-
-        if (str_starts_with($this->logo, 'http')) {
-            return $this->logo;
-        }
-
-        return Storage::disk('s3')->url($this->logo);
+        return S3Url::temporary($this->logo);
     }
 
     public function vehicles(): HasMany

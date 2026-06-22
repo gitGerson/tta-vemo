@@ -15,8 +15,8 @@ use App\Models\Vehicle;
 use App\Models\VehicleBrand;
 use App\Models\VehicleType;
 use App\Services\FilePondUploadService;
+use App\Support\S3Url;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class VehicleController extends Controller
 {
@@ -138,12 +138,12 @@ class VehicleController extends Controller
         $existingPaths = $vehicle?->{$field} ?? [];
 
         $urlToPath = collect($existingPaths)->mapWithKeys(fn (string $path): array => [
-            (str_starts_with($path, 'http') ? $path : Storage::disk('s3')->url($path)) => $path,
+            S3Url::reference(S3Url::temporary($path)) => $path,
         ]);
 
         $kept = collect((array) $request->input($field, []))
-            ->filter(fn ($value): bool => is_string($value) && $urlToPath->has($value))
-            ->map(fn (string $url): string => $urlToPath->get($url))
+            ->filter(fn ($value): bool => is_string($value) && $urlToPath->has(S3Url::reference($value)))
+            ->map(fn (string $url): string => $urlToPath->get(S3Url::reference($url)))
             ->values()
             ->all();
 

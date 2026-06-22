@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToCompanyTenant;
+use App\Support\S3Url;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class Vehicle extends Model
@@ -157,7 +157,7 @@ class Vehicle extends Model
     {
         return collect($paths ?? [])
             ->filter()
-            ->map(fn (string $path): string => str_starts_with($path, 'http') ? $path : Storage::disk('s3')->url($path))
+            ->map(fn (string $path): string => S3Url::temporary($path))
             ->values()
             ->all();
     }

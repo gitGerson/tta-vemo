@@ -4,13 +4,13 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToCompanyTenant;
 use App\Models\Concerns\HasComments;
+use App\Support\S3Url;
 use Closure;
 use Database\Factories\VehiclePhotoFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class VehiclePhoto extends Model
@@ -145,7 +145,7 @@ class VehiclePhoto extends Model
             return null;
         }
 
-        return str_starts_with($path, 'http') ? $path : Storage::disk('s3')->url($path);
+        return S3Url::temporary($path);
     }
 
     /**
@@ -176,9 +176,7 @@ class VehiclePhoto extends Model
     public function photoUrls(): array
     {
         return collect($this->sidePhotos())
-            ->map(fn (string $path): string => str_starts_with($path, 'http')
-                ? $path
-                : Storage::disk('s3')->url($path))
+            ->map(fn (string $path): string => S3Url::temporary($path))
             ->values()
             ->all();
     }

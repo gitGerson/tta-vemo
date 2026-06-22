@@ -237,7 +237,6 @@ class MaintenanceController extends Controller
             Note::create([
                 'maintenances_id' => $maintenance->id,
                 'image' => $path,
-                'url' => Storage::disk('s3')->url($path),
             ]);
         }
     }
