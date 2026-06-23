@@ -29,7 +29,7 @@ class TypeMaintenanceModuleTest extends TestCase
 
         $this->get(route('type-maintenances.index'))
             ->assertOk()
-            ->assertSee('Daftar Tipe Maintenance');
+            ->assertSee('Daftar Tipe Pemeliharaan');
     }
 
     public function test_authorized_user_can_create_type_maintenance(): void
