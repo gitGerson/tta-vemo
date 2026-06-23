@@ -99,7 +99,10 @@
         return modalEl.querySelector('form');
     }
 
-    function setField(name, value) {
+    // silent=true refreshes a select2 widget's display via the namespaced
+    // 'change.select2' event WITHOUT firing the interactive 'change' handlers
+    // (syncDrivers / mileage autofill) that would otherwise abort prefill.
+    function setField(name, value, { silent = false } = {}) {
         const el = getForm().querySelector(`[name="${name}"]`);
         if (!el) return;
 
@@ -119,7 +122,7 @@
                 }
             }
 
-            $el.trigger('change');
+            $el.trigger(silent ? 'change.select2' : 'change');
         } else {
             el.dispatchEvent(new Event('change', { bubbles: true }));
         }
@@ -147,16 +150,18 @@
     function applyEdit(d) {
         setMode(d.updateUrl, 'PUT', 'Edit Catatan Perjalanan: ' + d.noPol, 'Perbarui');
 
+        // company_id stays non-silent: its 'change' runs toggleGate to enable the
+        // gated fields (disabled fields neither display as editable nor submit).
         setField('company_id', d.companyId);
-        setField('date', d.date);
-        setField('driver_1', d.driver1);
-        setField('driver_2', d.driver2);
-        setField('no_pol', d.noPol);
-        setField('destination', d.destination);
-        setField('start_km', d.startKm);
-        setField('finish_km', d.finishKm);
-        setField('bbm', d.bbm);
-        setField('fuel_type_id', d.fuelTypeId);
+        setField('date', d.date, { silent: true });
+        setField('driver_1', d.driver1, { silent: true });
+        setField('driver_2', d.driver2, { silent: true });
+        setField('no_pol', d.noPol, { silent: true });
+        setField('destination', d.destination, { silent: true });
+        setField('start_km', d.startKm, { silent: true });
+        setField('finish_km', d.finishKm, { silent: true });
+        setField('bbm', d.bbm, { silent: true });
+        setField('fuel_type_id', d.fuelTypeId, { silent: true });
     }
 
     modalEl.addEventListener('shown.bs.modal', function () {

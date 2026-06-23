@@ -78,8 +78,10 @@ class RecordDataTable extends DataTable
                     'update-url' => route('records.update', $row),
                     'date' => $row->date?->format('d-m-Y'),
                     'company-id' => $row->company_id,
-                    'driver-1' => $row->driver1?->id,
-                    'driver-2' => $row->driver2?->id,
+                    // NB: keys must avoid a digit right after a hyphen — `data-driver-1`
+                    // maps to dataset['driver-1'], not dataset.driver1, so the JS read fails.
+                    'driver1' => $row->driver1?->id,
+                    'driver2' => $row->driver2?->id,
                     'no-pol' => $row->no_pol,
                     'destination' => $row->destination,
                     'start-km' => $row->start_km,

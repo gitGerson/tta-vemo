@@ -122,7 +122,7 @@ class RecordModuleTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.0.action', fn (string $action): bool => str_contains($action, 'btn-edit-record')
                 && str_contains($action, 'data-update-url=')
-                && str_contains($action, 'data-driver-1="'.$driver->id.'"'));
+                && str_contains($action, 'data-driver1="'.$driver->id.'"'));
     }
 
     public function test_store_defaults_start_km_from_last_record_finish_km(): void
