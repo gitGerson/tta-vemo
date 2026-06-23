@@ -56,12 +56,6 @@
          <!-- /Search -->
 
          <ul class="navbar-nav flex-row align-items-center ms-md-auto">
-             <li class="nav-item me-3">
-                 <button type="button" class="btn theme-toggle" id="theme-toggle" aria-label="Ubah mode gelap">
-                     <i class="theme-toggle-icon bx bx-moon"></i>
-                 </button>
-             </li>
-
              <!-- Notifications -->
              <li class="nav-item navbar-dropdown dropdown-notifications dropdown me-3">
                  <button type="button"
