@@ -44,7 +44,7 @@ class VehicleModuleTest extends TestCase
         $vehicle = Vehicle::factory()->create();
 
         $this->get(route('vehicles.create'))->assertOk()->assertSee('Tambah Kendaraan');
-        $this->get(route('vehicles.edit', $vehicle))->assertOk()->assertSee('Edit Kendaraan');
+        $this->get(route('vehicles.edit', $vehicle))->assertOk()->assertSee('Ubah Kendaraan');
     }
 
     public function test_authorized_user_can_create_vehicle(): void

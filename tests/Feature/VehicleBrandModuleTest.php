@@ -31,7 +31,7 @@ class VehicleBrandModuleTest extends TestCase
 
         $this->get(route('vehicle-brands.index'))
             ->assertOk()
-            ->assertSee('Daftar Vehicle Brand');
+            ->assertSee('Daftar Merek Kendaraan');
     }
 
     public function test_authorized_user_can_create_vehicle_brand_with_logo(): void

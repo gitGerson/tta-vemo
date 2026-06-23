@@ -18,7 +18,7 @@
                 <div class="d-flex gap-2">
                     @if(auth()->user()->hasPermission('master.drivers.delete'))
                         <a href="{{ route('drivers.trash') }}" class="btn btn-sm btn-outline-secondary">
-                            <i class="bx bx-trash me-1"></i> Trash
+                            <i class="bx bx-trash me-1"></i> Sampah
                         </a>
                     @endif
 
@@ -119,7 +119,7 @@
         form.action = d.updateUrl;
         document.getElementById('driver-form-method').value = 'PUT';
         document.getElementById('driver-form-action').value = d.updateUrl;
-        document.getElementById('driver-modal-title').textContent = 'Edit Driver: ' + d.name;
+        document.getElementById('driver-modal-title').textContent = 'Ubah Supir: ' + d.name;
         form.querySelector('[type="submit"]').textContent = 'Perbarui';
 
         setField('nik',         d.nik);
@@ -196,7 +196,7 @@
                 const form = getForm();
                 form.action = @json(old('_form_action'));
                 document.getElementById('driver-form-method').value = 'PUT';
-                document.getElementById('driver-modal-title').textContent = 'Edit Driver: ' + @json(old('name'));
+                document.getElementById('driver-modal-title').textContent = 'Ubah Supir: ' + @json(old('name'));
                 form.querySelector('[type="submit"]').textContent = 'Perbarui';
             })();
         @endif

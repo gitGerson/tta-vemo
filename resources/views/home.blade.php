@@ -32,13 +32,13 @@
         <!-- Financial & utilization summary -->
         <div class="row">
             @if ($financials['visible'])
-                <!-- Spend Trend -->
+                <!-- Tren Biaya -->
                 <div class="col-lg-8 mb-6">
                     <div class="card h-100">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <div class="card-title mb-0">
-                                <h5 class="mb-1 me-2">Spend Trend</h5>
-                                <p class="card-subtitle">Maintenance vs Fuel · 6 bulan terakhir</p>
+                                <h5 class="mb-1 me-2">Tren Biaya</h5>
+                                <p class="card-subtitle">Pemeliharaan vs BBM · 6 bulan terakhir</p>
                             </div>
                         </div>
                         <div class="card-body">
@@ -48,11 +48,11 @@
                     </div>
                 </div>
             @endif
-            <!-- Spend & utilization stat cards -->
+            <!-- Biaya & pemakaian -->
             <div class="col-lg-4 mb-6">
                 <div class="row">
                     @if ($financials['visible'])
-                        @foreach (['maintenance' => ['Maintenance Spend', 'warning', 'bx-wrench'], 'fuel' => ['Fuel Spend', 'info', 'bx-gas-pump']] as $key => $meta)
+                        @foreach (['maintenance' => ['Biaya Pemeliharaan', 'warning', 'bx-wrench'], 'fuel' => ['Biaya BBM', 'info', 'bx-gas-pump']] as $key => $meta)
                             @php $stat = $financials['summary'][$key]; @endphp
                             <div class="col-md-6 col-lg-12 mb-6">
                                 <div class="card">
@@ -107,13 +107,13 @@
             </div>
         </div>
 
-        <!-- Condition, composition & maintenance trend -->
+        <!-- Kondisi, komposisi & tren pemeliharaan -->
         <div class="row">
-            <!-- Vehicle Condition -->
+            <!-- Kondisi Kendaraan -->
             <div class="col-md-6 col-lg-4 mb-6">
                 <div class="card h-100">
                     <div class="card-header">
-                        <h5 class="card-title mb-1">Vehicle Condition</h5>
+                        <h5 class="card-title mb-1">Kondisi Kendaraan</h5>
                         <p class="card-subtitle mb-0">{{ $conditionSummary['active'] }} aktif · {{ $conditionSummary['total'] }} total</p>
                     </div>
                     <div class="card-body d-flex justify-content-center">
@@ -122,11 +122,11 @@
                     </div>
                 </div>
             </div>
-            <!-- Fleet Composition -->
+            <!-- Komposisi Armada -->
             <div class="col-md-6 col-lg-4 mb-6">
                 <div class="card h-100">
                     <div class="card-header">
-                        <h5 class="card-title mb-1">Fleet Composition</h5>
+                        <h5 class="card-title mb-1">Komposisi Armada</h5>
                         <p class="card-subtitle mb-0">Per tipe kendaraan</p>
                     </div>
                     <div class="card-body d-flex justify-content-center">
@@ -135,11 +135,11 @@
                     </div>
                 </div>
             </div>
-            <!-- Maintenance Volume -->
+            <!-- Volume Pemeliharaan -->
             <div class="col-md-6 col-lg-4 mb-6">
                 <div class="card h-100">
                     <div class="card-header">
-                        <h5 class="card-title mb-1">Maintenance Volume</h5>
+                        <h5 class="card-title mb-1">Volume Pemeliharaan</h5>
                         <p class="card-subtitle mb-0">Rutin vs non-rutin · 6 bulan</p>
                     </div>
                     <div class="card-body">
@@ -161,22 +161,22 @@
         @endphp
 
         <div class="row">
-            <!-- Service Reminder -->
+            <!-- Pengingat Servis -->
             @if ($serviceReminders['visible'])
                 @php
                     $serviceRows = collect($serviceReminders['items'])->map(fn (array $i): array => [
                         'plate' => $plateLink($i),
-                        'detail' => $i['current'].' / '.$i['threshold'].' km · last '.$i['last_service'],
-                        'status' => '<span class="badge bg-label-danger">'.e($i['over']).' km over</span>',
+                        'detail' => $i['current'].' / '.$i['threshold'].' km · terakhir '.$i['last_service'],
+                        'status' => '<span class="badge bg-label-danger">Lewat '.e($i['over']).' km</span>',
                     ])->all();
                 @endphp
                 <div class="col-md-6 col-lg-6 order-1 mb-6">
-                    <x-dashboard.list-table id="dashServiceReminder" title="Service Reminder"
-                        subtitle="{{ $serviceReminders['count'] }} Due" :columns="$reminderColumns" :rows="$serviceRows"
+                    <x-dashboard.list-table id="dashServiceReminder" title="Pengingat Servis"
+                        subtitle="{{ $serviceReminders['count'] }} Tenggat waktu" :columns="$reminderColumns" :rows="$serviceRows"
                         placeholder="Tidak ada kendaraan jatuh tempo servis." />
                 </div>
             @endif
-            <!--/ Service Reminder -->
+            <!--/ Pengingat Servis -->
 
             <!-- Foto Kendaraan -->
             @if ($photoReminders['visible'])
@@ -195,13 +195,13 @@
             @endif
             <!--/ Foto Kendaraan -->
 
-            <!-- Insurance Reminder -->
+            <!-- Pengingat Asuransi -->
             @if ($insuranceReminders['visible'])
                 @php
                     $insuranceRows = collect($insuranceReminders['items'])->map(function (array $i): array {
                         $overdue = ($i['state'] ?? null) === 'overdue';
                         $status = $overdue
-                            ? '<span class="badge bg-label-danger">Overdue '.e($i['days_overdue']).'h</span>'
+                            ? '<span class="badge bg-label-danger">Lewat '.e($i['days_overdue']).'h</span>'
                             : '<span class="badge bg-label-'.($i['threshold'] <= 7 ? 'danger' : 'warning').'">H-'.e($i['days_left']).'</span>';
 
                         return [
@@ -212,7 +212,7 @@
                     })->all();
                 @endphp
                 <div class="col-md-6 col-lg-6 order-1 mb-6">
-                    <x-dashboard.list-table id="dashInsuranceReminder" title="Insurance Reminder"
+                    <x-dashboard.list-table id="dashInsuranceReminder" title="Pengingat Asuransi"
                         subtitle="{{ $insuranceReminders['count'] }} Perlu perhatian" :columns="$reminderColumns"
                         :rows="$insuranceRows" placeholder="Tidak ada asuransi yang perlu perhatian.">
                         <x-slot:action>
@@ -222,9 +222,9 @@
                     </x-dashboard.list-table>
                 </div>
             @endif
-            <!--/ Insurance Reminder -->
+            <!--/ Pengingat Asuransi -->
 
-            <!-- Recent Maintenance -->
+            <!-- Pemeliharaan Terbaru -->
             @php
                 $recentRows = collect($recentMaintenance)->map(fn (array $i): array => [
                     'plate' => $plateLink($i),
@@ -233,14 +233,14 @@
                 ])->all();
             @endphp
             <div class="col-md-6 col-lg-6 order-2 mb-6">
-                <x-dashboard.list-table id="dashRecentMaintenance" title="Recent Maintenance" :columns="$reminderColumns"
-                    :rows="$recentRows" placeholder="No recent maintenance records.">
+                <x-dashboard.list-table id="dashRecentMaintenance" title="Pemeliharaan Terbaru" :columns="$reminderColumns"
+                    :rows="$recentRows" placeholder="Belum ada data pemeliharaan terbaru.">
                     <x-slot:action>
-                        <a href="{{ route('maintenances.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                        <a href="{{ route('maintenances.index') }}" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
                     </x-slot:action>
                 </x-dashboard.list-table>
             </div>
-            <!--/ Recent Maintenance -->
+            <!--/ Pemeliharaan Terbaru -->
         </div>
     </div>
 @endsection

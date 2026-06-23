@@ -53,9 +53,9 @@
                         </span>
                         <h4 class="mb-1">{{ $vehicle->plat_new }}</h4>
                         <div class="d-flex flex-wrap justify-content-center gap-1 mb-3">
-                            <span class="badge {{ $statusClass }}">{{ $vehicle->status }}</span>
+                            <span class="badge {{ $statusClass }}">{{ $vehicle->status === 'ACTIVE' ? 'Aktif' : 'Pasif' }}</span>
                             @if($vehicle->mtc === 'YES')
-                                <span class="badge bg-label-warning">Under Maintenance</span>
+                                <span class="badge bg-label-warning">Dalam Pemeliharaan</span>
                             @endif
                             <span class="badge {{ $vehicle->isprivate ? 'bg-label-info' : 'bg-label-secondary' }}">
                                 {{ $vehicle->isprivate ? 'Kendaraan Pribadi' : 'Kendaraan Umum' }}
@@ -72,7 +72,7 @@
                             </div>
                             <div>
                                 <h5 class="mb-0">{{ $brandName ?? '-' }}</h5>
-                                <small class="text-muted">Brand</small>
+                                <small class="text-muted">Merek</small>
                             </div>
                             <div>
                                 <h5 class="mb-0">{{ $vehicle->fuelType?->name ?? $vehicle->fuel_type }}</h5>

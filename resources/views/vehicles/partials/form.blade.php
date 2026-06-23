@@ -1,19 +1,19 @@
 @php
     $vehicle = $vehicle ?? null;
     $statusOptions = [
-        'ACTIVE' => 'ACTIVE',
-        'PASSIVE' => 'PASSIVE',
+        'ACTIVE' => 'Aktif',
+        'PASSIVE' => 'Pasif',
     ];
     $yesNoOptions = [
-        'NO' => 'NO',
-        'YES' => 'YES',
+        'NO' => 'Tidak',
+        'YES' => 'Ya',
     ];
     // Explicit value/label list: a ['0' => ..., '1' => ...] map collapses to a PHP
     // list (numeric keys), which <x-form.select> reads as value=label and would
     // submit "Yes"/"No" instead of 1/0, breaking the boolean validation.
     $privateOptions = [
-        ['value' => '1', 'label' => 'Yes'],
-        ['value' => '0', 'label' => 'No'],
+        ['value' => '1', 'label' => 'Ya'],
+        ['value' => '0', 'label' => 'Tidak'],
     ];
     $companyOptions = ($companies ?? collect())->mapWithKeys(fn ($company) => [
         $company->id => "{$company->name} ({$company->code})",
@@ -47,7 +47,7 @@
         </div>
 
         <div class="col-md-6">
-            <x-form.select name="vehicle_brand_id" label="Brand" :options="$vehicleBrandOptions" :value="$vehicle?->vehicle_brand_id" placeholder="Pilih brand kendaraan..." inputClass="form-select-sm" />
+            <x-form.select name="vehicle_brand_id" label="Merek" :options="$vehicleBrandOptions" :value="$vehicle?->vehicle_brand_id" placeholder="Pilih merek kendaraan..." inputClass="form-select-sm" />
         </div>
 
         <div class="col-md-6">
@@ -77,11 +77,11 @@
         </div>
 
         <div class="col-md-4">
-            <x-form.select name="mtc" label="Maintenance" :options="$yesNoOptions" :value="$vehicle?->mtc ?? 'NO'" inputClass="form-select-sm" required />
+            <x-form.select name="mtc" label="Pemeliharaan" :options="$yesNoOptions" :value="$vehicle?->mtc ?? 'NO'" inputClass="form-select-sm" required />
         </div>
 
         <div class="col-md-4">
-            <x-form.select name="isprivate" label="Private" :options="$privateOptions" option-value="value" option-label="label" :value="(string) (int) ($vehicle?->isprivate ?? false)" inputClass="form-select-sm" required />
+            <x-form.select name="isprivate" label="Kepemilikan" :options="$privateOptions" option-value="value" option-label="label" :value="(string) (int) ($vehicle?->isprivate ?? false)" inputClass="form-select-sm" required />
         </div>
     </div>
 

@@ -42,7 +42,7 @@ class VehicleDataTable extends DataTable
             Column::computed('vehicle_type_label', 'Tipe', fn (Vehicle $vehicle): string => $vehicle->vehicleType?->name ?? $vehicle->type)
                 ->orderable(false)
                 ->searchable(false),
-            Column::computed('vehicle_brand_label', 'Brand', fn (Vehicle $vehicle): string => $vehicle->vehicleBrand?->name ?? '-')
+            Column::computed('vehicle_brand_label', 'Merek', fn (Vehicle $vehicle): string => $vehicle->vehicleBrand?->name ?? '-')
                 ->orderable(false)
                 ->searchable(false),
             Column::computed('company_name', 'Perusahaan', fn (Vehicle $vehicle): string => $vehicle->company?->name ?? '-')
@@ -67,10 +67,11 @@ class VehicleDataTable extends DataTable
                     ? 'bg-label-success text-success'
                     : 'bg-label-secondary text-secondary';
 
-                $badges = ['<span class="badge '.$statusClass.'">'.e($vehicle->status).'</span>'];
+                $statusLabel = $vehicle->status === 'ACTIVE' ? 'Aktif' : 'Pasif';
+                $badges = ['<span class="badge '.$statusClass.'">'.e($statusLabel).'</span>'];
 
                 if ($vehicle->mtc === 'YES') {
-                    $badges[] = '<span class="badge bg-label-warning text-warning">Under Maintenance</span>';
+                    $badges[] = '<span class="badge bg-label-warning text-warning">Dalam Pemeliharaan</span>';
                 }
 
                 $badges[] = $vehicle->isprivate

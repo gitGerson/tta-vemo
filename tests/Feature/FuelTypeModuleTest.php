@@ -29,7 +29,7 @@ class FuelTypeModuleTest extends TestCase
 
         $this->get(route('fuel-types.index'))
             ->assertOk()
-            ->assertSee('Daftar Fuel Type')
+            ->assertSee('Daftar Jenis BBM')
             ->assertSee('Rp')
             ->assertSee('Bensin')
             ->assertSee('Solar');

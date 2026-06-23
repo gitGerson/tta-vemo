@@ -33,10 +33,11 @@ class VehicleSnapshotDataTable extends DataTable
                     ? 'bg-label-success text-success'
                     : 'bg-label-secondary text-secondary';
 
-                $badges = ['<span class="badge '.$statusClass.'">'.e($snapshot->status).'</span>'];
+                $statusLabel = $snapshot->status === 'ACTIVE' ? 'Aktif' : 'Pasif';
+                $badges = ['<span class="badge '.$statusClass.'">'.e($statusLabel).'</span>'];
 
                 if ($snapshot->mtc === 'YES') {
-                    $badges[] = '<span class="badge bg-label-warning text-warning">Under Maintenance</span>';
+                    $badges[] = '<span class="badge bg-label-warning text-warning">Dalam Pemeliharaan</span>';
                 }
 
                 $badges[] = $snapshot->isprivate

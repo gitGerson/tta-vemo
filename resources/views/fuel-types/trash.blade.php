@@ -1,7 +1,7 @@
 @extends('layouts.sneat')
 
 @section('title')
-    Trash Fuel Type
+    Sampah Jenis BBM
 @endsection
 
 @section('content')
@@ -13,7 +13,7 @@
             </div>
         @endif
 
-        <x-table :table="$table" engine="tabulator" title="Trash Fuel Type">
+        <x-table :table="$table" engine="tabulator" title="Sampah Jenis BBM">
             <x-slot:actions>
                 <a href="{{ route('fuel-types.index') }}" class="btn btn-sm btn-outline-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali

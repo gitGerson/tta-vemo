@@ -321,7 +321,7 @@
                     type="search"
                     class="form-control form-control-sm table-tabulator-search"
                     id="{{ $tableId }}-search"
-                    placeholder="Search"
+                    placeholder="Cari"
                     autocomplete="off"
                 >
             @endif
@@ -336,19 +336,19 @@
 
             @if ($showAdd)
                 <button type="button" class="btn btn-sm btn-success" id="{{ $tableId }}-add">
-                    <i class="bx bx-plus me-1"></i> Add
+                    <i class="bx bx-plus me-1"></i> Tambah
                 </button>
             @endif
 
             @if ($selectableRows && $table->tabulatorDeleteUrl() !== null)
                 <button type="button" class="btn btn-sm btn-outline-danger" id="{{ $tableId }}-delete" disabled>
-                    <i class="bx bx-trash me-1"></i> Delete
+                    <i class="bx bx-trash me-1"></i> Hapus
                 </button>
             @endif
 
             @if ($table->tabulatorUpdateUrl() !== null)
                 <button type="button" class="btn btn-sm btn-outline-success" id="{{ $tableId }}-save" disabled>
-                    <i class="bx bx-save me-1"></i> Save
+                    <i class="bx bx-save me-1"></i> Simpan
                 </button>
             @endif
 
@@ -366,7 +366,7 @@
             @if ($showExport)
                 <div class="dropdown">
                     <button type="button" class="btn btn-sm btn-outline-secondary" id="{{ $tableId }}-export" aria-expanded="false">
-                        <i class="bx bx-download me-1"></i> Export
+                        <i class="bx bx-download me-1"></i> Ekspor
                     </button>
                     <div class="dropdown-menu dropdown-menu-end p-1 table-tabulator-menu" id="{{ $tableId }}-export-menu">
                         <a class="dropdown-item" href="#" data-export="csv">CSV</a>

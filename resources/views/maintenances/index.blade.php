@@ -52,13 +52,13 @@
                 <div class="d-flex gap-2">
                     @if(auth()->user()->hasPermission('operational.maintenances.delete'))
                         <a href="{{ route('maintenances.trash') }}" class="btn btn-sm btn-outline-secondary">
-                            <i class="bx bx-trash me-1"></i> Trash
+                            <i class="bx bx-trash me-1"></i> Sampah
                         </a>
                     @endif
 
                     @if(auth()->user()->hasPermission('operational.maintenances.create'))
                         <a href="{{ route('maintenances.create') }}" class="btn btn-sm btn-outline-primary">
-                            <i class="bx bx-plus me-1"></i> Add New
+                            <i class="bx bx-plus me-1"></i> Tambah Baru
                         </a>
                     @endif
                 </div>

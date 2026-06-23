@@ -20,7 +20,7 @@ class FuelTypeController extends Controller
     {
         FuelType::create($request->validated());
 
-        return redirect()->route('fuel-types.index')->with('success', 'Fuel type berhasil ditambahkan.');
+        return redirect()->route('fuel-types.index')->with('success', 'Jenis BBM berhasil ditambahkan.');
     }
 
     public function show(FuelType $fuelType)
@@ -32,14 +32,14 @@ class FuelTypeController extends Controller
     {
         $fuelType->update($request->validated());
 
-        return redirect()->route('fuel-types.index')->with('success', 'Fuel type berhasil diperbarui.');
+        return redirect()->route('fuel-types.index')->with('success', 'Jenis BBM berhasil diperbarui.');
     }
 
     public function destroy(FuelType $fuelType)
     {
         $fuelType->delete();
 
-        return redirect()->route('fuel-types.index')->with('success', 'Fuel type berhasil dihapus.');
+        return redirect()->route('fuel-types.index')->with('success', 'Jenis BBM berhasil dihapus.');
     }
 
     public function trash()
@@ -51,14 +51,14 @@ class FuelTypeController extends Controller
     {
         $fuelType->restore();
 
-        return redirect()->route('fuel-types.trash')->with('success', 'Fuel type berhasil dipulihkan.');
+        return redirect()->route('fuel-types.trash')->with('success', 'Jenis BBM berhasil dipulihkan.');
     }
 
     public function forceDelete(FuelType $fuelType)
     {
         $fuelType->forceDelete();
 
-        return redirect()->route('fuel-types.trash')->with('success', 'Fuel type berhasil dihapus permanen.');
+        return redirect()->route('fuel-types.trash')->with('success', 'Jenis BBM berhasil dihapus permanen.');
     }
 
     public function getData(Request $request)

@@ -20,7 +20,7 @@ class VehicleTypeController extends Controller
     {
         VehicleType::create($request->validated());
 
-        return redirect()->route('vehicle-types.index')->with('success', 'Vehicle type berhasil ditambahkan.');
+        return redirect()->route('vehicle-types.index')->with('success', 'Tipe kendaraan berhasil ditambahkan.');
     }
 
     public function show(VehicleType $vehicleType)
@@ -32,14 +32,14 @@ class VehicleTypeController extends Controller
     {
         $vehicleType->update($request->validated());
 
-        return redirect()->route('vehicle-types.index')->with('success', 'Vehicle type berhasil diperbarui.');
+        return redirect()->route('vehicle-types.index')->with('success', 'Tipe kendaraan berhasil diperbarui.');
     }
 
     public function destroy(VehicleType $vehicleType)
     {
         $vehicleType->delete();
 
-        return redirect()->route('vehicle-types.index')->with('success', 'Vehicle type berhasil dihapus.');
+        return redirect()->route('vehicle-types.index')->with('success', 'Tipe kendaraan berhasil dihapus.');
     }
 
     public function trash()
@@ -51,14 +51,14 @@ class VehicleTypeController extends Controller
     {
         $vehicleType->restore();
 
-        return redirect()->route('vehicle-types.trash')->with('success', 'Vehicle type berhasil dipulihkan.');
+        return redirect()->route('vehicle-types.trash')->with('success', 'Tipe kendaraan berhasil dipulihkan.');
     }
 
     public function forceDelete(VehicleType $vehicleType)
     {
         $vehicleType->forceDelete();
 
-        return redirect()->route('vehicle-types.trash')->with('success', 'Vehicle type berhasil dihapus permanen.');
+        return redirect()->route('vehicle-types.trash')->with('success', 'Tipe kendaraan berhasil dihapus permanen.');
     }
 
     public function getData(Request $request)

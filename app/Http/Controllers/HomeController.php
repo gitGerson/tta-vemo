@@ -59,8 +59,8 @@ class HomeController extends Controller
             'active' => $activePlates->count(),
             'items' => [
                 [
-                    'label' => 'Operational',
-                    'sublabel' => 'Active, no open work',
+                    'label' => 'Operasional',
+                    'sublabel' => 'Aktif, tidak ada pekerjaan terbuka',
                     'count' => $operational,
                     'color' => 'success',
                     'hex' => '#71dd37',
@@ -68,8 +68,8 @@ class HomeController extends Controller
                     'link' => route('vehicles.index'),
                 ],
                 [
-                    'label' => 'Under Maintenance',
-                    'sublabel' => 'Service in progress',
+                    'label' => 'Dalam Pemeliharaan',
+                    'sublabel' => 'Servis sedang berjalan',
                     'count' => $underMaintenance,
                     'color' => 'warning',
                     'hex' => '#ffab00',
@@ -77,8 +77,8 @@ class HomeController extends Controller
                     'link' => route('maintenances.index'),
                 ],
                 [
-                    'label' => 'Awaiting Confirmation',
-                    'sublabel' => 'Completed, needs review',
+                    'label' => 'Menunggu Konfirmasi',
+                    'sublabel' => 'Selesai, perlu ditinjau',
                     'count' => $awaiting,
                     'color' => 'info',
                     'hex' => '#03c3ec',
@@ -86,8 +86,8 @@ class HomeController extends Controller
                     'link' => route('maintenances.index'),
                 ],
                 [
-                    'label' => 'Inactive',
-                    'sublabel' => 'Parked / retired',
+                    'label' => 'Tidak Aktif',
+                    'sublabel' => 'Diparkir / tidak digunakan',
                     'count' => $passive,
                     'color' => 'secondary',
                     'hex' => '#8592a3',
@@ -142,21 +142,21 @@ class HomeController extends Controller
         // user may see them), padded with always-available fleet stats so the row never
         // looks sparse. The top 4 are rendered on the dashboard.
         $kpis = collect([
-            ['visible' => $canRemind, 'label' => 'Due for Service', 'value' => $due->count(), 'sub' => 'past service threshold', 'icon' => 'bx-wrench', 'color' => 'warning', 'link' => route('maintenances.index')],
-            ['visible' => $canInsuranceRemind, 'label' => 'Insurance Attention', 'value' => $insurance->count(), 'sub' => 'expiring or overdue', 'icon' => 'bx-shield-quarter', 'color' => 'danger', 'link' => route('vehicle-insurances.index')],
-            ['visible' => $canPhotoRemind, 'label' => 'Photos Incomplete', 'value' => $missingPhotos->count(), 'sub' => 'missing this month', 'icon' => 'bx-camera', 'color' => 'info', 'link' => route('vehicles.index')],
-            ['visible' => true, 'label' => 'Total Vehicles', 'value' => $conditionSummary['total'], 'sub' => $conditionSummary['active'].' active', 'icon' => 'bx-car', 'color' => 'primary', 'link' => route('vehicles.index')],
-            ['visible' => true, 'label' => 'Under Maintenance', 'value' => $underMaintenance, 'sub' => 'service in progress', 'icon' => 'bx-cog', 'color' => 'warning', 'link' => route('maintenances.index')],
-            ['visible' => true, 'label' => 'Awaiting Confirmation', 'value' => $awaiting, 'sub' => 'completed, needs review', 'icon' => 'bx-time-five', 'color' => 'info', 'link' => route('maintenances.index')],
+            ['visible' => $canRemind, 'label' => 'Tenggat Waktu Servis', 'value' => $due->count(), 'sub' => 'melewati batas servis', 'icon' => 'bx-wrench', 'color' => 'warning', 'link' => route('maintenances.index')],
+            ['visible' => $canInsuranceRemind, 'label' => 'Perhatian Asuransi', 'value' => $insurance->count(), 'sub' => 'akan berakhir atau terlambat', 'icon' => 'bx-shield-quarter', 'color' => 'danger', 'link' => route('vehicle-insurances.index')],
+            ['visible' => $canPhotoRemind, 'label' => 'Foto Belum Lengkap', 'value' => $missingPhotos->count(), 'sub' => 'belum lengkap bulan ini', 'icon' => 'bx-camera', 'color' => 'info', 'link' => route('vehicles.index')],
+            ['visible' => true, 'label' => 'Total Kendaraan', 'value' => $conditionSummary['total'], 'sub' => $conditionSummary['active'].' aktif', 'icon' => 'bx-car', 'color' => 'primary', 'link' => route('vehicles.index')],
+            ['visible' => true, 'label' => 'Dalam Pemeliharaan', 'value' => $underMaintenance, 'sub' => 'servis sedang berjalan', 'icon' => 'bx-cog', 'color' => 'warning', 'link' => route('maintenances.index')],
+            ['visible' => true, 'label' => 'Menunggu Konfirmasi', 'value' => $awaiting, 'sub' => 'selesai, perlu ditinjau', 'icon' => 'bx-time-five', 'color' => 'info', 'link' => route('maintenances.index')],
         ])->filter(fn (array $kpi): bool => $kpi['visible'])->take(4)->values()->all();
 
         // Quick-action buttons, gated so each only appears when the user can use it.
         $user = auth()->user();
         $quickActions = collect([
-            ['label' => 'Log Service', 'icon' => 'bx-wrench', 'route' => 'maintenances.create', 'perm' => 'operational.maintenances.create'],
+            ['label' => 'Catat Servis', 'icon' => 'bx-wrench', 'route' => 'maintenances.create', 'perm' => 'operational.maintenances.create'],
             ['label' => 'Scan QR', 'icon' => 'bx-qr-scan', 'route' => 'qr-scan.index', 'perm' => 'operational.qr_scan.view'],
-            ['label' => 'Add Vehicle', 'icon' => 'bx-car', 'route' => 'vehicles.create', 'perm' => 'master.vehicles.create'],
-            ['label' => 'All Vehicles', 'icon' => 'bx-list-ul', 'route' => 'vehicles.index', 'perm' => 'master.vehicles.view'],
+            ['label' => 'Tambah Kendaraan', 'icon' => 'bx-car', 'route' => 'vehicles.create', 'perm' => 'master.vehicles.create'],
+            ['label' => 'Semua Kendaraan', 'icon' => 'bx-list-ul', 'route' => 'vehicles.index', 'perm' => 'master.vehicles.view'],
         ])->filter(fn (array $action): bool => $user?->hasPermission($action['perm']) === true)
             ->map(fn (array $action): array => ['label' => $action['label'], 'icon' => $action['icon'], 'url' => route($action['route'])])
             ->values()->all();
@@ -193,13 +193,13 @@ class HomeController extends Controller
     private function classifyMaintenance(Maintenance $maintenance): array
     {
         if ($maintenance->status === Maintenance::STATUS_CANCELLED) {
-            return ['label' => 'Cancelled', 'color' => 'danger', 'icon' => 'bx-x-circle'];
+            return ['label' => 'Dibatalkan', 'color' => 'danger', 'icon' => 'bx-x-circle'];
         }
 
         if ($maintenance->status === Maintenance::STATUS_COMPLETED) {
             return $maintenance->is_confirmed
-                ? ['label' => 'Done', 'color' => 'success', 'icon' => 'bx-check-circle']
-                : ['label' => 'Needs Follow-up', 'color' => 'warning', 'icon' => 'bx-error-circle'];
+                ? ['label' => 'Selesai', 'color' => 'success', 'icon' => 'bx-check-circle']
+                : ['label' => 'Perlu Tindak Lanjut', 'color' => 'warning', 'icon' => 'bx-error-circle'];
         }
 
         // DRAFT: under maintenance, but flag as follow-up once it has gone stale.
@@ -207,7 +207,7 @@ class HomeController extends Controller
             && $maintenance->updated_at->lt(now()->subDays(7));
 
         return $stale
-            ? ['label' => 'Needs Follow-up', 'color' => 'warning', 'icon' => 'bx-error-circle']
-            : ['label' => 'Under Maintenance', 'color' => 'info', 'icon' => 'bx-wrench'];
+            ? ['label' => 'Perlu Tindak Lanjut', 'color' => 'warning', 'icon' => 'bx-error-circle']
+            : ['label' => 'Dalam Pemeliharaan', 'color' => 'info', 'icon' => 'bx-wrench'];
     }
 }

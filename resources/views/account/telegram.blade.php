@@ -1,7 +1,7 @@
 @extends('layouts.sneat')
 
 @section('title')
-    Connect Telegram
+    Hubungkan Telegram
 @endsection
 
 @section('content')
@@ -18,7 +18,7 @@
                 <div class="card">
                     <div class="card-header d-flex align-items-center">
                         <i class="icon-base bx bxl-telegram icon-md me-2 text-info"></i>
-                        <h5 class="mb-0">Connect Telegram</h5>
+                        <h5 class="mb-0">Hubungkan Telegram</h5>
                     </div>
                     <div class="card-body">
                         @if ($user->isTelegramLinked())
@@ -41,7 +41,7 @@
                             </form>
                         @elseif ($deepLink)
                             <p class="text-body-secondary">
-                                Klik tombol di bawah untuk membuka bot Telegram, lalu tekan <strong>Start</strong>.
+                                Klik tombol di bawah untuk membuka bot Telegram, lalu tekan <strong>Mulai</strong>.
                                 Akun Anda akan otomatis tertaut dan mulai menerima notifikasi pengingat.
                             </p>
                             <a href="{{ $deepLink }}" target="_blank" rel="noopener" class="btn btn-info">

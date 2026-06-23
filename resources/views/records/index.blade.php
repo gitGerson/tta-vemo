@@ -46,7 +46,7 @@
                 <div class="d-flex gap-2">
                     @if(auth()->user()->hasPermission('operational.records.delete'))
                         <a href="{{ route('records.trash') }}" class="btn btn-sm btn-outline-secondary">
-                            <i class="bx bx-trash me-1"></i> Trash
+                            <i class="bx bx-trash me-1"></i> Sampah
                         </a>
                     @endif
 
@@ -148,7 +148,7 @@
     }
 
     function applyEdit(d) {
-        setMode(d.updateUrl, 'PUT', 'Edit Catatan Perjalanan: ' + d.noPol, 'Perbarui');
+        setMode(d.updateUrl, 'PUT', 'Ubah Catatan Perjalanan: ' + d.noPol, 'Perbarui');
 
         // company_id stays non-silent: its 'change' runs toggleGate to enable the
         // gated fields (disabled fields neither display as editable nor submit).
@@ -198,7 +198,7 @@
 
     @if($errors->any())
         @if(old('_method') === 'PUT')
-            setMode(@json(old('_form_action')), 'PUT', 'Edit Catatan Perjalanan: ' + @json(old('no_pol')), 'Perbarui');
+            setMode(@json(old('_form_action')), 'PUT', 'Ubah Catatan Perjalanan: ' + @json(old('no_pol')), 'Perbarui');
         @endif
 
         bootstrap.Modal.getOrCreateInstance(modalEl).show();

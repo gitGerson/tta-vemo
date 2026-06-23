@@ -1,7 +1,7 @@
 @extends('layouts.sneat')
 
 @section('title')
-    Trash Perusahaan
+    Sampah Perusahaan
 @endsection
 
 @section('content')
@@ -13,7 +13,7 @@
             </div>
         @endif
 
-        <x-table :table="$table" engine="tabulator" title="Trash Perusahaan">
+        <x-table :table="$table" engine="tabulator" title="Sampah Perusahaan">
             <x-slot:actions>
                 <a href="{{ route('companies.index') }}" class="btn btn-sm btn-outline-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali

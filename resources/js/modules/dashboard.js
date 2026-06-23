@@ -1,6 +1,6 @@
 window.dispatchEvent(new CustomEvent('sneat:dashboard-scripts-loaded'));
 
-// Shared donut renderer for the Vehicle Condition and Fleet Composition cards.
+// Shared donut renderer for dashboard cards.
 // Both feed an array of { label, count, hex } slices.
 function renderDonut(elSelector, items) {
     const el = document.querySelector(elSelector);
@@ -80,8 +80,8 @@ function formatRupiahShort(value) {
     const chart = new ApexCharts(el, {
         chart: { height: 260, type: 'area', toolbar: { show: false } },
         series: [
-            { name: 'Maintenance', data: data.maintenance || [] },
-            { name: 'Fuel', data: data.fuel || [] },
+            { name: 'Pemeliharaan', data: data.maintenance || [] },
+            { name: 'BBM', data: data.fuel || [] },
         ],
         colors: ['#ff9f43', '#00cfe8'],
         dataLabels: { enabled: false },

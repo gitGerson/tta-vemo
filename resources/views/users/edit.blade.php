@@ -1,7 +1,7 @@
 @extends('layouts.sneat')
 
 @section('title')
-    Edit User - {{ $user->name }}
+    Ubah Pengguna - {{ $user->name }}
 @endsection
 
 @section('content')
@@ -184,7 +184,7 @@
 
                             <div class="d-flex justify-content-end">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="bx bx-save me-1"></i> Save Permissions
+                                    <i class="bx bx-save me-1"></i> Simpan Izin
                                 </button>
                             </div>
                         </form>

@@ -40,7 +40,7 @@ return [
 
         'driver' => [
             'model' => Driver::class,
-            'label' => 'Driver',
+            'label' => 'Supir',
             'icon' => 'bx-id-card',
             'permission' => 'master.drivers.view',
             'route' => 'drivers.show',
@@ -51,7 +51,7 @@ return [
 
         'vehicle' => [
             'model' => Vehicle::class,
-            'label' => 'Vehicle',
+            'label' => 'Kendaraan',
             'icon' => 'bx-car',
             'permission' => 'master.vehicles.view',
             'route' => 'vehicles.show',
@@ -62,7 +62,7 @@ return [
 
         'company' => [
             'model' => Company::class,
-            'label' => 'Company',
+            'label' => 'Perusahaan',
             'icon' => 'bx-buildings',
             'permission' => 'master.companies.view',
             'route' => 'companies.show',
@@ -73,7 +73,7 @@ return [
 
         'destination' => [
             'model' => Destination::class,
-            'label' => 'Destination',
+            'label' => 'Tujuan',
             'icon' => 'bx-map',
             'permission' => 'master.destinations.view',
             'route' => 'destinations.show',
@@ -84,7 +84,7 @@ return [
 
         'type-maintenance' => [
             'model' => TypeMaintenances::class,
-            'label' => 'Type Maintenance',
+            'label' => 'Tipe Pemeliharaan',
             'icon' => 'bx-wrench',
             'permission' => 'master.type_maintenances.view',
             'route' => 'type-maintenances.show',
@@ -95,7 +95,7 @@ return [
 
         'vehicle-type' => [
             'model' => VehicleType::class,
-            'label' => 'Vehicle Type',
+            'label' => 'Tipe Kendaraan',
             'icon' => 'bx-category',
             'permission' => 'master.vehicle_types.view',
             'route' => 'vehicle-types.show',
@@ -106,7 +106,7 @@ return [
 
         'vehicle-brand' => [
             'model' => VehicleBrand::class,
-            'label' => 'Vehicle Brand',
+            'label' => 'Merek Kendaraan',
             'icon' => 'bx-purchase-tag',
             'permission' => 'master.vehicle_brands.view',
             'route' => 'vehicle-brands.show',
@@ -117,7 +117,7 @@ return [
 
         'fuel-type' => [
             'model' => FuelType::class,
-            'label' => 'Fuel Type',
+            'label' => 'Jenis BBM',
             'icon' => 'bx-gas-pump',
             'permission' => 'master.fuel_types.view',
             'route' => 'fuel-types.show',
@@ -128,7 +128,7 @@ return [
 
         'record' => [
             'model' => Record::class,
-            'label' => 'Trip Record',
+            'label' => 'Catatan Perjalanan',
             'icon' => 'bx-navigation',
             'permission' => 'operational.records.view',
             'route' => 'records.show',
@@ -139,7 +139,7 @@ return [
 
         'maintenance' => [
             'model' => Maintenance::class,
-            'label' => 'Maintenance',
+            'label' => 'Pemeliharaan',
             'icon' => 'bx-wrench',
             'permission' => 'operational.maintenances.view',
             'route' => 'maintenances.show',

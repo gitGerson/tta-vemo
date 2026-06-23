@@ -18,7 +18,7 @@
                 <div class="d-flex gap-2">
                     @if(auth()->user()->hasPermission('master.vehicle_insurances.delete'))
                         <a href="{{ route('vehicle-insurances.trash') }}" class="btn btn-sm btn-outline-secondary">
-                            <i class="bx bx-trash me-1"></i> Trash
+                            <i class="bx bx-trash me-1"></i> Sampah
                         </a>
                     @endif
 

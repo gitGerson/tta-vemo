@@ -18,7 +18,7 @@
                 <div class="d-flex gap-2">
                     @if(auth()->user()->hasPermission('master.companies.delete'))
                         <a href="{{ route('companies.trash') }}" class="btn btn-sm btn-outline-secondary">
-                            <i class="bx bx-trash me-1"></i> Trash
+                            <i class="bx bx-trash me-1"></i> Sampah
                         </a>
                     @endif
                     @if(auth()->user()->hasPermission('master.companies.create'))
@@ -99,7 +99,7 @@
         form.action = d.updateUrl;
         document.getElementById('company-form-method').value = 'PUT';
         document.getElementById('company-form-action').value = d.updateUrl;
-        document.getElementById('company-modal-title').textContent = 'Edit Perusahaan: ' + d.name;
+        document.getElementById('company-modal-title').textContent = 'Ubah Perusahaan: ' + d.name;
         form.querySelector('[type="submit"]').textContent = 'Perbarui';
 
         setField('code', d.code);
@@ -145,7 +145,7 @@
                 const form = getForm();
                 form.action = @json(old('_form_action'));
                 document.getElementById('company-form-method').value = 'PUT';
-                document.getElementById('company-modal-title').textContent = 'Edit Perusahaan: ' + @json(old('name'));
+                document.getElementById('company-modal-title').textContent = 'Ubah Perusahaan: ' + @json(old('name'));
                 form.querySelector('[type="submit"]').textContent = 'Perbarui';
             })();
         @endif

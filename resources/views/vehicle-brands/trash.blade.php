@@ -1,7 +1,7 @@
 @extends('layouts.sneat')
 
 @section('title')
-    Trash Vehicle Brand
+    Sampah Merek Kendaraan
 @endsection
 
 @section('content')
@@ -13,7 +13,7 @@
             </div>
         @endif
 
-        <x-table :table="$table" engine="tabulator" title="Trash Vehicle Brand">
+        <x-table :table="$table" engine="tabulator" title="Sampah Merek Kendaraan">
             <x-slot:actions>
                 <a href="{{ route('vehicle-brands.index') }}" class="btn btn-sm btn-outline-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali

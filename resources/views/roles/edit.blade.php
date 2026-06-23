@@ -1,7 +1,7 @@
 @extends('layouts.sneat')
 
 @section('title')
-    Edit Role
+    Ubah Role
 @endsection
 
 @section('content')
@@ -10,7 +10,7 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Edit Role: {{ $role->display_name }}</h5>
+                        <h5 class="mb-0">Ubah Role: {{ $role->display_name }}</h5>
                         <div>
                             <a href="{{ route('roles.show', $role) }}" class="btn btn-info me-2">
                                 <i class="bx bx-show me-1"></i> Lihat

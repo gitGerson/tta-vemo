@@ -93,14 +93,14 @@ class DashboardMetricsTest extends TestCase
     {
         $this->actingAs($this->userWith([]));
 
-        $this->get(route('home'))->assertOk()->assertDontSee('Spend Trend');
+        $this->get(route('home'))->assertOk()->assertDontSee('Tren Biaya');
     }
 
     public function test_financial_widgets_visible_with_permission(): void
     {
         $this->actingAs($this->userWith(['dashboard.financials.view']));
 
-        $this->get(route('home'))->assertOk()->assertSee('Spend Trend');
+        $this->get(route('home'))->assertOk()->assertSee('Tren Biaya');
     }
 
     /**

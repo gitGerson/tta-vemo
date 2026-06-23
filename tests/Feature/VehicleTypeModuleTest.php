@@ -29,7 +29,7 @@ class VehicleTypeModuleTest extends TestCase
 
         $this->get(route('vehicle-types.index'))
             ->assertOk()
-            ->assertSee('Daftar Vehicle Type');
+            ->assertSee('Daftar Tipe Kendaraan');
     }
 
     public function test_authorized_user_can_create_vehicle_type(): void
