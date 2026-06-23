@@ -43,7 +43,7 @@ class CompanyModuleTest extends TestCase
             'name' => 'TTA Company',
             'email' => 'tta@example.test',
             'phone' => '021123456',
-            'image' => 'companies/tta.png',
+            'image' => null,
             'notes' => 'Main company',
         ])->toArray();
 
@@ -55,7 +55,6 @@ class CompanyModuleTest extends TestCase
             'name' => 'TTA Company',
             'email' => 'tta@example.test',
             'phone' => '021123456',
-            'image' => 'companies/tta.png',
             'notes' => 'Main company',
         ]);
     }
@@ -70,7 +69,7 @@ class CompanyModuleTest extends TestCase
             'name' => 'Updated Company',
             'email' => 'updated@example.test',
             'phone' => '021654321',
-            'image' => 'companies/updated.png',
+            'image' => null,
             'notes' => 'Updated description',
         ])->toArray();
 
@@ -82,7 +81,6 @@ class CompanyModuleTest extends TestCase
             'name' => 'Updated Company',
             'email' => 'updated@example.test',
             'phone' => '021654321',
-            'image' => 'companies/updated.png',
             'notes' => 'Updated description',
         ]);
     }

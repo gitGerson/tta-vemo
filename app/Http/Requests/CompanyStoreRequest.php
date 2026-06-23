@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Company;
+use App\Services\FilePondUploadService;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -23,7 +24,10 @@ class CompanyStoreRequest extends FormRequest
      */
     public function rules(): array
     {
-        return Company::validationRules();
+        $rules = Company::validationRules();
+        $rules['image'] = ['nullable', app(FilePondUploadService::class)->imageUploadValidationRule()];
+
+        return $rules;
     }
 
     public function messages(): array

@@ -10,12 +10,17 @@ use App\DataTables\CompanyVehicleDataTable;
 use App\Http\Requests\CompanyStoreRequest;
 use App\Http\Requests\CompanyUpdateRequest;
 use App\Models\Company;
+use App\Services\FilePondUploadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CompanyController extends Controller
 {
+    public function __construct(
+        protected FilePondUploadService $filePond,
+    ) {}
+
     public function index()
     {
         return view('companies.index', ['table' => new CompanyDataTable]);
@@ -23,7 +28,10 @@ class CompanyController extends Controller
 
     public function store(CompanyStoreRequest $request)
     {
-        Company::create($request->validated());
+        $data = $request->validated();
+        $data['image'] = $this->filePond->storeFromRequestField($request, 'image', 'company_images', 's3');
+
+        Company::create($data);
 
         return redirect()->route('companies.index')->with('success', 'Perusahaan berhasil ditambahkan.');
     }
@@ -42,7 +50,10 @@ class CompanyController extends Controller
 
     public function update(Company $company, CompanyUpdateRequest $request)
     {
-        $company->update($request->validated());
+        $data = $request->validated();
+        $data['image'] = $this->filePond->storeFromRequestField($request, 'image', 'company_images', 's3') ?? $company->image;
+
+        $company->update($data);
 
         return redirect()->route('companies.index')->with('success', 'Perusahaan berhasil diperbarui.');
     }

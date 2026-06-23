@@ -24,6 +24,15 @@ class CompanyDataTable extends DataTable
     {
         return [
             Column::index(),
+            Column::computed('logo', 'Logo', function (Company $company): string {
+                $url = $company->imageUrl();
+
+                if (! $url) {
+                    return '<span class="badge bg-label-secondary rounded p-2"><i class="bx bx-buildings"></i></span>';
+                }
+
+                return '<img src="'.e($url).'" alt="Logo" class="rounded" style="height:36px;width:36px;object-fit:contain;">';
+            })->raw()->orderable(false)->searchable(false)->notExportable(),
             Column::make('code', 'Kode'),
             Column::make('name', 'Nama'),
             Column::make('email', 'Email'),
@@ -66,7 +75,7 @@ class CompanyDataTable extends DataTable
                     'name' => $row->name,
                     'email' => $row->email,
                     'phone' => $row->phone,
-                    'image' => $row->image,
+                    'image-url' => $row->imageUrl(),
                     'notes' => $row->notes,
                 ],
             ],

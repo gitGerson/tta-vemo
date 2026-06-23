@@ -69,6 +69,21 @@
         if (el) el.value = value ?? '';
     }
 
+    // FilePond reads its existing file from the input's data attribute at init
+    // time, so the image must be configured before form:enhance (re)builds the
+    // pond. Destroy any pond from a previous open so it re-inits with the new set.
+    function prepareImageInput(url) {
+        const input = getForm().querySelector('input[type="file"][data-filepond-enabled="1"]');
+        if (!input) return;
+
+        if (window.FilePond && window.FilePond.find(input)) {
+            window.FilePond.destroy(input);
+        }
+
+        delete input.dataset.filepondInitialized;
+        input.dataset.filepondExistingFiles = url ? JSON.stringify([url]) : '[]';
+    }
+
     function resetToCreate() {
         const form = getForm();
         form.reset();
@@ -91,11 +106,12 @@
         setField('name', d.name);
         setField('email', d.email);
         setField('phone', d.phone);
-        setField('image', d.image);
         setField('notes', d.notes);
     }
 
     modalEl.addEventListener('shown.bs.modal', function () {
+        prepareImageInput(pendingEditData ? pendingEditData.imageUrl : null);
+
         document.dispatchEvent(new Event('form:enhance'));
 
         if (pendingEditData) {
@@ -116,7 +132,7 @@
             name: btn.dataset.name,
             email: btn.dataset.email,
             phone: btn.dataset.phone,
-            image: btn.dataset.image,
+            imageUrl: btn.dataset.imageUrl,
             notes: btn.dataset.notes,
         };
 

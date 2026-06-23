@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToCompanyTenant;
+use App\Support\S3Url;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -40,9 +41,13 @@ class Company extends Model
             'name' => ['required', 'string', 'max:255', Rule::unique(self::class, 'name')->ignore($company)->withoutTrashed()],
             'email' => ['nullable', 'email', 'max:150'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'image' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
         ];
+    }
+
+    public function imageUrl(): ?string
+    {
+        return S3Url::temporary($this->image);
     }
 
     public static function validationMessages(): array
