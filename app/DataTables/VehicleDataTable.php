@@ -50,7 +50,7 @@ class VehicleDataTable extends DataTable
                 ->searchable(false),
             Column::make('plat_new', 'Plat Nomor'),
             Column::make('machine_number', 'No. Mesin'),
-            Column::make('vin_number', 'VIN'),
+            Column::make('vin_number', 'Nomor Rangka'),
             Column::computed('fuel_type_label', 'Bahan Bakar', fn (Vehicle $vehicle): string => $vehicle->fuelType?->name ?? $vehicle->fuel_type)
                 ->orderable(false)
                 ->searchable(false),
