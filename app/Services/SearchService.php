@@ -60,8 +60,8 @@ class SearchService
                     'group' => $groupKey,
                     'label' => $def['label'],
                     'icon' => $def['icon'],
-                    'title' => (string) ($def['title'])($model),
-                    'description' => (string) ($def['description'])($model),
+                    'title' => (string) ($model->{$def['title']} ?? ''),
+                    'description' => $this->buildDescription($model, $def['description'] ?? []),
                     'url' => $this->resolveUrl($def['route'], $model),
                 ];
                 $total++;
@@ -69,6 +69,21 @@ class SearchService
         }
 
         return $results;
+    }
+
+    /**
+     * Join the configured attributes with " · ", dropping empty parts.
+     *
+     * @param  array<int, string>  $fields
+     */
+    protected function buildDescription(Model $model, array $fields): string
+    {
+        $parts = array_filter(
+            array_map(fn (string $field): string => (string) ($model->{$field} ?? ''), $fields),
+            fn (string $part): bool => $part !== '',
+        );
+
+        return implode(' · ', $parts);
     }
 
     /**

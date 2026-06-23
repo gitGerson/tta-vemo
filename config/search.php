@@ -20,8 +20,12 @@ return [
     |
     | Drives the navbar global record search (SearchService). Each entry maps a
     | model to the columns searched (LIKE), the permission gating it, and the
-    | show route used to build the result URL. `title`/`description` closures
-    | receive a model instance and return the strings rendered in the dropdown.
+    | show route used to build the result URL. `title` is the model attribute
+    | rendered as the result heading; `description` is a list of attributes
+    | joined with " · " (empty parts are dropped) for the result subtitle.
+    |
+    | These are plain field names (not closures) so the config stays cacheable
+    | by `config:cache` / `optimize`.
     |
     | Tenant scoping and soft-delete exclusion are handled by the models' global
     | scopes — the service queries with a plain query() and adds no special case.
@@ -41,8 +45,8 @@ return [
             'permission' => 'master.drivers.view',
             'route' => 'drivers.show',
             'columns' => ['name', 'nik', 'no_identity', 'no_phone_1'],
-            'title' => fn ($m) => $m->name,
-            'description' => fn ($m) => trim(($m->nik ?? '').' · '.($m->no_phone_1 ?? ''), ' ·'),
+            'title' => 'name',
+            'description' => ['nik', 'no_phone_1'],
         ],
 
         'vehicle' => [
@@ -52,8 +56,8 @@ return [
             'permission' => 'master.vehicles.view',
             'route' => 'vehicles.show',
             'columns' => ['plat_new', 'machine_number', 'vin_number'],
-            'title' => fn ($m) => $m->plat_new,
-            'description' => fn ($m) => trim(($m->type ?? '').' · '.($m->machine_number ?? ''), ' ·'),
+            'title' => 'plat_new',
+            'description' => ['type', 'machine_number'],
         ],
 
         'company' => [
@@ -63,8 +67,8 @@ return [
             'permission' => 'master.companies.view',
             'route' => 'companies.show',
             'columns' => ['code', 'name', 'email', 'phone'],
-            'title' => fn ($m) => $m->name,
-            'description' => fn ($m) => trim(($m->code ?? '').' · '.($m->email ?? ''), ' ·'),
+            'title' => 'name',
+            'description' => ['code', 'email'],
         ],
 
         'destination' => [
@@ -74,8 +78,8 @@ return [
             'permission' => 'master.destinations.view',
             'route' => 'destinations.show',
             'columns' => ['code', 'name'],
-            'title' => fn ($m) => $m->name,
-            'description' => fn ($m) => (string) ($m->code ?? ''),
+            'title' => 'name',
+            'description' => ['code'],
         ],
 
         'type-maintenance' => [
@@ -85,8 +89,8 @@ return [
             'permission' => 'master.type_maintenances.view',
             'route' => 'type-maintenances.show',
             'columns' => ['name', 'jenis'],
-            'title' => fn ($m) => $m->name,
-            'description' => fn ($m) => (string) ($m->jenis ?? ''),
+            'title' => 'name',
+            'description' => ['jenis'],
         ],
 
         'vehicle-type' => [
@@ -96,8 +100,8 @@ return [
             'permission' => 'master.vehicle_types.view',
             'route' => 'vehicle-types.show',
             'columns' => ['code', 'name', 'descriptions'],
-            'title' => fn ($m) => $m->name,
-            'description' => fn ($m) => trim(($m->code ?? '').' · '.($m->descriptions ?? ''), ' ·'),
+            'title' => 'name',
+            'description' => ['code', 'descriptions'],
         ],
 
         'vehicle-brand' => [
@@ -107,8 +111,8 @@ return [
             'permission' => 'master.vehicle_brands.view',
             'route' => 'vehicle-brands.show',
             'columns' => ['code', 'name', 'descriptions'],
-            'title' => fn ($m) => $m->name,
-            'description' => fn ($m) => trim(($m->code ?? '').' · '.($m->descriptions ?? ''), ' ·'),
+            'title' => 'name',
+            'description' => ['code', 'descriptions'],
         ],
 
         'fuel-type' => [
@@ -118,8 +122,8 @@ return [
             'permission' => 'master.fuel_types.view',
             'route' => 'fuel-types.show',
             'columns' => ['name', 'type', 'merk'],
-            'title' => fn ($m) => $m->name,
-            'description' => fn ($m) => trim(($m->type ?? '').' · '.($m->merk ?? ''), ' ·'),
+            'title' => 'name',
+            'description' => ['type', 'merk'],
         ],
 
         'record' => [
@@ -129,8 +133,8 @@ return [
             'permission' => 'operational.records.view',
             'route' => 'records.show',
             'columns' => ['no_pol', 'destination'],
-            'title' => fn ($m) => $m->no_pol,
-            'description' => fn ($m) => trim(($m->destination ?? '').' · '.($m->date ?? ''), ' ·'),
+            'title' => 'no_pol',
+            'description' => ['destination', 'date'],
         ],
 
         'maintenance' => [
@@ -140,8 +144,8 @@ return [
             'permission' => 'operational.maintenances.view',
             'route' => 'maintenances.show',
             'columns' => ['code_mt', 'no_pol', 'description'],
-            'title' => fn ($m) => $m->code_mt,
-            'description' => fn ($m) => trim(($m->no_pol ?? '').' · '.($m->description ?? ''), ' ·'),
+            'title' => 'code_mt',
+            'description' => ['no_pol', 'description'],
         ],
 
     ],
