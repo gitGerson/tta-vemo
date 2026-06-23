@@ -10,7 +10,9 @@
     <div class="card mb-4">
         <div class="card-body">
             @php
-                $selectedCompanyId = request()->query('company') ?? $defaluteCompany?->id;
+                $selectedCompanyId = $companyId;
+                $canPrint = $selectedCompanyId !== null && request()->filled('unit');
+                $printTitle = $canPrint ? null : 'Pilih satu perusahaan untuk mencetak';
             @endphp
 
             <h6 class="text-primary fw-semibold mb-3">Cetak Laporan Bulanan</h6>
@@ -19,10 +21,10 @@
                 <div class="col-sm-6 col-md-3">
                     <label for="company" class="form-label small mb-1">Perusahaan</label>
                     <select class="form-select form-select-sm select2" id="company" name="company">
-                        <option selected disabled>Pilih perusahaan</option>
+                        <option value="" {{ $selectedCompanyId === null ? 'selected' : '' }}>Semua perusahaan</option>
                         @foreach ($company as $row)
                             <option
-                                {{ (string) $selectedCompanyId === (string) $row->id ? 'selected' : '' }}
+                                {{ $selectedCompanyId === $row->id ? 'selected' : '' }}
                                 value="{{ $row->id }}">{{ $row->name ?: $row->code }}</option>
                         @endforeach
                     </select>
@@ -52,8 +54,10 @@
 
                 <div class="col-sm-6 col-md-auto">
                     <a target="_blank"
-                        href="{{ route('report.monthly.pdf', ['date' => $date, 'unit' => request()->query('unit'), 'company' => $selectedCompanyId]) }}"
-                        class="btn btn-sm btn-primary {{ !request()->query('unit') ? 'disabled' : '' }}"><i class="bx bx-printer me-1"></i> Cetak PDF</a>
+                        href="{{ $canPrint ? route('report.monthly.pdf', ['date' => $date, 'unit' => request()->query('unit'), 'company' => $selectedCompanyId]) : '#' }}"
+                        class="btn btn-sm btn-primary {{ $canPrint ? '' : 'disabled' }}"
+                        title="{{ $printTitle }}"
+                        aria-disabled="{{ $canPrint ? 'false' : 'true' }}"><i class="bx bx-printer me-1"></i> Cetak PDF</a>
                 </div>
             </form>
         </div>
@@ -99,7 +103,7 @@
 
                 $('#unit option').each(function() {
                     const optionCompanyId = String($(this).data('company-id') || '');
-                    const shouldShow = !$(this).val() || (companyId && optionCompanyId === String(companyId));
+                    const shouldShow = !$(this).val() || !companyId || optionCompanyId === String(companyId);
                     $(this).prop('disabled', !shouldShow);
                 });
 

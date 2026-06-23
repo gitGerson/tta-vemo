@@ -7,6 +7,11 @@
 @section('content')
 
 <div class="container-xxl flex-grow-1 container-p-y">
+    @php
+        $canPrint = $companyId !== null && request()->filled('unit');
+        $printTitle = $canPrint ? null : 'Pilih satu perusahaan untuk mencetak';
+    @endphp
+
     <div class="card mb-4">
         <div class="card-body">
             <h6 class="text-primary fw-semibold mb-3">Cetak Laporan Pemeliharaan Unit</h6>
@@ -23,7 +28,7 @@
                 <div class="col-sm-6 col-md-3">
                     <label for="company" class="form-label small mb-1">Perusahaan</label>
                     <select class="form-select form-select-sm select2" name="company" id="company">
-                        <option value="">Semua perusahaan</option>
+                        <option value="" {{ $companyId === null ? 'selected' : '' }}>Semua perusahaan</option>
                         @foreach ($companies as $row)
                             <option value="{{ $row->id }}" {{ (int) $companyId === (int) $row->id ? 'selected' : '' }}>
                                 {{ $row->name ?: $row->code }}
@@ -51,8 +56,10 @@
 
                 <div class="col-sm-6 col-md-3">
                     <a target="_blank"
-                        href="{{ route('report.maintenances.daily.pdf', ['start_date' => $start_date, 'end_date' => $end_date, 'unit' => request()->query('unit')]) }}"
-                        class="btn btn-sm btn-primary w-100 {{ !request()->query('unit') ? 'disabled' : '' }}"><i class="bx bx-printer me-1"></i> Cetak PDF</a>
+                        href="{{ $canPrint ? route('report.maintenances.daily.pdf', ['start_date' => $start_date, 'end_date' => $end_date, 'unit' => request()->query('unit'), 'company' => $companyId]) : '#' }}"
+                        class="btn btn-sm btn-primary w-100 {{ $canPrint ? '' : 'disabled' }}"
+                        title="{{ $printTitle }}"
+                        aria-disabled="{{ $canPrint ? 'false' : 'true' }}"><i class="bx bx-printer me-1"></i> Cetak PDF</a>
                 </div>
             </form>
         </div>

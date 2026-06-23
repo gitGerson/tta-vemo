@@ -6,6 +6,11 @@
 
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
+    @php
+        $canPrint = $QueryCompany !== null;
+        $printTitle = $canPrint ? null : 'Pilih satu perusahaan untuk mencetak';
+    @endphp
+
     <div class="card mb-4">
         <div class="card-body py-3">
             <h6 class="text-primary fw-semibold mb-3">Cetak Laporan Harian</h6>
@@ -27,9 +32,9 @@
                 <div class="col-sm-6 col-md-3">
                     <label for="company" class="form-label small mb-1">Perusahaan</label>
                     <select class="form-select form-select-sm select2" id="company" name="company">
-                        <option value="">Semua perusahaan</option>
+                        <option value="" {{ $QueryCompany === null ? 'selected' : '' }}>Semua perusahaan</option>
                         @foreach ($company as $row)
-                            <option value="{{ $row->id }}" {{ request()->query('company') == $row->id || (!request()->query('company') && $row->code === 'TTI') ? 'selected' : '' }}>
+                            <option value="{{ $row->id }}" {{ $QueryCompany === $row->id ? 'selected' : '' }}>
                                 {{ $row->name ?: $row->code }}
                             </option>
                         @endforeach
@@ -37,8 +42,10 @@
                 </div>
                 <div class="col-sm-6 col-md-auto">
                     <a target="_blank"
-                        href="{{ route('report.daily.pdf', ['category' => $category, 'date' => request()->query('date') ?? Carbon\Carbon::now()->format('Y-m-d'), 'company' => $QueryCompany ?? $defaluteCompany?->id]) }}"
-                        class="btn btn-sm btn-primary"><i class="bx bx-printer me-1"></i> Cetak PDF</a>
+                        href="{{ $canPrint ? route('report.daily.pdf', ['category' => $category, 'date' => request()->query('date') ?? Carbon\Carbon::now()->format('Y-m-d'), 'company' => $QueryCompany]) : '#' }}"
+                        class="btn btn-sm btn-primary {{ $canPrint ? '' : 'disabled' }}"
+                        title="{{ $printTitle }}"
+                        aria-disabled="{{ $canPrint ? 'false' : 'true' }}"><i class="bx bx-printer me-1"></i> Cetak PDF</a>
                 </div>
             </form>
         </div>
