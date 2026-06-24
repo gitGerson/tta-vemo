@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Vehicle;
 use App\Models\VehiclePhoto;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class VehiclePhotoMonitorService
@@ -16,19 +17,21 @@ class VehiclePhotoMonitorService
      *
      * @return Collection<int, array<string, mixed>>
      */
-    public function incompleteVehicles(): Collection
+    public function incompleteVehicles(?Carbon $period = null, ?int $companyId = null): Collection
     {
-        $period = now()->startOfMonth();
+        $period ??= now()->startOfMonth();
         $total = count(VehiclePhoto::SIDES);
 
         $records = VehiclePhoto::query()
             ->whereDate('period', $period->toDateString())
+            ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
             ->get(['vehicle_id', 'photos']);
 
         $completeVehicleIds = $records->filter->isComplete()->pluck('vehicle_id')->all();
         $completedById = $records->mapWithKeys(fn (VehiclePhoto $photo): array => [$photo->vehicle_id => $photo->completedCount()]);
 
         return Vehicle::where('status', 'ACTIVE')
+            ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
             ->whereNotIn('id', $completeVehicleIds)
             ->orderBy('plat_new')
             ->get(['id', 'plat_new'])

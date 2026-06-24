@@ -8,6 +8,36 @@
     <!-- Content -->
     
     <div class="container-xxl flex-grow-1 container-p-y">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-6">
+            <div>
+                <h4 class="mb-1">Dashboard</h4>
+                <p class="mb-0 text-body-secondary">Ringkasan operasional armada</p>
+            </div>
+            <form action="{{ route('home') }}" method="GET" class="row g-2 align-items-end">
+                <div class="col-sm-auto">
+                    <label for="dashboard-company" class="form-label small mb-1">Company</label>
+                    <select name="company" id="dashboard-company" class="form-select form-select-sm">
+                        <option value="">Semua Perusahaan</option>
+                        @foreach ($dashboardContext['company_options'] as $company)
+                            <option value="{{ $company->id }}" @selected($dashboardContext['selected_company_id'] === $company->id)>
+                                {{ $company->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-sm-auto">
+                    <label for="dashboard-month" class="form-label small mb-1">Current Month</label>
+                    <input type="month" name="month" id="dashboard-month" class="form-control form-control-sm"
+                        value="{{ $dashboardContext['selected_month'] }}">
+                </div>
+                <div class="col-sm-auto">
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="icon-base bx bx-filter-alt me-1"></i> Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+
         <!-- KPI cards -->
         <div class="row">
             @foreach ($kpis as $kpi)

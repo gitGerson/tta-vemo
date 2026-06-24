@@ -103,6 +103,67 @@ class DashboardMetricsTest extends TestCase
         $this->get(route('home'))->assertOk()->assertSee('Tren Biaya');
     }
 
+    public function test_dashboard_header_shows_company_and_current_month(): void
+    {
+        $company = Company::factory()->create(['name' => 'Tong Tji Unit Test']);
+
+        $this->actingAs($this->userWith([], [$company]));
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSeeText('Company')
+            ->assertSeeText('Tong Tji Unit Test')
+            ->assertSeeText('Current Month')
+            ->assertSee('value="'.now()->format('Y-m').'"', false);
+    }
+
+    public function test_dashboard_filters_financial_widgets_by_company_and_month(): void
+    {
+        $selectedMonth = now()->subMonthNoOverflow()->startOfMonth();
+        $selectedCompany = Company::factory()->create(['name' => 'Selected Dashboard Company']);
+        $otherCompany = Company::factory()->create(['name' => 'Other Dashboard Company']);
+        $selectedVehicle = Vehicle::factory()->create(['company_id' => $selectedCompany->id, 'status' => 'ACTIVE']);
+        $otherVehicle = Vehicle::factory()->create(['company_id' => $otherCompany->id, 'status' => 'ACTIVE']);
+
+        Record::factory()->create([
+            'company_id' => $selectedCompany->id,
+            'vehicle_id' => $selectedVehicle->id,
+            'no_pol' => $selectedVehicle->plat_new,
+            'idr' => '222000',
+            'date' => $selectedMonth->toDateString(),
+        ]);
+
+        Record::factory()->create([
+            'company_id' => $otherCompany->id,
+            'vehicle_id' => $otherVehicle->id,
+            'no_pol' => $otherVehicle->plat_new,
+            'idr' => '999000',
+            'date' => $selectedMonth->toDateString(),
+        ]);
+
+        Record::factory()->create([
+            'company_id' => $selectedCompany->id,
+            'vehicle_id' => $selectedVehicle->id,
+            'no_pol' => $selectedVehicle->plat_new,
+            'idr' => '333000',
+            'date' => now()->toDateString(),
+        ]);
+
+        $this->actingAs($this->userWith(['dashboard.financials.view', 'management.tenant.bypass']));
+
+        $this->get(route('home', [
+            'company' => $selectedCompany->id,
+            'month' => $selectedMonth->format('Y-m'),
+        ]))
+            ->assertOk()
+            ->assertSeeText('Selected Dashboard Company')
+            ->assertSee('value="'.$selectedCompany->id.'" selected', false)
+            ->assertSee('value="'.$selectedMonth->format('Y-m').'"', false)
+            ->assertSeeText('Rp 222.000')
+            ->assertDontSeeText('Rp 999.000')
+            ->assertDontSeeText('Rp 333.000');
+    }
+
     /**
      * @param  list<string>  $permissions
      * @param  list<Company>  $companies
