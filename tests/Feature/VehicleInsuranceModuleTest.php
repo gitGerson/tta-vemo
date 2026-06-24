@@ -113,7 +113,7 @@ class VehicleInsuranceModuleTest extends TestCase
             ->assertRedirect(route('vehicle-insurances.index'));
         $this->assertSoftDeleted($insurance);
 
-        $this->post(route('vehicle-insurances.restore', $insurance->id))
+        $this->post(route('vehicle-insurances.restore', $insurance))
             ->assertRedirect(route('vehicle-insurances.trash'));
         $this->assertDatabaseHas('vehicle_insurances', [
             'id' => $insurance->id,

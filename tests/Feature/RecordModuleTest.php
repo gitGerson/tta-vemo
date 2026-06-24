@@ -225,7 +225,7 @@ class RecordModuleTest extends TestCase
         $record = Record::factory()->create();
         $record->delete();
 
-        $this->post(route('records.restore', $record->id))
+        $this->post(route('records.restore', $record))
             ->assertRedirect(route('records.trash'));
 
         $this->assertDatabaseHas('records', ['id' => $record->id, 'deleted_at' => null]);

@@ -261,18 +261,22 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/vehicle-insurances/{vehicleInsurance}', [VehicleInsuranceController::class, 'show'])->name('vehicle-insurances.show');
     });
 
-    // Vehicle monthly photo (Foto Kendaraan) routes with permissions
-    Route::middleware(['permission:operational.vehicle_photos.view'])->group(function () {
-        Route::get('/vehicles/{vehicle}/photos/data', [VehiclePhotoController::class, 'getDataForVehicle'])->name('vehicles.photos.data');
-        Route::get('/vehicle-photos/data', [VehiclePhotoController::class, 'getData'])->name('vehicle-photos.data');
-        Route::get('/vehicle-photos/{vehiclePhoto}', [VehiclePhotoController::class, 'show'])->name('vehicle-photos.show')->whereNumber('vehiclePhoto');
-        Route::post('/vehicle-photos/{vehiclePhoto}/comments', [VehiclePhotoController::class, 'storeComment'])->name('vehicle-photos.comments.store')->whereNumber('vehiclePhoto');
-        Route::delete('/vehicle-photos/{vehiclePhoto}/comments/{comment}', [VehiclePhotoController::class, 'destroyComment'])->name('vehicle-photos.comments.destroy')->whereNumber(['vehiclePhoto', 'comment']);
-    });
-
+    // Vehicle monthly photo (Foto Kendaraan) routes with permissions.
+    // The create route is declared before the show route so the static
+    // /vehicle-photos/create path is matched first and not captured by the dynamic
+    // /vehicle-photos/{vehiclePhoto}: the route key is now an alphanumeric hashid, so the
+    // two can no longer be told apart by a numeric constraint.
     Route::middleware(['permission:operational.vehicle_photos.create'])->group(function () {
         Route::get('/vehicle-photos/create', [VehiclePhotoController::class, 'create'])->name('vehicle-photos.create');
         Route::post('/vehicle-photos', [VehiclePhotoController::class, 'store'])->name('vehicle-photos.store');
+    });
+
+    Route::middleware(['permission:operational.vehicle_photos.view'])->group(function () {
+        Route::get('/vehicles/{vehicle}/photos/data', [VehiclePhotoController::class, 'getDataForVehicle'])->name('vehicles.photos.data');
+        Route::get('/vehicle-photos/data', [VehiclePhotoController::class, 'getData'])->name('vehicle-photos.data');
+        Route::get('/vehicle-photos/{vehiclePhoto}', [VehiclePhotoController::class, 'show'])->name('vehicle-photos.show');
+        Route::post('/vehicle-photos/{vehiclePhoto}/comments', [VehiclePhotoController::class, 'storeComment'])->name('vehicle-photos.comments.store');
+        Route::delete('/vehicle-photos/{vehiclePhoto}/comments/{comment}', [VehiclePhotoController::class, 'destroyComment'])->name('vehicle-photos.comments.destroy');
     });
 
     Route::middleware(['permission:operational.vehicle_photos.edit'])->group(function () {

@@ -114,7 +114,7 @@ class GlobalSearchTest extends TestCase
         $this->assertSame(config('search.per_model_limit'), $drivers->count());
     }
 
-    public function test_result_url_uses_raw_id_for_driver(): void
+    public function test_result_url_uses_hashid_for_driver(): void
     {
         $driver = Driver::factory()->create(['name' => 'Linkable Delta']);
 
@@ -128,7 +128,7 @@ class GlobalSearchTest extends TestCase
 
         $this->assertNotNull($result);
         $this->assertSame(route('drivers.show', $driver), $result['url']);
-        $this->assertStringContainsString('/'.$driver->getKey(), $result['url']);
+        $this->assertStringContainsString('/'.$driver->getRouteKey(), $result['url']);
     }
 
     public function test_menu_search_includes_create_shortcut_only_for_permitted_user(): void
