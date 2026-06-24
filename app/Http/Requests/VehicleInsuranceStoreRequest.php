@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\FiltersInsuranceFieldsByPermission;
 use App\Models\VehicleInsurance;
 use App\Services\FilePondUploadService;
 use Carbon\Carbon;
@@ -10,6 +11,8 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class VehicleInsuranceStoreRequest extends FormRequest
 {
+    use FiltersInsuranceFieldsByPermission;
+
     public function authorize(): bool
     {
         return $this->user()?->hasPermission('master.vehicle_insurances.create') ?? false;
@@ -23,7 +26,7 @@ class VehicleInsuranceStoreRequest extends FormRequest
         $rules = VehicleInsurance::validationRules();
         $rules['attachments.*'] = [app(FilePondUploadService::class)->fileUploadValidationRule()];
 
-        return $rules;
+        return $this->filterRulesByFieldPermission($rules);
     }
 
     public function messages(): array

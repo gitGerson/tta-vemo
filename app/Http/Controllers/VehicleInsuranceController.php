@@ -35,7 +35,10 @@ class VehicleInsuranceController extends Controller
     public function store(VehicleInsuranceStoreRequest $request)
     {
         $data = $request->validated();
-        $data['attachments'] = $this->resolveAttachments($request, null);
+
+        if ($this->canEditAttachments($request)) {
+            $data['attachments'] = $this->resolveAttachments($request, null);
+        }
 
         VehicleInsurance::create($data);
 
@@ -63,7 +66,11 @@ class VehicleInsuranceController extends Controller
     public function update(VehicleInsurance $vehicleInsurance, VehicleInsuranceUpdateRequest $request)
     {
         $data = $request->validated();
-        $data['attachments'] = $this->resolveAttachments($request, $vehicleInsurance);
+
+        // Without the attachments field permission, leave the stored attachments untouched.
+        if ($this->canEditAttachments($request)) {
+            $data['attachments'] = $this->resolveAttachments($request, $vehicleInsurance);
+        }
 
         $vehicleInsurance->update($data);
 
@@ -119,6 +126,11 @@ class VehicleInsuranceController extends Controller
     private function vehicleOptions()
     {
         return Vehicle::query()->orderBy('plat_new')->get(['id', 'plat_new', 'type']);
+    }
+
+    private function canEditAttachments(Request $request): bool
+    {
+        return $request->user()?->hasPermission(VehicleInsurance::fieldPermission('attachments')) ?? false;
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\FiltersInsuranceFieldsByPermission;
 use App\Models\VehicleInsurance;
 use App\Services\FilePondUploadService;
 use Carbon\Carbon;
@@ -10,6 +11,8 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class VehicleInsuranceUpdateRequest extends FormRequest
 {
+    use FiltersInsuranceFieldsByPermission;
+
     public function authorize(): bool
     {
         return $this->user()?->hasPermission('master.vehicle_insurances.edit') ?? false;
@@ -28,7 +31,7 @@ class VehicleInsuranceUpdateRequest extends FormRequest
             ),
         ];
 
-        return $rules;
+        return $this->filterRulesByFieldPermission($rules);
     }
 
     protected function insurance(): ?VehicleInsurance

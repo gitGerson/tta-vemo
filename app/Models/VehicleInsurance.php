@@ -29,6 +29,45 @@ class VehicleInsurance extends Model
         'All Risk' => 'ALL RISK',
     ];
 
+    /**
+     * Form fields that are individually gated by a per-field permission.
+     *
+     * @var array<int, string>
+     */
+    public const FORM_FIELDS = [
+        'vehicle_id',
+        'insurer_name',
+        'policy_number',
+        'insurance_type',
+        'start_date',
+        'end_date',
+        'coverage_value',
+        'premium',
+        'notes',
+        'attachments',
+    ];
+
+    /**
+     * Permission name that gates filling the given form field.
+     */
+    public static function fieldPermission(string $field): string
+    {
+        return "master.vehicle_insurances.fields.{$field}";
+    }
+
+    /**
+     * The subset of form fields the given user is allowed to fill.
+     *
+     * @return array<int, string>
+     */
+    public static function permittedFields(?User $user): array
+    {
+        return array_values(array_filter(
+            self::FORM_FIELDS,
+            fn (string $field): bool => $user?->hasPermission(self::fieldPermission($field)) ?? false,
+        ));
+    }
+
     protected function codePrefix(): string
     {
         return 'INS';
