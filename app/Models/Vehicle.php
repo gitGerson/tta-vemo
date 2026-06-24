@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToCompanyTenant;
+use App\Models\Concerns\HasDiffrntHashId;
 use App\Support\S3Url;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ use Illuminate\Validation\Rule;
 
 class Vehicle extends Model
 {
-    use BelongsToCompanyTenant, HasFactory, SoftDeletes;
+    use BelongsToCompanyTenant, HasDiffrntHashId, HasFactory, SoftDeletes;
 
     protected $table = 'vehicles';
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDiffrntHashId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Laravolt\Indonesia\Models\Province;
 
 class Destination extends Model
 {
-    use HasFactory;
+    use HasDiffrntHashId, HasFactory;
 
     protected $table = 'indonesia_cities';
 

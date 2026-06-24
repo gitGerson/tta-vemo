@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\HasDiffrntHashId;
 use Database\Factories\VehicleTypeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ use Illuminate\Validation\Rule;
 class VehicleType extends Model
 {
     /** @use HasFactory<VehicleTypeFactory> */
-    use Auditable, HasFactory, SoftDeletes;
+    use Auditable, HasDiffrntHashId, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'code',

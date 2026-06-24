@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToCompanyTenant;
 use App\Models\Concerns\HasComments;
+use App\Models\Concerns\HasDiffrntHashId;
 use App\Support\S3Url;
 use Closure;
 use Database\Factories\VehiclePhotoFactory;
@@ -16,7 +17,7 @@ use Illuminate\Validation\Rule;
 class VehiclePhoto extends Model
 {
     /** @use HasFactory<VehiclePhotoFactory> */
-    use BelongsToCompanyTenant, HasComments, HasFactory, SoftDeletes;
+    use BelongsToCompanyTenant, HasComments, HasDiffrntHashId, HasFactory, SoftDeletes;
 
     /**
      * The four documented sides of the vehicle (key => label). A month is complete only

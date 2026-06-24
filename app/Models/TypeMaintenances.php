@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDiffrntHashId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -9,7 +10,7 @@ use Illuminate\Validation\Rule;
 
 class TypeMaintenances extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasDiffrntHashId, HasFactory, SoftDeletes;
 
     protected $table = 'type_maintenances';
 

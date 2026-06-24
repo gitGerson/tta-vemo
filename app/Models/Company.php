@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToCompanyTenant;
+use App\Models\Concerns\HasDiffrntHashId;
 use App\Support\S3Url;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,7 @@ use Illuminate\Validation\Rule;
 
 class Company extends Model
 {
-    use Auditable, BelongsToCompanyTenant, HasFactory, SoftDeletes;
+    use Auditable, BelongsToCompanyTenant, HasDiffrntHashId, HasFactory, SoftDeletes;
 
     protected $table = 'companies';
 

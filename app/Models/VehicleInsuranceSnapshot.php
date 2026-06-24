@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDiffrntHashId;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class VehicleInsuranceSnapshot extends Model
 {
+    use HasDiffrntHashId;
+
     protected $table = 'vehicle_insurance_snapshots';
 
     protected $fillable = [

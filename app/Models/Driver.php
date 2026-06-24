@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToCompanyTenantThroughPivot;
+use App\Models\Concerns\HasDiffrntHashId;
 use App\Rules\DifferentPhoneNumbers;
 use App\Support\S3Url;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +14,7 @@ use Illuminate\Validation\Rule;
 
 class Driver extends Model
 {
-    use BelongsToCompanyTenantThroughPivot, HasFactory, SoftDeletes;
+    use BelongsToCompanyTenantThroughPivot, HasDiffrntHashId, HasFactory, SoftDeletes;
 
     protected $table = 'drivers';
 
