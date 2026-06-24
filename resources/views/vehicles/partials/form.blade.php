@@ -38,7 +38,7 @@
     <h6 class="fw-semibold mb-3"><i class="bx bx-car me-1 text-primary"></i> Informasi Kendaraan</h6>
     <div class="row g-3">
         <div class="col-md-6">
-            <x-form.select name="vehicle_type_id" label="Tipe" :options="$vehicleTypeOptions" :value="$vehicle?->vehicle_type_id" placeholder="Pilih tipe kendaraan..." inputClass="form-select-sm" />
+            <x-form.select name="vehicle_type_id" label="Tipe" :options="$vehicleTypeOptions" :value="$vehicle?->vehicle_type_id" placeholder="Pilih tipe kendaraan..." mode="select2" inputClass="form-select-sm" />
             <input type="hidden" name="type" value="{{ old('type', $vehicle?->type) }}">
         </div>
 
@@ -47,11 +47,11 @@
         </div>
 
         <div class="col-md-6">
-            <x-form.select name="vehicle_brand_id" label="Merek" :options="$vehicleBrandOptions" :value="$vehicle?->vehicle_brand_id" placeholder="Pilih merek kendaraan..." inputClass="form-select-sm" />
+            <x-form.select name="vehicle_brand_id" label="Merek" :options="$vehicleBrandOptions" :value="$vehicle?->vehicle_brand_id" placeholder="Pilih merek kendaraan..." mode="select2" inputClass="form-select-sm" />
         </div>
 
         <div class="col-md-6">
-            <x-form.select name="company_id" label="Perusahaan" :options="$companyOptions" :value="$vehicle?->company_id" placeholder="Pilih perusahaan..." inputClass="form-select-sm" />
+            <x-form.select name="company_id" label="Perusahaan" :options="$companyOptions" :value="$vehicle?->company_id" placeholder="Pilih perusahaan..." mode="select2" inputClass="form-select-sm" />
         </div>
 
         <div class="col-md-6">
@@ -63,7 +63,7 @@
         </div>
 
         <div class="col-md-6">
-            <x-form.select name="fuel_type_id" label="Bahan Bakar" :options="$fuelTypeOptions" :value="$vehicle?->fuel_type_id" placeholder="Pilih bahan bakar..." inputClass="form-select-sm" />
+            <x-form.select name="fuel_type_id" label="Bahan Bakar" :options="$fuelTypeOptions" :value="$vehicle?->fuel_type_id" placeholder="Pilih bahan bakar..." mode="select2" inputClass="form-select-sm" />
             <input type="hidden" name="fuel_type" value="{{ old('fuel_type', $vehicle?->fuel_type ?? 'BBM') }}">
         </div>
     </div>

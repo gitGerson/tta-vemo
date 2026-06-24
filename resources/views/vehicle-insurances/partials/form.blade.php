@@ -15,7 +15,7 @@
     <h6 class="fw-semibold mb-3"><i class="bx bx-shield-quarter me-1 text-primary"></i> Informasi Polis</h6>
     <div class="row g-3">
         <div class="col-md-6">
-            <x-form.select name="vehicle_id" label="Kendaraan" :options="$vehicleOptions" :value="$selectedVehicleId" placeholder="Pilih kendaraan..." inputClass="form-select-sm" required />
+            <x-form.select name="vehicle_id" label="Kendaraan" :options="$vehicleOptions" :value="$selectedVehicleId" placeholder="Pilih kendaraan..." mode="select2" inputClass="form-select-sm" required />
         </div>
 
         <div class="col-md-6">
@@ -27,7 +27,7 @@
         </div>
 
         <div class="col-md-6">
-            <x-form.text name="insurance_type" label="Jenis Asuransi" :value="$insurance?->insurance_type" inputClass="form-control-sm" required maxlength="255" />
+            <x-form.select name="insurance_type" label="Jenis Asuransi" :options="\App\Models\VehicleInsurance::INSURANCE_TYPES" :value="$insurance?->insurance_type" placeholder="Pilih jenis asuransi..." mode="select2" inputClass="form-select-sm" required />
         </div>
     </div>
 

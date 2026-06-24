@@ -17,7 +17,7 @@
         </div>
 
         <div class="col-md-6">
-            <x-form.select name="type" label="Tipe" :options="$typeOptions" :value="$fuelType?->type ?? 'bensin'" inputClass="form-select-sm" required />
+            <x-form.select name="type" label="Tipe" :options="$typeOptions" :value="$fuelType?->type ?? 'bensin'" mode="select2" inputClass="form-select-sm" required />
         </div>
 
         <div class="col-md-6">
@@ -48,7 +48,7 @@
         </div>
 
         <div class="col-md-6">
-            <x-form.select name="merk" label="Merk" :options="$merkOptions" :value="$fuelType?->merk ?? 'Pertamina'" inputClass="form-select-sm" required />
+            <x-form.select name="merk" label="Merk" :options="$merkOptions" :value="$fuelType?->merk ?? 'Pertamina'" mode="select2" inputClass="form-select-sm" required />
         </div>
     </div>
 

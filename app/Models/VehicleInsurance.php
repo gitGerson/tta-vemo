@@ -20,6 +20,14 @@ class VehicleInsurance extends Model
 
     protected $table = 'vehicle_insurances';
 
+    /**
+     * Allowed insurance types, keyed by stored value => display label.
+     */
+    public const INSURANCE_TYPES = [
+        'TLO' => 'TLO (Total Loss Only)',
+        'All Risk' => 'ALL RISK',
+    ];
+
     protected function codePrefix(): string
     {
         return 'INS';
@@ -74,7 +82,7 @@ class VehicleInsurance extends Model
             'vehicle_id' => ['required', 'integer', Rule::exists(Vehicle::class, 'id'), self::vehicleBelongsToTenantRule()],
             'insurer_name' => ['required', 'string', 'max:255'],
             'policy_number' => ['required', 'string', 'max:255'],
-            'insurance_type' => ['required', 'string', 'max:255'],
+            'insurance_type' => ['required', 'string', Rule::in(array_keys(self::INSURANCE_TYPES))],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'coverage_value' => ['nullable', 'numeric', 'min:0'],
