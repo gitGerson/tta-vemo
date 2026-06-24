@@ -42,20 +42,19 @@ class VehicleBrandModuleTest extends TestCase
         Storage::disk('local')->put('tmp/filepond/logo.png', $this->fakeImageContents());
 
         $this->post(route('vehicle-brands.store'), [
-            'code' => 'toy',
             'name' => 'toyota',
             'logo' => 'tmp/filepond/logo.png',
             'descriptions' => 'Japanese vehicle brand.',
         ])->assertRedirect(route('vehicle-brands.index'));
 
-        $vehicleBrand = VehicleBrand::query()->where('code', 'TOY')->firstOrFail();
+        $vehicleBrand = VehicleBrand::query()->where('name', 'TOYOTA')->firstOrFail();
 
-        $this->assertSame('TOYOTA', $vehicleBrand->name);
+        // Code is generated automatically rather than supplied by the user.
+        $this->assertSame('VB-0001', $vehicleBrand->code);
         $this->assertStringStartsWith('vehicle_brand_logos/', $vehicleBrand->logo);
         Storage::disk('s3')->assertExists($vehicleBrand->logo);
         $this->assertDatabaseHas('vehicle_brands', [
             'id' => $vehicleBrand->id,
-            'code' => 'TOY',
             'name' => 'TOYOTA',
             'descriptions' => 'Japanese vehicle brand.',
         ]);
@@ -119,18 +118,16 @@ class VehicleBrandModuleTest extends TestCase
         ]);
     }
 
-    public function test_vehicle_brand_requires_unique_code_and_name(): void
+    public function test_vehicle_brand_requires_unique_name(): void
     {
         $this->actingAs($this->userWithVehicleBrandPermissions());
         VehicleBrand::factory()->create([
-            'code' => 'TYT',
             'name' => 'TOYOTA',
         ]);
 
         $this->post(route('vehicle-brands.store'), [
-            'code' => 'TYT',
             'name' => 'TOYOTA',
-        ])->assertSessionHasErrors(['code', 'name']);
+        ])->assertSessionHasErrors(['name']);
     }
 
     public function test_authorized_user_can_view_vehicle_brand_detail_fragment(): void

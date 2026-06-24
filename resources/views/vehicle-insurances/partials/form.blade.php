@@ -19,10 +19,6 @@
         </div>
 
         <div class="col-md-6">
-            <x-form.text name="code" label="Kode" :value="$insurance?->code" inputClass="form-control-sm" required maxlength="50" />
-        </div>
-
-        <div class="col-md-6">
             <x-form.text name="insurer_name" label="Perusahaan Asuransi" :value="$insurance?->insurer_name" inputClass="form-control-sm" required maxlength="255" />
         </div>
 

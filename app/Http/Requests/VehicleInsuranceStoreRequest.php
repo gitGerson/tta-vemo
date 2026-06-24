@@ -29,7 +29,6 @@ class VehicleInsuranceStoreRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'code' => $this->normalizeText($this->input('code')),
             'insurer_name' => $this->normalizeText($this->input('insurer_name')),
             'policy_number' => $this->normalizeText($this->input('policy_number')),
             'insurance_type' => $this->normalizeText($this->input('insurance_type')),

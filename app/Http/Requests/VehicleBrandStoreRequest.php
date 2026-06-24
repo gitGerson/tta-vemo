@@ -39,7 +39,6 @@ class VehicleBrandStoreRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'code' => $this->normalizeUpper($this->input('code')),
             'name' => $this->normalizeUpper($this->input('name')),
         ]);
     }

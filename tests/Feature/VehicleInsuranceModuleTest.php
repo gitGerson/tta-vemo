@@ -50,12 +50,14 @@ class VehicleInsuranceModuleTest extends TestCase
             ->assertRedirect(route('vehicle-insurances.index'));
 
         $this->assertDatabaseHas('vehicle_insurances', [
-            'code' => $payload['code'],
             'vehicle_id' => $vehicle->id,
             'policy_number' => $payload['policy_number'],
         ]);
 
-        $insurance = VehicleInsurance::where('code', $payload['code'])->firstOrFail();
+        $insurance = VehicleInsurance::where('vehicle_id', $vehicle->id)->firstOrFail();
+
+        // Code is generated automatically rather than supplied by the user.
+        $this->assertSame('INS-0001', $insurance->code);
         $this->assertDatabaseHas('vehicle_insurance_snapshots', [
             'vehicle_insurance_id' => $insurance->id,
             'vehicle_plat' => $vehicle->plat_new,

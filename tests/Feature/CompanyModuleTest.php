@@ -39,7 +39,6 @@ class CompanyModuleTest extends TestCase
         $this->actingAs($this->userWithCompanyPermissions());
 
         $payload = Company::factory()->make([
-            'code' => 'TTA001',
             'name' => 'TTA Company',
             'email' => 'tta@example.test',
             'phone' => '021123456',
@@ -51,12 +50,14 @@ class CompanyModuleTest extends TestCase
             ->assertRedirect(route('companies.index'));
 
         $this->assertDatabaseHas('companies', [
-            'code' => 'TTA001',
             'name' => 'TTA Company',
             'email' => 'tta@example.test',
             'phone' => '021123456',
             'notes' => 'Main company',
         ]);
+
+        // Code is generated automatically rather than supplied by the user.
+        $this->assertSame('CMP-0001', Company::query()->where('name', 'TTA Company')->value('code'));
     }
 
     public function test_authorized_user_can_update_company(): void

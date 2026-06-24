@@ -108,7 +108,6 @@
         document.getElementById('vehicle-brand-modal-title').textContent = 'Ubah Merek Kendaraan: ' + d.name;
         form.querySelector('[type="submit"]').textContent = 'Perbarui';
 
-        setField('code', d.code);
         setField('name', d.name);
         setField('descriptions', d.descriptions);
 

@@ -8,11 +8,7 @@
     <input type="hidden" name="_form_action" id="company-form-action" value="{{ $action }}">
 
     <div class="row g-3">
-        <div class="col-md-4">
-            <x-form.text name="code" label="Kode" :value="$company?->code" inputClass="form-control-sm" required maxlength="20" />
-        </div>
-
-        <div class="col-md-8">
+        <div class="col-12">
             <x-form.text name="name" label="Nama" :value="$company?->name" inputClass="form-control-sm" required />
         </div>
 

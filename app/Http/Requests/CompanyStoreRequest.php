@@ -38,7 +38,6 @@ class CompanyStoreRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'code' => is_string($this->input('code')) ? strtoupper(trim($this->input('code'))) : $this->input('code'),
             'name' => is_string($this->input('name')) ? trim($this->input('name')) : $this->input('name'),
             'email' => is_string($this->input('email')) ? trim($this->input('email')) : $this->input('email'),
             'phone' => is_string($this->input('phone')) ? trim($this->input('phone')) : $this->input('phone'),

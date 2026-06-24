@@ -102,7 +102,6 @@
         document.getElementById('company-modal-title').textContent = 'Ubah Perusahaan: ' + d.name;
         form.querySelector('[type="submit"]').textContent = 'Perbarui';
 
-        setField('code', d.code);
         setField('name', d.name);
         setField('email', d.email);
         setField('phone', d.phone);

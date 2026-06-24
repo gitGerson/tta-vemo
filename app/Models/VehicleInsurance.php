@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToCompanyTenant;
+use App\Models\Concerns\GeneratesCode;
 use App\Models\Concerns\HasDiffrntHashId;
 use Database\Factories\VehicleInsuranceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,9 +16,14 @@ use Illuminate\Validation\Rule;
 class VehicleInsurance extends Model
 {
     /** @use HasFactory<VehicleInsuranceFactory> */
-    use BelongsToCompanyTenant, HasDiffrntHashId, HasFactory, SoftDeletes;
+    use BelongsToCompanyTenant, GeneratesCode, HasDiffrntHashId, HasFactory, SoftDeletes;
 
     protected $table = 'vehicle_insurances';
+
+    protected function codePrefix(): string
+    {
+        return 'INS';
+    }
 
     protected static function booted(): void
     {
@@ -65,7 +71,6 @@ class VehicleInsurance extends Model
     public static function validationRules(?self $insurance = null): array
     {
         return [
-            'code' => ['required', 'string', 'max:50', Rule::unique('vehicle_insurances', 'code')->ignore($insurance)->withoutTrashed()],
             'vehicle_id' => ['required', 'integer', Rule::exists(Vehicle::class, 'id'), self::vehicleBelongsToTenantRule()],
             'insurer_name' => ['required', 'string', 'max:255'],
             'policy_number' => ['required', 'string', 'max:255'],
@@ -81,7 +86,6 @@ class VehicleInsurance extends Model
     public static function validationMessages(): array
     {
         return [
-            'code.unique' => 'Kode asuransi sudah tersedia.',
             'end_date.after_or_equal' => 'Tanggal berakhir tidak boleh sebelum tanggal mulai.',
         ];
     }

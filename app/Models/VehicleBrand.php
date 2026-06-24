@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\GeneratesCode;
 use App\Models\Concerns\HasDiffrntHashId;
 use App\Support\S3Url;
 use Database\Factories\VehicleBrandFactory;
@@ -15,7 +16,12 @@ use Illuminate\Validation\Rule;
 class VehicleBrand extends Model
 {
     /** @use HasFactory<VehicleBrandFactory> */
-    use Auditable, HasDiffrntHashId, HasFactory, SoftDeletes;
+    use Auditable, GeneratesCode, HasDiffrntHashId, HasFactory, SoftDeletes;
+
+    protected function codePrefix(): string
+    {
+        return 'VB';
+    }
 
     protected $fillable = [
         'code',
@@ -34,7 +40,6 @@ class VehicleBrand extends Model
     public static function validationRules(?self $vehicleBrand = null): array
     {
         return [
-            'code' => ['required', 'string', 'max:20', Rule::unique(self::class, 'code')->ignore($vehicleBrand)->withoutTrashed()],
             'name' => ['required', 'string', 'max:255', Rule::unique(self::class, 'name')->ignore($vehicleBrand)->withoutTrashed()],
             'logo' => ['nullable', 'string', 'max:2048'],
             'descriptions' => ['nullable', 'string'],
@@ -44,7 +49,6 @@ class VehicleBrand extends Model
     public static function validationMessages(): array
     {
         return [
-            'code.unique' => 'Kode vehicle brand sudah tersedia.',
             'name.unique' => 'Nama vehicle brand sudah tersedia.',
         ];
     }

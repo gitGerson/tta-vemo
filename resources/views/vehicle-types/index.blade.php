@@ -104,7 +104,6 @@
         document.getElementById('vehicle-type-modal-title').textContent = 'Ubah Tipe Kendaraan: ' + d.name;
         form.querySelector('[type="submit"]').textContent = 'Perbarui';
 
-        setField('code', d.code);
         setField('name', d.name);
         setField('descriptions', d.descriptions);
     }
