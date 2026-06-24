@@ -61,6 +61,19 @@
         </div>
     </div>
 
+    <hr class="my-4 border-2 opacity-50">
+
+    <h6 class="fw-semibold mb-3"><i class="bx bx-paperclip me-1 text-primary"></i> Lampiran</h6>
+    <div class="row g-3">
+        <div class="col-12">
+            <x-form.file name="attachments" label="Lampiran" mode="filepond" multiple
+                maxFileSize="50MB"
+                :filepondProcessUrl="route('uploads.attachments.process')"
+                :existingFiles="$insurance?->attachmentUrls() ?? []"
+                help="Semua jenis file diperbolehkan. Maksimal 50MB per file." />
+        </div>
+    </div>
+
     <div class="d-flex justify-content-end gap-2 mt-4">
         <a href="{{ route('vehicle-insurances.index') }}" class="btn btn-outline-secondary">Batal</a>
         <button type="submit" class="btn btn-primary">{{ $submitLabel }}</button>

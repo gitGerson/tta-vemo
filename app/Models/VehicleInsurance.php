@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\BelongsToCompanyTenant;
 use App\Models\Concerns\GeneratesCode;
 use App\Models\Concerns\HasDiffrntHashId;
+use App\Support\S3Url;
 use Database\Factories\VehicleInsuranceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -63,6 +64,7 @@ class VehicleInsurance extends Model
         'coverage_value',
         'premium',
         'notes',
+        'attachments',
     ];
 
     protected function casts(): array
@@ -72,6 +74,7 @@ class VehicleInsurance extends Model
             'end_date' => 'date',
             'coverage_value' => 'decimal:2',
             'premium' => 'decimal:2',
+            'attachments' => 'array',
             'deleted_at' => 'datetime',
         ];
     }
@@ -88,6 +91,7 @@ class VehicleInsurance extends Model
             'coverage_value' => ['nullable', 'numeric', 'min:0'],
             'premium' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string'],
+            'attachments' => ['nullable', 'array'],
         ];
     }
 
@@ -125,5 +129,36 @@ class VehicleInsurance extends Model
     public function snapshots(): HasMany
     {
         return $this->hasMany(VehicleInsuranceSnapshot::class)->latest();
+    }
+
+    /**
+     * Pre-signed temporary URLs for each stored attachment.
+     *
+     * @return array<int, string>
+     */
+    public function attachmentUrls(): array
+    {
+        return collect($this->attachments ?? [])
+            ->filter()
+            ->map(fn (string $path): string => S3Url::temporary($path))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Stored attachments paired with a display name (its file basename).
+     *
+     * @return array<int, array{name: string, url: string}>
+     */
+    public function attachmentFiles(): array
+    {
+        return collect($this->attachments ?? [])
+            ->filter()
+            ->map(fn (string $path): array => [
+                'name' => basename($path),
+                'url' => S3Url::temporary($path),
+            ])
+            ->values()
+            ->all();
     }
 }

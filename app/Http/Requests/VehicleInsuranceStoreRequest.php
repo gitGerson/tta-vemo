@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\VehicleInsurance;
+use App\Services\FilePondUploadService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -19,7 +20,10 @@ class VehicleInsuranceStoreRequest extends FormRequest
      */
     public function rules(): array
     {
-        return VehicleInsurance::validationRules();
+        $rules = VehicleInsurance::validationRules();
+        $rules['attachments.*'] = [app(FilePondUploadService::class)->fileUploadValidationRule()];
+
+        return $rules;
     }
 
     public function messages(): array

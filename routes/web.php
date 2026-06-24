@@ -560,6 +560,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Generic FilePond routes
     Route::post('/uploads/process', [FileUploadController::class, 'process'])->name('uploads.process');
+    Route::post('/uploads/attachments/process', [FileUploadController::class, 'processAttachment'])->name('uploads.attachments.process');
     Route::delete('/uploads/revert', [FileUploadController::class, 'revert'])->name('uploads.revert');
     Route::get('/uploads/load', [FileUploadController::class, 'load'])->name('uploads.load');
     Route::get('/uploads/proxy', [FileUploadController::class, 'proxy'])->name('uploads.proxy');

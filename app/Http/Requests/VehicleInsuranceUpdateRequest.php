@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\VehicleInsurance;
+use App\Services\FilePondUploadService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -19,7 +20,15 @@ class VehicleInsuranceUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        return VehicleInsurance::validationRules($this->insurance());
+        $insurance = $this->insurance();
+        $rules = VehicleInsurance::validationRules($insurance);
+        $rules['attachments.*'] = [
+            app(FilePondUploadService::class)->fileUploadValidationRule(
+                existingReferences: $insurance?->attachmentUrls() ?? []
+            ),
+        ];
+
+        return $rules;
     }
 
     protected function insurance(): ?VehicleInsurance
