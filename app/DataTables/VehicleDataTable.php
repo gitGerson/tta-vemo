@@ -28,6 +28,10 @@ class VehicleDataTable extends DataTable
             'vin_number',
             'bpkb_image',
             'stnk_image',
+            'kir_image',
+            'bpkb_due_date',
+            'stnk_due_date',
+            'kir_due_date',
             'purchase_price',
             'selling_price',
             'purchase_date',
@@ -61,6 +65,12 @@ class VehicleDataTable extends DataTable
             Column::computed('purchase_date_label', 'Tgl Beli', fn (Vehicle $vehicle): string => $vehicle->purchase_date?->format('d M Y') ?? '-')
                 ->searchable(false),
             Column::computed('sale_date_label', 'Tgl Jual', fn (Vehicle $vehicle): string => $vehicle->sale_date?->format('d M Y') ?? '-')
+                ->searchable(false),
+            Column::computed('bpkb_due_date_label', 'Tenggat Waktu BPKB', fn (Vehicle $vehicle): string => $vehicle->bpkb_due_date?->format('d M Y') ?? '-')
+                ->searchable(false),
+            Column::computed('stnk_due_date_label', 'Tenggat Waktu STNK', fn (Vehicle $vehicle): string => $vehicle->stnk_due_date?->format('d M Y') ?? '-')
+                ->searchable(false),
+            Column::computed('kir_due_date_label', 'Tenggat Waktu KIR', fn (Vehicle $vehicle): string => $vehicle->kir_due_date?->format('d M Y') ?? '-')
                 ->searchable(false),
             Column::computed('status_badges', 'Status', function (Vehicle $vehicle): string {
                 $statusClass = $vehicle->status === 'ACTIVE'

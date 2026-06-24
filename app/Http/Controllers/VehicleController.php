@@ -45,6 +45,7 @@ class VehicleController extends Controller
         $data = $request->validated();
         $data['bpkb_image'] = $this->resolveImages($request, null, 'bpkb_image');
         $data['stnk_image'] = $this->resolveImages($request, null, 'stnk_image');
+        $data['kir_image'] = $this->resolveImages($request, null, 'kir_image');
 
         Vehicle::create($data);
 
@@ -80,6 +81,7 @@ class VehicleController extends Controller
         $data = $request->validated();
         $data['bpkb_image'] = $this->resolveImages($request, $vehicle, 'bpkb_image');
         $data['stnk_image'] = $this->resolveImages($request, $vehicle, 'stnk_image');
+        $data['kir_image'] = $this->resolveImages($request, $vehicle, 'kir_image');
 
         $vehicle->update($data);
 

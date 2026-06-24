@@ -111,11 +111,11 @@
         </div>
 
         <div class="col-md-3">
-            <x-form.date name="purchase_date" label="Tanggal Beli" :value="$vehicle?->purchase_date?->format('Y-m-d')" inputClass="form-control-sm" />
+            <x-form.date name="purchase_date" label="Tanggal Beli" :value="$vehicle?->purchase_date?->format('d-m-Y')" mode="daterangepicker" :single="true" :autoApply="true" format="DD-MM-YYYY" placeholder="Pilih tanggal..." inputClass="form-control-sm" />
         </div>
 
         <div class="col-md-3">
-            <x-form.date name="sale_date" label="Tanggal Jual" :value="$vehicle?->sale_date?->format('Y-m-d')" inputClass="form-control-sm" />
+            <x-form.date name="sale_date" label="Tanggal Jual" :value="$vehicle?->sale_date?->format('d-m-Y')" mode="daterangepicker" :single="true" :autoApply="true" format="DD-MM-YYYY" placeholder="Pilih tanggal..." inputClass="form-control-sm" />
         </div>
     </div>
 
@@ -123,16 +123,25 @@
 
     <h6 class="fw-semibold mb-3"><i class="bx bx-file me-1 text-primary"></i> Dokumen</h6>
     <div class="row g-3">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <x-form.file name="bpkb_image" label="Foto BPKB" mode="filepond" multiple accept="image/*"
                 :acceptedFileTypes="['image/jpeg', 'image/png', 'image/gif', 'image/webp']" maxFileSize="2MB"
                 :existingFiles="$vehicle?->bpkbImageUrls() ?? []" />
+            <x-form.date name="bpkb_due_date" label="Tenggat Waktu BPKB" :value="$vehicle?->bpkb_due_date?->format('d-m-Y')" mode="daterangepicker" :single="true" :autoApply="true" format="DD-MM-YYYY" placeholder="Pilih tanggal..." inputClass="form-control-sm" />
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-4">
             <x-form.file name="stnk_image" label="Foto STNK" mode="filepond" multiple accept="image/*"
                 :acceptedFileTypes="['image/jpeg', 'image/png', 'image/gif', 'image/webp']" maxFileSize="2MB"
                 :existingFiles="$vehicle?->stnkImageUrls() ?? []" />
+            <x-form.date name="stnk_due_date" label="Tenggat Waktu STNK" :value="$vehicle?->stnk_due_date?->format('d-m-Y')" mode="daterangepicker" :single="true" :autoApply="true" format="DD-MM-YYYY" placeholder="Pilih tanggal..." inputClass="form-control-sm" />
+        </div>
+
+        <div class="col-md-4">
+            <x-form.file name="kir_image" label="Foto KIR" mode="filepond" multiple accept="image/*"
+                :acceptedFileTypes="['image/jpeg', 'image/png', 'image/gif', 'image/webp']" maxFileSize="2MB"
+                :existingFiles="$vehicle?->kirImageUrls() ?? []" />
+            <x-form.date name="kir_due_date" label="Tenggat Waktu KIR" :value="$vehicle?->kir_due_date?->format('d-m-Y')" mode="daterangepicker" :single="true" :autoApply="true" format="DD-MM-YYYY" placeholder="Pilih tanggal..." inputClass="form-control-sm" />
         </div>
     </div>
 

@@ -42,6 +42,10 @@ class Vehicle extends Model
         'vin_number',
         'bpkb_image',
         'stnk_image',
+        'kir_image',
+        'bpkb_due_date',
+        'stnk_due_date',
+        'kir_due_date',
         'purchase_price',
         'selling_price',
         'purchase_date',
@@ -54,6 +58,10 @@ class Vehicle extends Model
             'isprivate' => 'boolean',
             'bpkb_image' => 'array',
             'stnk_image' => 'array',
+            'kir_image' => 'array',
+            'bpkb_due_date' => 'date',
+            'stnk_due_date' => 'date',
+            'kir_due_date' => 'date',
             'purchase_price' => 'decimal:2',
             'selling_price' => 'decimal:2',
             'purchase_date' => 'date',
@@ -86,8 +94,12 @@ class Vehicle extends Model
             'selling_price' => ['nullable', 'numeric', 'min:0'],
             'purchase_date' => ['nullable', 'date'],
             'sale_date' => ['nullable', 'date'],
-            'bpkb_image' => ['nullable', 'array'],
-            'stnk_image' => ['nullable', 'array'],
+            'bpkb_image' => ['nullable', 'array', 'required_with:bpkb_due_date'],
+            'stnk_image' => ['nullable', 'array', 'required_with:stnk_due_date'],
+            'kir_image' => ['nullable', 'array', 'required_with:kir_due_date'],
+            'bpkb_due_date' => ['nullable', 'date', 'required_with:bpkb_image'],
+            'stnk_due_date' => ['nullable', 'date', 'required_with:stnk_image'],
+            'kir_due_date' => ['nullable', 'date', 'required_with:kir_image'],
         ];
     }
 
@@ -95,6 +107,12 @@ class Vehicle extends Model
     {
         return [
             'plat_new.unique' => 'Plat baru sudah tersedia.',
+            'bpkb_image.required_with' => 'Foto BPKB wajib diunggah jika tenggat waktu BPKB diisi.',
+            'stnk_image.required_with' => 'Foto STNK wajib diunggah jika tenggat waktu STNK diisi.',
+            'kir_image.required_with' => 'Foto KIR wajib diunggah jika tenggat waktu KIR diisi.',
+            'bpkb_due_date.required_with' => 'Tenggat waktu BPKB wajib diisi jika foto BPKB diunggah.',
+            'stnk_due_date.required_with' => 'Tenggat waktu STNK wajib diisi jika foto STNK diunggah.',
+            'kir_due_date.required_with' => 'Tenggat waktu KIR wajib diisi jika foto KIR diunggah.',
         ];
     }
 
@@ -148,6 +166,12 @@ class Vehicle extends Model
     public function stnkImageUrls(): array
     {
         return $this->documentImageUrls($this->stnk_image);
+    }
+
+    /** @return array<int, string> */
+    public function kirImageUrls(): array
+    {
+        return $this->documentImageUrls($this->kir_image);
     }
 
     /**

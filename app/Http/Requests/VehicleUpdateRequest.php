@@ -29,6 +29,7 @@ class VehicleUpdateRequest extends VehicleStoreRequest
         $filePond = app(FilePondUploadService::class);
         $rules['bpkb_image.*'] = [$filePond->imageUploadValidationRule(existingReferences: $vehicle?->bpkbImageUrls() ?? [])];
         $rules['stnk_image.*'] = [$filePond->imageUploadValidationRule(existingReferences: $vehicle?->stnkImageUrls() ?? [])];
+        $rules['kir_image.*'] = [$filePond->imageUploadValidationRule(existingReferences: $vehicle?->kirImageUrls() ?? [])];
 
         return $rules;
     }

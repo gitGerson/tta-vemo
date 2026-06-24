@@ -36,11 +36,11 @@
     <h6 class="fw-semibold mb-3"><i class="bx bx-calendar me-1 text-primary"></i> Masa Berlaku &amp; Nilai</h6>
     <div class="row g-3">
         <div class="col-md-3">
-            <x-form.date name="start_date" label="Tanggal Mulai" :value="$insurance?->start_date?->format('Y-m-d')" inputClass="form-control-sm" required />
+            <x-form.date name="start_date" label="Tanggal Mulai" :value="$insurance?->start_date?->format('d-m-Y')" mode="daterangepicker" :single="true" :autoApply="true" format="DD-MM-YYYY" placeholder="Pilih tanggal..." inputClass="form-control-sm" required />
         </div>
 
         <div class="col-md-3">
-            <x-form.date name="end_date" label="Tanggal Berakhir" :value="$insurance?->end_date?->format('Y-m-d')" inputClass="form-control-sm" required />
+            <x-form.date name="end_date" label="Tanggal Berakhir" :value="$insurance?->end_date?->format('d-m-Y')" mode="daterangepicker" :single="true" :autoApply="true" format="DD-MM-YYYY" placeholder="Pilih tanggal..." inputClass="form-control-sm" required />
         </div>
 
         <div class="col-md-3">
