@@ -25,6 +25,7 @@ class NotificationService
         private readonly ServiceReminderService $serviceReminders,
         private readonly VehiclePhotoMonitorService $photoMonitor,
         private readonly VehicleInsuranceMonitorService $insuranceMonitor,
+        private readonly VehicleDocumentMonitorService $documentMonitor,
     ) {}
 
     /**
@@ -110,6 +111,7 @@ class NotificationService
         $canRemind = $user->hasPermission('operational.maintenances.reminders') === true;
         $canPhotoRemind = $user->hasPermission('operational.vehicle_photos.reminders') === true;
         $canInsuranceRemind = $user->hasPermission('master.vehicle_insurances.reminders') === true;
+        $canDocumentRemind = $user->hasPermission('master.vehicles.reminders') === true;
 
         $plates = Vehicle::pluck('plat_new');
         $items = [];
@@ -205,6 +207,22 @@ class NotificationService
             }
         }
 
+        // STNK (H-30) and KIR (H-7) due-date reminders, gated by a dedicated permission and
+        // company-scoped via the Vehicle CompanyTenantScope (bypassed by management.tenant.bypass).
+        if ($canDocumentRemind) {
+            foreach ($this->documentMonitor->dueDocuments() as $document) {
+                $items[] = [
+                    'key' => $this->documentDueKey($document),
+                    'type' => $document['type'],
+                    'icon' => $document['type'] === 'vehicle.stnk-due' ? 'bx-id-card' : 'bx-receipt',
+                    'color' => $document['days_left'] <= 7 ? 'danger' : 'warning',
+                    'title' => $document['plate'],
+                    'subtitle' => 'Tenggat waktu '.$document['document'].' '.$document['due_date'].' · H-'.$document['days_left'],
+                    'link' => $document['link'],
+                ];
+            }
+        }
+
         return $items;
     }
 
@@ -241,6 +259,18 @@ class NotificationService
         // The threshold bucket in the key rolls the reminder forward as expiry nears,
         // so a tighter bucket (e.g. H-7) re-fires even after H-30 was dismissed.
         return 'vehicle:insurance-expiring:'.$policy['insurance_id'].':'.$policy['threshold_value'];
+    }
+
+    /**
+     * @param  array<string, mixed>  $document
+     */
+    private function documentDueKey(array $document): string
+    {
+        // The due date in the key rolls the reminder forward on renewal, so a new
+        // due date re-fires even after the prior one was dismissed.
+        $slug = str($document['type'])->after('vehicle.')->value();
+
+        return 'vehicle:'.$slug.':'.$document['vehicle_id'].':'.$document['threshold_value'];
     }
 
     /**

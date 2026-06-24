@@ -570,6 +570,14 @@ return [
                     'parent' => 'master.access',
                     'sort_order' => 56,
                 ],
+                [
+                    'name' => 'master.vehicles.reminders',
+                    'display_name' => 'Vehicles - Document Due Reminders',
+                    'description' => 'Can receive vehicle document due-date reminders (STNK at H-30, KIR at H-7) via notifications, scoped to the user\'s companies unless tenant bypass is granted',
+                    'module' => 'master',
+                    'parent' => 'master.access',
+                    'sort_order' => 57,
+                ],
             ],
         ],
         'operational' => [
@@ -893,6 +901,7 @@ return [
                 'master.vehicles.delete',
                 'master.vehicles.restore',
                 'master.vehicles.force_delete',
+                'master.vehicles.reminders',
                 'master.destinations.view',
                 'master.destinations.create',
                 'master.destinations.edit',

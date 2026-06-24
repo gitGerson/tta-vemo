@@ -25,6 +25,8 @@ class ReminderTelegramNotification extends Notification implements ShouldQueue
         'vehicle.photo-missing' => '📷',
         'vehicle.insurance-overdue' => '🛑',
         'vehicle.insurance-expiring' => '🛡️',
+        'vehicle.stnk-due' => '🪪',
+        'vehicle.kir-due' => '🧾',
     ];
 
     /**

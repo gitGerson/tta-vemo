@@ -8,24 +8,31 @@
         'vehicle.photo-missing' => 'Foto kendaraan belum lengkap',
         'vehicle.insurance-overdue' => 'Asuransi kedaluwarsa',
         'vehicle.insurance-expiring' => 'Asuransi akan berakhir',
+        'vehicle.stnk-due' => 'Tenggat Waktu STNK',
+        'vehicle.kir-due' => 'Tenggat Waktu KIR',
     ];
 
     $grouped = collect($items)->groupBy('type');
+
+    // Escape Markdown table delimiters so a stray pipe in a subtitle can't break a row.
+    $cell = fn (string $text): string => str_replace(['|', "\n"], ['\|', ' '], $text);
 @endphp
 
 @component('mail::message')
 # Pengingat VEMO
 
-Halo {{ $greetingName }}, berikut {{ count($items) }} item yang memerlukan perhatian Anda.
+Halo {{ $greetingName }}, berikut **{{ count($items) }}** item yang memerlukan perhatian Anda.
 
 @foreach ($grouped as $type => $group)
-## {{ $labels[$type] ?? 'Pengingat' }}
+## {{ $labels[$type] ?? 'Pengingat' }} ({{ count($group) }})
 
+@component('mail::table')
+| Kendaraan | Detail | |
+| :--- | :--- | :---: |
 @foreach ($group as $item)
-**{{ $item['title'] }}** — {{ $item['subtitle'] }}
-[Buka]({{ $item['link'] }})
-
+| {{ $cell($item['title']) }} | {{ $cell($item['subtitle']) }} | [Buka]({{ $item['link'] }}) |
 @endforeach
+@endcomponent
 @endforeach
 
 Terima kasih,<br>
