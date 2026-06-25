@@ -1,5 +1,18 @@
 window.dispatchEvent(new CustomEvent('sneat:dashboard-scripts-loaded'));
 
+// Resolve chart text / line / surface colors from the active Sneat theme so the
+// charts follow light/dark mode. Read at render time from the CSS custom
+// properties on <html> (which dark mode swaps), with light-mode fallbacks.
+function chartTheme() {
+    const styles = getComputedStyle(document.documentElement);
+    const read = (name, fallback) => styles.getPropertyValue(name).trim() || fallback;
+    return {
+        foreColor: read('--bs-body-color', '#697a8d'),
+        gridBorder: read('--bs-border-color', '#e7e7e8'),
+        surface: read('--bs-paper-bg', '#fff'),
+    };
+}
+
 // Shared donut renderer for dashboard cards.
 // Both feed an array of { label, count, hex } slices.
 function renderDonut(elSelector, items) {
@@ -9,12 +22,13 @@ function renderDonut(elSelector, items) {
         return;
     }
 
+    const theme = chartTheme();
     const chart = new ApexCharts(el, {
-        chart: { height: 260, width: 260, type: 'donut' },
+        chart: { height: 260, width: 260, type: 'donut', foreColor: theme.foreColor },
         labels: items.map((i) => i.label),
         series: items.map((i) => i.count),
         colors: items.map((i) => i.hex),
-        stroke: { width: 5, colors: ['#fff'] },
+        stroke: { width: 5, colors: [theme.surface] },
         dataLabels: { enabled: false },
         legend: { position: 'bottom' },
         plotOptions: {
@@ -77,8 +91,9 @@ function formatRupiahShort(value) {
         return;
     }
 
+    const theme = chartTheme();
     const chart = new ApexCharts(el, {
-        chart: { height: 260, type: 'area', toolbar: { show: false } },
+        chart: { height: 260, type: 'area', toolbar: { show: false }, foreColor: theme.foreColor },
         series: [
             { name: 'Pemeliharaan', data: data.maintenance || [] },
             { name: 'BBM', data: data.fuel || [] },
@@ -91,7 +106,7 @@ function formatRupiahShort(value) {
         yaxis: { labels: { formatter: (v) => formatRupiahShort(v) } },
         tooltip: { y: { formatter: (v) => formatRupiahShort(v) } },
         legend: { position: 'top', horizontalAlign: 'left' },
-        grid: { borderColor: '#e7e7e8' },
+        grid: { borderColor: theme.gridBorder },
     });
 
     chart.render();
@@ -105,8 +120,9 @@ function formatRupiahShort(value) {
         return;
     }
 
+    const theme = chartTheme();
     const chart = new ApexCharts(el, {
-        chart: { height: 260, type: 'bar', stacked: true, toolbar: { show: false } },
+        chart: { height: 260, type: 'bar', stacked: true, toolbar: { show: false }, foreColor: theme.foreColor },
         series: [
             { name: 'Rutin', data: data.routine || [] },
             { name: 'Non-rutin', data: data.non_routine || [] },
@@ -117,7 +133,7 @@ function formatRupiahShort(value) {
         xaxis: { categories: data.categories || [] },
         yaxis: { labels: { formatter: (v) => Math.round(v) } },
         legend: { position: 'top', horizontalAlign: 'left' },
-        grid: { borderColor: '#e7e7e8' },
+        grid: { borderColor: theme.gridBorder },
     });
 
     chart.render();
