@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\DataTables\MaintenanceDailyReportDataTable;
 use App\DataTables\MaintenanceYearReportDataTable;
 use App\DataTables\RecordDailyReportDataTable;
+use App\DataTables\RecordMonthlyAnalysisDataTable;
 use App\DataTables\RecordMonthlyReportDataTable;
+use App\Exports\RecordMonthlyAnalysisExport;
 use App\Models\Company;
 use App\Models\Maintenance;
 use App\Models\MaintenanceDetail;
@@ -17,6 +19,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
@@ -58,6 +61,69 @@ class ReportController extends Controller
             'date' => $dateString,
             'companyId' => $companyId,
         ]);
+    }
+
+    public function analysisMonthly(Request $request)
+    {
+        $dateString = $request->query('date', Carbon::now()->format('Y-m'));
+        $date = Carbon::parse($dateString.'-01');
+        $companyId = $this->resolveCompanyId($request);
+        $unit = $request->query('unit');
+
+        // Empty by default: no data is shown until a company is selected.
+        $rows = $companyId !== null
+            ? $this->fetchMonthlyAnalysis($date, $companyId, $unit)
+            : new Collection;
+
+        return view('reports.record.analysis-monthly', [
+            'table' => new RecordMonthlyAnalysisDataTable($rows),
+            'company' => $this->selectableCompanies(),
+            'vehicles' => Vehicle::all(),
+            'date' => $dateString,
+            'companyId' => $companyId,
+        ]);
+    }
+
+    public function analysisMonthlyPdf(Request $request)
+    {
+        $dateString = $request->query('date', Carbon::now()->format('Y-m'));
+        $date = Carbon::parse($dateString.'-01');
+        $companyId = $this->resolvePrintableCompanyId($request);
+        $unit = $request->query('unit');
+
+        if ($companyId === null) {
+            return $this->missingPrintableCompanyResponse();
+        }
+
+        $rows = $this->fetchMonthlyAnalysis($date, $companyId, $unit);
+
+        $pdf = Pdf::loadView('reports.pdf.analysis-monthly', [
+            'rows' => $rows,
+            'date' => $date,
+            'unit' => $unit,
+            'company' => Company::find($companyId),
+        ])->setPaper('A4', 'portrait');
+
+        return $pdf->download("analisa_bulanan_bbm_{$date->format('Y_m')}.pdf");
+    }
+
+    public function analysisMonthlyExcel(Request $request)
+    {
+        $dateString = $request->query('date', Carbon::now()->format('Y-m'));
+        $date = Carbon::parse($dateString.'-01');
+        $companyId = $this->resolvePrintableCompanyId($request);
+        $unit = $request->query('unit');
+
+        if ($companyId === null) {
+            return $this->missingPrintableCompanyResponse();
+        }
+
+        $rows = $this->fetchMonthlyAnalysis($date, $companyId, $unit);
+
+        return Excel::download(
+            new RecordMonthlyAnalysisExport($rows, Company::find($companyId), $date, $unit),
+            "analisa_bulanan_bbm_{$date->format('Y_m')}.xlsx"
+        );
     }
 
     public function maintenancesDaily(Request $request)
@@ -427,5 +493,40 @@ class ReportController extends Controller
             ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
             ->orderBy('date')
             ->get();
+    }
+
+    /**
+     * Aggregate a month's fuel records into one summary row per vehicle (nopol):
+     * trip count, total KM, total liters, total rupiah, and km/liter consumption.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function fetchMonthlyAnalysis(Carbon $date, ?int $companyId, ?string $unit): Collection
+    {
+        $records = $this->fetchMonthlyRecords($date, $companyId, $unit);
+
+        $typeByPlate = Vehicle::query()
+            ->whereNotNull('plat_new')
+            ->pluck('type', 'plat_new');
+
+        return $records
+            ->groupBy('no_pol')
+            ->map(function (Collection $group, $noPol) use ($typeByPlate): array {
+                $totalKm = $group->sum(fn ($record) => (float) ($record->totals ?? 0));
+                $totalLiter = $group->sum(fn ($record) => (float) ($record->bbm ?? 0));
+                $totalIdr = $group->sum(fn ($record) => (float) ($record->idr ?? 0));
+
+                return [
+                    'no_pol' => $noPol,
+                    'jenis' => $typeByPlate->get($noPol) ?: '-',
+                    'trip' => $group->count(),
+                    'total_km' => $totalKm,
+                    'total_liter' => $totalLiter,
+                    'total_idr' => $totalIdr,
+                    'km_per_liter' => $totalLiter > 0 ? $totalKm / $totalLiter : 0.0,
+                ];
+            })
+            ->sortBy('no_pol')
+            ->values();
     }
 }
