@@ -17,8 +17,11 @@ class DatabaseSeeder extends Seeder
             VehicleBrandSeeder::class,
             VehicleTypeSeeder::class,
             FuelTypeSeeder::class,
+            VehicleSeeder::class,
             TypeMaintenanceSeeder::class,
+            MaintenanceSeeder::class,
             DriverSeeder::class,
+            RecordSeeder::class,
         ]);
     }
 }
