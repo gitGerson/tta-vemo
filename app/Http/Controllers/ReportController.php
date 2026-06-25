@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\DataTables\MaintenanceDailyReportDataTable;
+use App\DataTables\MaintenanceMonthlyAnalysisDataTable;
 use App\DataTables\MaintenanceYearReportDataTable;
 use App\DataTables\RecordDailyReportDataTable;
 use App\DataTables\RecordMonthlyAnalysisDataTable;
 use App\DataTables\RecordMonthlyReportDataTable;
+use App\Exports\MaintenanceMonthlyAnalysisExport;
 use App\Exports\RecordMonthlyAnalysisExport;
 use App\Models\Company;
 use App\Models\Maintenance;
@@ -183,6 +185,69 @@ class ReportController extends Controller
             'companies' => $this->selectableCompanies(),
             'companyId' => $companyId,
         ]);
+    }
+
+    public function analysisMaintenancesMonthly(Request $request)
+    {
+        $dateString = $request->query('date', Carbon::now()->format('Y-m'));
+        $date = Carbon::parse($dateString.'-01');
+        $companyId = $this->resolveCompanyId($request);
+        $unit = $request->query('unit');
+
+        // Empty by default: no data is shown until a company is selected.
+        $rows = $companyId !== null
+            ? $this->fetchMonthlyMaintenanceAnalysis($date, $companyId, $unit)
+            : new Collection;
+
+        return view('reports.maintenances.analysis-monthly', [
+            'table' => new MaintenanceMonthlyAnalysisDataTable($rows),
+            'companies' => $this->selectableCompanies(),
+            'vehicles' => Vehicle::all(),
+            'date' => $dateString,
+            'companyId' => $companyId,
+        ]);
+    }
+
+    public function analysisMaintenancesMonthlyPdf(Request $request)
+    {
+        $dateString = $request->query('date', Carbon::now()->format('Y-m'));
+        $date = Carbon::parse($dateString.'-01');
+        $companyId = $this->resolvePrintableCompanyId($request);
+        $unit = $request->query('unit');
+
+        if ($companyId === null) {
+            return $this->missingPrintableCompanyResponse();
+        }
+
+        $rows = $this->fetchMonthlyMaintenanceAnalysis($date, $companyId, $unit);
+
+        $pdf = Pdf::loadView('reports.pdf.analysis-maintenances-monthly', [
+            'rows' => $rows,
+            'date' => $date,
+            'unit' => $unit,
+            'company' => Company::find($companyId),
+        ])->setPaper('A4', 'portrait');
+
+        return $pdf->download("analisa_bulanan_pemeliharaan_{$date->format('Y_m')}.pdf");
+    }
+
+    public function analysisMaintenancesMonthlyExcel(Request $request)
+    {
+        $dateString = $request->query('date', Carbon::now()->format('Y-m'));
+        $date = Carbon::parse($dateString.'-01');
+        $companyId = $this->resolvePrintableCompanyId($request);
+        $unit = $request->query('unit');
+
+        if ($companyId === null) {
+            return $this->missingPrintableCompanyResponse();
+        }
+
+        $rows = $this->fetchMonthlyMaintenanceAnalysis($date, $companyId, $unit);
+
+        return Excel::download(
+            new MaintenanceMonthlyAnalysisExport($rows, Company::find($companyId), $date, $unit),
+            "analisa_bulanan_pemeliharaan_{$date->format('Y_m')}.xlsx"
+        );
     }
 
     public function maintenancesYear(Request $request)
@@ -526,6 +591,40 @@ class ReportController extends Controller
                     'km_per_liter' => $totalLiter > 0 ? $totalKm / $totalLiter : 0.0,
                 ];
             })
+            ->sortBy('no_pol')
+            ->values();
+    }
+
+    /**
+     * Aggregate a month's COMPLETED maintenances into one summary row per vehicle
+     * (nopol): maintenance count and total cost (total_amount).
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function fetchMonthlyMaintenanceAnalysis(Carbon $date, ?int $companyId, ?string $unit): Collection
+    {
+        $startDate = $date->copy()->startOfMonth()->toDateString();
+        $endDate = $date->copy()->endOfMonth()->toDateString();
+
+        $maintenances = Maintenance::query()
+            ->where('status', Maintenance::STATUS_COMPLETED)
+            ->when($unit, fn ($query) => $query->where('no_pol', $unit))
+            ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
+            ->whereBetween(DB::raw('COALESCE(date_out, date_in)'), [$startDate, $endDate])
+            ->get(['no_pol', 'total_amount']);
+
+        $typeByPlate = Vehicle::query()
+            ->whereNotNull('plat_new')
+            ->pluck('type', 'plat_new');
+
+        return $maintenances
+            ->groupBy('no_pol')
+            ->map(fn (Collection $group, $noPol): array => [
+                'no_pol' => $noPol,
+                'jenis' => $typeByPlate->get($noPol) ?: '-',
+                'maintenance_count' => $group->count(),
+                'total_cost' => $group->sum(fn ($maintenance) => (float) ($maintenance->total_amount ?? 0)),
+            ])
             ->sortBy('no_pol')
             ->values();
     }
