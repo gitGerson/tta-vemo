@@ -66,6 +66,10 @@
             line-height: 1.5;
         }
 
+        .dashboard-filter #dashboard-month-picker {
+            background-color: var(--bs-paper-bg);
+        }
+
         /* Compact dropdown panel — scoped to this select's results list only, so
            other select2 dropdowns in the app keep their default sizing. */
         #select2-dashboard-company-results .select2-results__option {
@@ -77,6 +81,37 @@
         .select2-dropdown:has(#select2-dashboard-company-results) .select2-search__field {
             padding: 0.25rem 0.5rem;
             font-size: 0.8125rem;
+        }
+
+        html[data-bs-theme='dark'] .dashboard-filter .select2-selection--single,
+        html[data-bs-theme='dark'] #dashboard-month-picker {
+            color: var(--bs-body-color);
+            background-color: var(--bs-paper-bg) !important;
+            border-color: var(--bs-border-color);
+        }
+
+        html[data-bs-theme='dark'] .dashboard-filter .select2-selection__rendered {
+            color: var(--bs-body-color);
+        }
+
+        html[data-bs-theme='dark'] .select2-dropdown:has(#select2-dashboard-company-results),
+        html[data-bs-theme='dark'] .select2-dropdown:has(#select2-dashboard-company-results) .select2-search__field,
+        html[data-bs-theme='dark'] .datepicker.datepicker-dropdown {
+            color: var(--bs-body-color);
+            background-color: var(--bs-paper-bg);
+            border-color: var(--bs-border-color);
+        }
+
+        html[data-bs-theme='dark'] #select2-dashboard-company-results .select2-results__option--highlighted {
+            color: var(--bs-primary-contrast);
+            background-color: var(--bs-primary);
+        }
+
+        html[data-bs-theme='dark'] .datepicker-dropdown .datepicker-switch:hover,
+        html[data-bs-theme='dark'] .datepicker-dropdown .prev:hover,
+        html[data-bs-theme='dark'] .datepicker-dropdown .next:hover,
+        html[data-bs-theme='dark'] .datepicker-dropdown table tr td span:hover {
+            background-color: var(--bs-secondary-bg);
         }
 
         /* Slim top progress bar shown while the dashboard refreshes via AJAX. */
@@ -115,10 +150,12 @@
             </div>
             <form action="{{ route('home') }}" method="GET" id="dashboard-filter" class="dashboard-filter row g-2 align-items-end">
                 <div class="col-sm-auto">
-                    <label for="dashboard-company" class="form-label small mb-1">Company</label>
+                    <label for="dashboard-company" class="form-label small mb-1">Perusahaan</label>
                     <select name="company" id="dashboard-company" class="form-select form-select-sm"
                         data-select2-enabled="1">
-                        <option value="">Semua Perusahaan</option>
+                        @if ($dashboardContext['company_options']->count() > 1)
+                            <option value="">Semua Perusahaan</option>
+                        @endif
                         @foreach ($dashboardContext['company_options'] as $company)
                             <option value="{{ $company->id }}" @selected($dashboardContext['selected_company_id'] === $company->id)>
                                 {{ $company->name }}
@@ -130,7 +167,7 @@
                     <label for="dashboard-month-picker" class="form-label small mb-1">Bulan Aktif</label>
                     <input type="hidden" name="month" id="dashboard-month"
                         value="{{ $dashboardContext['selected_month'] }}">
-                    <input type="text" id="dashboard-month-picker" class="form-control form-control-sm bg-white"
+                    <input type="text" id="dashboard-month-picker" class="form-control form-control-sm"
                         autocomplete="off" readonly value="{{ $dashboardContext['month'] }}">
                 </div>
             </form>

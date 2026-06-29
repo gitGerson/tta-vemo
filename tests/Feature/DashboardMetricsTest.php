@@ -111,11 +111,29 @@ class DashboardMetricsTest extends TestCase
 
         $this->get(route('home'))
             ->assertOk()
-            ->assertSeeText('Company')
+            ->assertSeeText('Perusahaan')
             ->assertSeeText('Tong Tji Unit Test')
+            ->assertDontSeeText('Semua Perusahaan')
+            ->assertSee('value="'.$company->id.'" selected', false)
             ->assertSeeText('Bulan Aktif')
             ->assertSee('value="'.now()->format('Y-m').'"', false)
             ->assertSee('value="'.now()->locale('id')->translatedFormat('F Y').'"', false);
+    }
+
+    public function test_all_companies_option_is_only_visible_for_users_with_multiple_companies(): void
+    {
+        $firstCompany = Company::factory()->create(['name' => 'First Accessible Company']);
+        $secondCompany = Company::factory()->create(['name' => 'Second Accessible Company']);
+        Company::factory()->create(['name' => 'Inaccessible Company']);
+
+        $this->actingAs($this->userWith([], [$firstCompany, $secondCompany]));
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSeeText('Semua Perusahaan')
+            ->assertSeeText('First Accessible Company')
+            ->assertSeeText('Second Accessible Company')
+            ->assertDontSeeText('Inaccessible Company');
     }
 
     public function test_dashboard_filters_financial_widgets_by_company_and_month(): void

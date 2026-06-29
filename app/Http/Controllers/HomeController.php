@@ -272,6 +272,10 @@ class HomeController extends Controller
         $requestedCompanyId = (int) $request->query('company', 0);
         $selectedCompanyId = $companyOptions->contains('id', $requestedCompanyId) ? $requestedCompanyId : null;
 
+        if ($selectedCompanyId === null && $companyOptions->count() === 1) {
+            $selectedCompanyId = (int) $companyOptions->first()->id;
+        }
+
         $month = $this->parseDashboardMonth($request->query('month'));
 
         return [
