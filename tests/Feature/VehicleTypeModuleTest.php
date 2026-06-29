@@ -29,7 +29,7 @@ class VehicleTypeModuleTest extends TestCase
 
         $this->get(route('vehicle-types.index'))
             ->assertOk()
-            ->assertSee('Daftar Vehicle Type');
+            ->assertSee('Daftar Tipe Kendaraan');
     }
 
     public function test_authorized_user_can_create_vehicle_type(): void
@@ -37,13 +37,12 @@ class VehicleTypeModuleTest extends TestCase
         $this->actingAs($this->userWithVehicleTypePermissions());
 
         $this->post(route('vehicle-types.store'), [
-            'code' => 'box',
             'name' => 'box truck',
             'descriptions' => 'General box vehicle.',
         ])->assertRedirect(route('vehicle-types.index'));
 
         $this->assertDatabaseHas('vehicle_types', [
-            'code' => 'BOX',
+            'code' => 'VT-0001',
             'name' => 'BOX TRUCK',
             'descriptions' => 'General box vehicle.',
         ]);
@@ -67,18 +66,16 @@ class VehicleTypeModuleTest extends TestCase
         ]);
     }
 
-    public function test_vehicle_type_requires_unique_code_and_name(): void
+    public function test_vehicle_type_requires_unique_name(): void
     {
         $this->actingAs($this->userWithVehicleTypePermissions());
         VehicleType::factory()->create([
-            'code' => 'TRK',
             'name' => 'TRUCK',
         ]);
 
         $this->post(route('vehicle-types.store'), [
-            'code' => 'TRK',
             'name' => 'TRUCK',
-        ])->assertSessionHasErrors(['code', 'name']);
+        ])->assertSessionHasErrors(['name']);
     }
 
     public function test_authorized_user_can_view_vehicle_type_detail_fragment(): void

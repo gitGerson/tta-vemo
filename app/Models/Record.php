@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToCompanyTenant;
+use App\Models\Concerns\HasDiffrntHashId;
 use Database\Factories\RecordFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,7 @@ use Illuminate\Validation\Rule;
 class Record extends Model
 {
     /** @use HasFactory<RecordFactory> */
-    use BelongsToCompanyTenant, HasFactory, SoftDeletes;
+    use BelongsToCompanyTenant, HasDiffrntHashId, HasFactory, SoftDeletes;
 
     protected $table = 'records';
 

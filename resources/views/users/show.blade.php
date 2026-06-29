@@ -43,12 +43,12 @@
                             <div class="d-flex flex-wrap gap-2 align-content-start">
                                 <span class="badge bg-label-secondary">{{ $user->roles->count() }} roles</span>
                                 @if($user->email_verified_at)
-                                    <span class="badge bg-label-success">Verified</span>
+                                    <span class="badge bg-label-success">Terverifikasi</span>
                                 @else
-                                    <span class="badge bg-label-warning">Unverified</span>
+                                    <span class="badge bg-label-warning">Belum Terverifikasi</span>
                                 @endif
                                 @if($user->deleted_at)
-                                    <span class="badge bg-label-danger">Deleted</span>
+                                    <span class="badge bg-label-danger">Terhapus</span>
                                 @endif
                             </div>
                         </div>
@@ -92,7 +92,7 @@
                             </div>
                             <div class="col-md-6 col-xl-4">
                                 <div class="border rounded p-3 h-100">
-                                    <small class="text-muted text-uppercase fw-semibold d-block mb-1">Email Verified At</small>
+                                    <small class="text-muted text-uppercase fw-semibold d-block mb-1">Email Diverifikasi Pada</small>
                                     <div>{{ $user->email_verified_at?->format('d M Y H:i') ?? '-' }}</div>
                                 </div>
                             </div>

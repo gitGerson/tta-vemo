@@ -6,6 +6,7 @@ use App\Models\Maintenance;
 use App\Models\Record;
 use App\Models\Vehicle;
 use App\Models\VehicleType;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -31,7 +32,7 @@ class DashboardMetricsService
      * Memoized monthly buckets keyed by the requested window length, so the
      * controller can call the derived methods independently without re-querying.
      *
-     * @var array<int, Collection<int, array<string, mixed>>>
+     * @var array<string, Collection<int, array<string, mixed>>>
      */
     private array $monthlyCache = [];
 
@@ -41,14 +42,15 @@ class DashboardMetricsService
      *
      * @return array<string, mixed>
      */
-    public function financialSummary(int $months = 6): array
+    public function financialSummary(int $months = 6, ?Carbon $month = null, ?int $companyId = null): array
     {
-        $monthly = $this->monthlyTotals($months);
+        $month ??= now()->startOfMonth();
+        $monthly = $this->monthlyTotals($months, $month, $companyId);
         $current = $monthly->last();
         $previous = $monthly->count() > 1 ? $monthly->get($monthly->count() - 2) : null;
 
         return [
-            'month_label' => now()->format('M Y'),
+            'month_label' => $month->format('M Y'),
             'maintenance' => $this->statBlock($current['maintenance'], $previous['maintenance'] ?? null),
             'fuel' => $this->statBlock($current['fuel'], $previous['fuel'] ?? null),
         ];
@@ -63,9 +65,9 @@ class DashboardMetricsService
      *
      * @return array{km: string}
      */
-    public function utilizationSummary(): array
+    public function utilizationSummary(?Carbon $month = null, ?int $companyId = null): array
     {
-        $current = $this->monthlyTotals(1)->first();
+        $current = $this->monthlyTotals(1, $month ?? now()->startOfMonth(), $companyId)->first();
 
         return [
             'km' => number_format($current['km'], 0, ',', '.'),
@@ -77,9 +79,9 @@ class DashboardMetricsService
      *
      * @return array{categories: list<string>, maintenance: list<float>, fuel: list<float>}
      */
-    public function spendTrend(int $months = 6): array
+    public function spendTrend(int $months = 6, ?Carbon $month = null, ?int $companyId = null): array
     {
-        $monthly = $this->monthlyTotals($months);
+        $monthly = $this->monthlyTotals($months, $month ?? now()->startOfMonth(), $companyId);
 
         return [
             'categories' => $monthly->pluck('label')->all(),
@@ -93,9 +95,9 @@ class DashboardMetricsService
      *
      * @return array{categories: list<string>, routine: list<int>, non_routine: list<int>}
      */
-    public function maintenanceVolumeTrend(int $months = 6): array
+    public function maintenanceVolumeTrend(int $months = 6, ?Carbon $month = null, ?int $companyId = null): array
     {
-        $monthly = $this->monthlyTotals($months);
+        $monthly = $this->monthlyTotals($months, $month ?? now()->startOfMonth(), $companyId);
 
         return [
             'categories' => $monthly->pluck('label')->all(),
@@ -109,10 +111,11 @@ class DashboardMetricsService
      *
      * @return list<array{label: string, count: int, hex: string}>
      */
-    public function fleetComposition(): array
+    public function fleetComposition(?int $companyId = null): array
     {
         $counts = Vehicle::query()
             ->selectRaw('vehicle_type_id, COUNT(*) as aggregate')
+            ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
             ->groupBy('vehicle_type_id')
             ->pluck('aggregate', 'vehicle_type_id');
 
@@ -133,17 +136,20 @@ class DashboardMetricsService
      *
      * @return Collection<int, array<string, mixed>>
      */
-    private function monthlyTotals(int $months = 6): Collection
+    private function monthlyTotals(int $months, Carbon $month, ?int $companyId = null): Collection
     {
-        return $this->monthlyCache[$months] ??= $this->computeMonthlyTotals($months);
+        $cacheKey = implode(':', [$months, $month->format('Y-m'), $companyId ?? 'all']);
+
+        return $this->monthlyCache[$cacheKey] ??= $this->computeMonthlyTotals($months, $month, $companyId);
     }
 
     /**
      * @return Collection<int, array<string, mixed>>
      */
-    private function computeMonthlyTotals(int $months): Collection
+    private function computeMonthlyTotals(int $months, Carbon $month, ?int $companyId = null): Collection
     {
-        $start = now()->startOfMonth()->subMonths($months - 1);
+        $end = $month->copy()->endOfMonth();
+        $start = $month->copy()->startOfMonth()->subMonths($months - 1);
 
         $buckets = collect();
         for ($i = 0; $i < $months; $i++) {
@@ -161,7 +167,14 @@ class DashboardMetricsService
         }
 
         Maintenance::where('status', '!=', Maintenance::STATUS_CANCELLED)
-            ->where(fn ($q) => $q->whereDate('date_out', '>=', $start)->orWhereDate('date_in', '>=', $start))
+            ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
+            ->where(function ($query) use ($start, $end): void {
+                $query->whereBetween('date_out', [$start->toDateString(), $end->toDateString()])
+                    ->orWhere(function ($query) use ($start, $end): void {
+                        $query->whereNull('date_out')
+                            ->whereBetween('date_in', [$start->toDateString(), $end->toDateString()]);
+                    });
+            })
             ->get(['total_amount', 'date_in', 'date_out', 'isServiceRoutine'])
             ->each(function (Maintenance $m) use ($buckets): void {
                 $date = $m->date_out ?? $m->date_in;
@@ -178,6 +191,8 @@ class DashboardMetricsService
             });
 
         Record::whereDate('date', '>=', $start)
+            ->whereDate('date', '<=', $end)
+            ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
             ->get(['date', 'idr', 'totals', 'bbm'])
             ->each(function (Record $r) use ($buckets): void {
                 $key = $r->date?->format('Y-m');

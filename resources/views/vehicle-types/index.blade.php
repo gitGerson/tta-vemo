@@ -1,7 +1,7 @@
 @extends('layouts.sneat')
 
 @section('title')
-    Daftar Vehicle Type
+    Daftar Tipe Kendaraan
 @endsection
 
 @section('content')
@@ -13,16 +13,23 @@
             </div>
         @endif
 
-        <x-table :table="$table" engine="tabulator" title="Daftar Vehicle Type">
+        <x-table :table="$table" engine="tabulator" title="Daftar Tipe Kendaraan">
             <x-slot:actions>
-                <a href="{{ route('vehicles.index') }}" class="btn btn-sm btn-outline-secondary">
-                    <i class="bx bx-arrow-back me-1"></i> Kembali
-                </a>
-                @if(auth()->user()->hasPermission('master.vehicle_types.create'))
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="btn-tambah-vehicle-type" data-bs-toggle="modal" data-bs-target="#vehicle-type-modal">
-                        <i class="bx bx-plus me-1"></i> Tambah Vehicle Type
-                    </button>
-                @endif
+                <div class="d-flex gap-2">
+                    <a href="{{ route('vehicles.index') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bx bx-arrow-back me-1"></i> Kembali
+                    </a>
+                    @if(auth()->user()->hasPermission('master.vehicle_types.delete'))
+                        <a href="{{ route('vehicle-types.trash') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bx bx-trash me-1"></i> Sampah
+                        </a>
+                    @endif
+                    @if(auth()->user()->hasPermission('master.vehicle_types.create'))
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btn-tambah-vehicle-type" data-bs-toggle="modal" data-bs-target="#vehicle-type-modal">
+                            <i class="bx bx-plus me-1"></i> Tambah Tipe Kendaraan
+                        </button>
+                    @endif
+                </div>
             </x-slot:actions>
         </x-table>
     </div>
@@ -31,7 +38,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="vehicle-type-modal-title">Tambah Vehicle Type</h5>
+                    <h5 class="modal-title" id="vehicle-type-modal-title">Tambah Tipe Kendaraan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -49,7 +56,7 @@
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Detail Vehicle Type</h5>
+                    <h5 class="modal-title">Detail Tipe Kendaraan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -85,7 +92,7 @@
         form.action = createUrl;
         document.getElementById('vehicle-type-form-method').value = '';
         document.getElementById('vehicle-type-form-action').value = createUrl;
-        document.getElementById('vehicle-type-modal-title').textContent = 'Tambah Vehicle Type';
+        document.getElementById('vehicle-type-modal-title').textContent = 'Tambah Tipe Kendaraan';
         form.querySelector('[type="submit"]').textContent = createLabel;
     }
 
@@ -94,10 +101,9 @@
         form.action = d.updateUrl;
         document.getElementById('vehicle-type-form-method').value = 'PUT';
         document.getElementById('vehicle-type-form-action').value = d.updateUrl;
-        document.getElementById('vehicle-type-modal-title').textContent = 'Edit Vehicle Type: ' + d.name;
+        document.getElementById('vehicle-type-modal-title').textContent = 'Ubah Tipe Kendaraan: ' + d.name;
         form.querySelector('[type="submit"]').textContent = 'Perbarui';
 
-        setField('code', d.code);
         setField('name', d.name);
         setField('descriptions', d.descriptions);
     }
@@ -133,7 +139,7 @@
                 const form = getForm();
                 form.action = @json(old('_form_action'));
                 document.getElementById('vehicle-type-form-method').value = 'PUT';
-                document.getElementById('vehicle-type-modal-title').textContent = 'Edit Vehicle Type: ' + @json(old('name'));
+                document.getElementById('vehicle-type-modal-title').textContent = 'Ubah Tipe Kendaraan: ' + @json(old('name'));
                 form.querySelector('[type="submit"]').textContent = 'Perbarui';
             })();
         @endif

@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDiffrntHashId;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TelegramNotificationLog extends Model
 {
+    use HasDiffrntHashId;
+
     protected $fillable = [
         'user_id',
         'notification_key',

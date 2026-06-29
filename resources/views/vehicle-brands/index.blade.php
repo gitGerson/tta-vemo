@@ -1,7 +1,7 @@
 @extends('layouts.sneat')
 
 @section('title')
-    Daftar Vehicle Brand
+    Daftar Merek Kendaraan
 @endsection
 
 @section('content')
@@ -13,16 +13,23 @@
             </div>
         @endif
 
-        <x-table :table="$table" engine="tabulator" title="Daftar Vehicle Brand">
+        <x-table :table="$table" engine="tabulator" title="Daftar Merek Kendaraan">
             <x-slot:actions>
-                <a href="{{ route('vehicles.index') }}" class="btn btn-sm btn-outline-secondary">
-                    <i class="bx bx-arrow-back me-1"></i> Kembali
-                </a>
-                @if(auth()->user()->hasPermission('master.vehicle_brands.create'))
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="btn-tambah-vehicle-brand" data-bs-toggle="modal" data-bs-target="#vehicle-brand-modal">
-                        <i class="bx bx-plus me-1"></i> Tambah Vehicle Brand
-                    </button>
-                @endif
+                <div class="d-flex gap-2">
+                    <a href="{{ route('vehicles.index') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bx bx-arrow-back me-1"></i> Kembali
+                    </a>
+                    @if(auth()->user()->hasPermission('master.vehicle_brands.delete'))
+                        <a href="{{ route('vehicle-brands.trash') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bx bx-trash me-1"></i> Sampah
+                        </a>
+                    @endif
+                    @if(auth()->user()->hasPermission('master.vehicle_brands.create'))
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btn-tambah-vehicle-brand" data-bs-toggle="modal" data-bs-target="#vehicle-brand-modal">
+                            <i class="bx bx-plus me-1"></i> Tambah Merek Kendaraan
+                        </button>
+                    @endif
+                </div>
             </x-slot:actions>
         </x-table>
     </div>
@@ -31,7 +38,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="vehicle-brand-modal-title">Tambah Vehicle Brand</h5>
+                    <h5 class="modal-title" id="vehicle-brand-modal-title">Tambah Merek Kendaraan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -49,7 +56,7 @@
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Detail Vehicle Brand</h5>
+                    <h5 class="modal-title">Detail Merek Kendaraan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body"></div>
@@ -88,7 +95,7 @@
         form.action = createUrl;
         document.getElementById('vehicle-brand-form-method').value = '';
         document.getElementById('vehicle-brand-form-action').value = createUrl;
-        document.getElementById('vehicle-brand-modal-title').textContent = 'Tambah Vehicle Brand';
+        document.getElementById('vehicle-brand-modal-title').textContent = 'Tambah Merek Kendaraan';
         form.querySelector('[type="submit"]').textContent = createLabel;
         getPond()?.removeFiles();
     }
@@ -98,10 +105,9 @@
         form.action = d.updateUrl;
         document.getElementById('vehicle-brand-form-method').value = 'PUT';
         document.getElementById('vehicle-brand-form-action').value = d.updateUrl;
-        document.getElementById('vehicle-brand-modal-title').textContent = 'Edit Vehicle Brand: ' + d.name;
+        document.getElementById('vehicle-brand-modal-title').textContent = 'Ubah Merek Kendaraan: ' + d.name;
         form.querySelector('[type="submit"]').textContent = 'Perbarui';
 
-        setField('code', d.code);
         setField('name', d.name);
         setField('descriptions', d.descriptions);
 
@@ -149,7 +155,7 @@
                 const form = getForm();
                 form.action = @json(old('_form_action'));
                 document.getElementById('vehicle-brand-form-method').value = 'PUT';
-                document.getElementById('vehicle-brand-modal-title').textContent = 'Edit Vehicle Brand: ' + @json(old('name'));
+                document.getElementById('vehicle-brand-modal-title').textContent = 'Ubah Merek Kendaraan: ' + @json(old('name'));
                 form.querySelector('[type="submit"]').textContent = 'Perbarui';
             })();
         @endif

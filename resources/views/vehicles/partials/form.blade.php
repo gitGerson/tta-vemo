@@ -1,19 +1,19 @@
 @php
     $vehicle = $vehicle ?? null;
     $statusOptions = [
-        'ACTIVE' => 'ACTIVE',
-        'PASSIVE' => 'PASSIVE',
+        'ACTIVE' => 'Aktif',
+        'PASSIVE' => 'Pasif',
     ];
     $yesNoOptions = [
-        'NO' => 'NO',
-        'YES' => 'YES',
+        'NO' => 'Tidak',
+        'YES' => 'Ya',
     ];
     // Explicit value/label list: a ['0' => ..., '1' => ...] map collapses to a PHP
     // list (numeric keys), which <x-form.select> reads as value=label and would
     // submit "Yes"/"No" instead of 1/0, breaking the boolean validation.
     $privateOptions = [
-        ['value' => '1', 'label' => 'Yes'],
-        ['value' => '0', 'label' => 'No'],
+        ['value' => '1', 'label' => 'Ya'],
+        ['value' => '0', 'label' => 'Tidak'],
     ];
     $companyOptions = ($companies ?? collect())->mapWithKeys(fn ($company) => [
         $company->id => "{$company->name} ({$company->code})",
@@ -38,7 +38,7 @@
     <h6 class="fw-semibold mb-3"><i class="bx bx-car me-1 text-primary"></i> Informasi Kendaraan</h6>
     <div class="row g-3">
         <div class="col-md-6">
-            <x-form.select name="vehicle_type_id" label="Tipe" :options="$vehicleTypeOptions" :value="$vehicle?->vehicle_type_id" placeholder="Pilih tipe kendaraan..." inputClass="form-select-sm" />
+            <x-form.select name="vehicle_type_id" label="Tipe" :options="$vehicleTypeOptions" :value="$vehicle?->vehicle_type_id" placeholder="Pilih tipe kendaraan..." mode="select2" inputClass="form-select-sm" />
             <input type="hidden" name="type" value="{{ old('type', $vehicle?->type) }}">
         </div>
 
@@ -47,11 +47,11 @@
         </div>
 
         <div class="col-md-6">
-            <x-form.select name="vehicle_brand_id" label="Brand" :options="$vehicleBrandOptions" :value="$vehicle?->vehicle_brand_id" placeholder="Pilih brand kendaraan..." inputClass="form-select-sm" />
+            <x-form.select name="vehicle_brand_id" label="Merek" :options="$vehicleBrandOptions" :value="$vehicle?->vehicle_brand_id" placeholder="Pilih merek kendaraan..." mode="select2" inputClass="form-select-sm" />
         </div>
 
         <div class="col-md-6">
-            <x-form.select name="company_id" label="Perusahaan" :options="$companyOptions" :value="$vehicle?->company_id" placeholder="Pilih perusahaan..." inputClass="form-select-sm" />
+            <x-form.select name="company_id" label="Perusahaan" :options="$companyOptions" :value="$vehicle?->company_id" placeholder="Pilih perusahaan..." mode="select2" inputClass="form-select-sm" />
         </div>
 
         <div class="col-md-6">
@@ -63,7 +63,7 @@
         </div>
 
         <div class="col-md-6">
-            <x-form.select name="fuel_type_id" label="Bahan Bakar" :options="$fuelTypeOptions" :value="$vehicle?->fuel_type_id" placeholder="Pilih bahan bakar..." inputClass="form-select-sm" />
+            <x-form.select name="fuel_type_id" label="Bahan Bakar" :options="$fuelTypeOptions" :value="$vehicle?->fuel_type_id" placeholder="Pilih bahan bakar..." mode="select2" inputClass="form-select-sm" />
             <input type="hidden" name="fuel_type" value="{{ old('fuel_type', $vehicle?->fuel_type ?? 'BBM') }}">
         </div>
     </div>
@@ -77,11 +77,11 @@
         </div>
 
         <div class="col-md-4">
-            <x-form.select name="mtc" label="Maintenance" :options="$yesNoOptions" :value="$vehicle?->mtc ?? 'NO'" inputClass="form-select-sm" required />
+            <x-form.select name="mtc" label="Pemeliharaan" :options="$yesNoOptions" :value="$vehicle?->mtc ?? 'NO'" inputClass="form-select-sm" required />
         </div>
 
         <div class="col-md-4">
-            <x-form.select name="isprivate" label="Private" :options="$privateOptions" option-value="value" option-label="label" :value="(string) (int) ($vehicle?->isprivate ?? false)" inputClass="form-select-sm" required />
+            <x-form.select name="isprivate" label="Kepemilikan" :options="$privateOptions" option-value="value" option-label="label" :value="(string) (int) ($vehicle?->isprivate ?? false)" inputClass="form-select-sm" required />
         </div>
     </div>
 
@@ -111,11 +111,11 @@
         </div>
 
         <div class="col-md-3">
-            <x-form.date name="purchase_date" label="Tanggal Beli" :value="$vehicle?->purchase_date?->format('Y-m-d')" inputClass="form-control-sm" />
+            <x-form.date name="purchase_date" label="Tanggal Beli" :value="$vehicle?->purchase_date?->format('d-m-Y')" mode="daterangepicker" :single="true" :autoApply="true" format="DD-MM-YYYY" placeholder="Pilih tanggal..." inputClass="form-control-sm" />
         </div>
 
         <div class="col-md-3">
-            <x-form.date name="sale_date" label="Tanggal Jual" :value="$vehicle?->sale_date?->format('Y-m-d')" inputClass="form-control-sm" />
+            <x-form.date name="sale_date" label="Tanggal Jual" :value="$vehicle?->sale_date?->format('d-m-Y')" mode="daterangepicker" :single="true" :autoApply="true" format="DD-MM-YYYY" placeholder="Pilih tanggal..." inputClass="form-control-sm" />
         </div>
     </div>
 
@@ -123,16 +123,25 @@
 
     <h6 class="fw-semibold mb-3"><i class="bx bx-file me-1 text-primary"></i> Dokumen</h6>
     <div class="row g-3">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <x-form.file name="bpkb_image" label="Foto BPKB" mode="filepond" multiple accept="image/*"
                 :acceptedFileTypes="['image/jpeg', 'image/png', 'image/gif', 'image/webp']" maxFileSize="2MB"
                 :existingFiles="$vehicle?->bpkbImageUrls() ?? []" />
+            <x-form.date name="bpkb_due_date" label="Tenggat Waktu BPKB" :value="$vehicle?->bpkb_due_date?->format('d-m-Y')" mode="daterangepicker" :single="true" :autoApply="true" format="DD-MM-YYYY" placeholder="Pilih tanggal..." inputClass="form-control-sm" />
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-4">
             <x-form.file name="stnk_image" label="Foto STNK" mode="filepond" multiple accept="image/*"
                 :acceptedFileTypes="['image/jpeg', 'image/png', 'image/gif', 'image/webp']" maxFileSize="2MB"
                 :existingFiles="$vehicle?->stnkImageUrls() ?? []" />
+            <x-form.date name="stnk_due_date" label="Tenggat Waktu STNK" :value="$vehicle?->stnk_due_date?->format('d-m-Y')" mode="daterangepicker" :single="true" :autoApply="true" format="DD-MM-YYYY" placeholder="Pilih tanggal..." inputClass="form-control-sm" />
+        </div>
+
+        <div class="col-md-4">
+            <x-form.file name="kir_image" label="Foto KIR" mode="filepond" multiple accept="image/*"
+                :acceptedFileTypes="['image/jpeg', 'image/png', 'image/gif', 'image/webp']" maxFileSize="2MB"
+                :existingFiles="$vehicle?->kirImageUrls() ?? []" />
+            <x-form.date name="kir_due_date" label="Tenggat Waktu KIR" :value="$vehicle?->kir_due_date?->format('d-m-Y')" mode="daterangepicker" :single="true" :autoApply="true" format="DD-MM-YYYY" placeholder="Pilih tanggal..." inputClass="form-control-sm" />
         </div>
     </div>
 

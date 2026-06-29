@@ -20,9 +20,11 @@ class ServiceReminderService
      *
      * @return Collection<int, array<string, mixed>>
      */
-    public function dueVehicles(): Collection
+    public function dueVehicles(?int $companyId = null): Collection
     {
-        $vehicles = Vehicle::where('status', 'ACTIVE')->get(['id', 'plat_new', 'mileage']);
+        $vehicles = Vehicle::where('status', 'ACTIVE')
+            ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
+            ->get(['id', 'plat_new', 'mileage']);
 
         $routineByPlate = Maintenance::where('isServiceRoutine', true)
             ->where('status', Maintenance::STATUS_COMPLETED)

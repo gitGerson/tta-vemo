@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToCompanyTenant;
+use App\Models\Concerns\GeneratesCode;
+use App\Models\Concerns\HasDiffrntHashId;
+use App\Support\S3Url;
 use Database\Factories\VehicleInsuranceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,9 +17,61 @@ use Illuminate\Validation\Rule;
 class VehicleInsurance extends Model
 {
     /** @use HasFactory<VehicleInsuranceFactory> */
-    use BelongsToCompanyTenant, HasFactory, SoftDeletes;
+    use BelongsToCompanyTenant, GeneratesCode, HasDiffrntHashId, HasFactory, SoftDeletes;
 
     protected $table = 'vehicle_insurances';
+
+    /**
+     * Allowed insurance types, keyed by stored value => display label.
+     */
+    public const INSURANCE_TYPES = [
+        'TLO' => 'TLO (Total Loss Only)',
+        'All Risk' => 'ALL RISK',
+    ];
+
+    /**
+     * Form fields that are individually gated by a per-field permission.
+     *
+     * @var array<int, string>
+     */
+    public const FORM_FIELDS = [
+        'vehicle_id',
+        'insurer_name',
+        'policy_number',
+        'insurance_type',
+        'start_date',
+        'end_date',
+        'coverage_value',
+        'premium',
+        'notes',
+        'attachments',
+    ];
+
+    /**
+     * Permission name that gates filling the given form field.
+     */
+    public static function fieldPermission(string $field): string
+    {
+        return "master.vehicle_insurances.fields.{$field}";
+    }
+
+    /**
+     * The subset of form fields the given user is allowed to fill.
+     *
+     * @return array<int, string>
+     */
+    public static function permittedFields(?User $user): array
+    {
+        return array_values(array_filter(
+            self::FORM_FIELDS,
+            fn (string $field): bool => $user?->hasPermission(self::fieldPermission($field)) ?? false,
+        ));
+    }
+
+    protected function codePrefix(): string
+    {
+        return 'INS';
+    }
 
     protected static function booted(): void
     {
@@ -48,6 +103,7 @@ class VehicleInsurance extends Model
         'coverage_value',
         'premium',
         'notes',
+        'attachments',
     ];
 
     protected function casts(): array
@@ -57,6 +113,7 @@ class VehicleInsurance extends Model
             'end_date' => 'date',
             'coverage_value' => 'decimal:2',
             'premium' => 'decimal:2',
+            'attachments' => 'array',
             'deleted_at' => 'datetime',
         ];
     }
@@ -64,23 +121,22 @@ class VehicleInsurance extends Model
     public static function validationRules(?self $insurance = null): array
     {
         return [
-            'code' => ['required', 'string', 'max:50', Rule::unique('vehicle_insurances', 'code')->ignore($insurance)->withoutTrashed()],
             'vehicle_id' => ['required', 'integer', Rule::exists(Vehicle::class, 'id'), self::vehicleBelongsToTenantRule()],
             'insurer_name' => ['required', 'string', 'max:255'],
             'policy_number' => ['required', 'string', 'max:255'],
-            'insurance_type' => ['required', 'string', 'max:255'],
+            'insurance_type' => ['required', 'string', Rule::in(array_keys(self::INSURANCE_TYPES))],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'coverage_value' => ['nullable', 'numeric', 'min:0'],
             'premium' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string'],
+            'attachments' => ['nullable', 'array'],
         ];
     }
 
     public static function validationMessages(): array
     {
         return [
-            'code.unique' => 'Kode asuransi sudah tersedia.',
             'end_date.after_or_equal' => 'Tanggal berakhir tidak boleh sebelum tanggal mulai.',
         ];
     }
@@ -112,5 +168,36 @@ class VehicleInsurance extends Model
     public function snapshots(): HasMany
     {
         return $this->hasMany(VehicleInsuranceSnapshot::class)->latest();
+    }
+
+    /**
+     * Pre-signed temporary URLs for each stored attachment.
+     *
+     * @return array<int, string>
+     */
+    public function attachmentUrls(): array
+    {
+        return collect($this->attachments ?? [])
+            ->filter()
+            ->map(fn (string $path): string => S3Url::temporary($path))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Stored attachments paired with a display name (its file basename).
+     *
+     * @return array<int, array{name: string, url: string}>
+     */
+    public function attachmentFiles(): array
+    {
+        return collect($this->attachments ?? [])
+            ->filter()
+            ->map(fn (string $path): array => [
+                'name' => basename($path),
+                'url' => S3Url::temporary($path),
+            ])
+            ->values()
+            ->all();
     }
 }

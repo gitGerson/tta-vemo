@@ -27,7 +27,11 @@
             <div class="col-lg-4 col-md-5">
                 <div class="card mb-4">
                     <div class="card-body text-center">
-                        <span class="badge bg-label-primary rounded p-4 mb-3"><i class="bx bx-buildings" style="font-size: 3rem;"></i></span>
+                        @if($company->imageUrl())
+                            <img src="{{ $company->imageUrl() }}" alt="Logo {{ $company->name }}" class="rounded mb-3" style="height: 96px; width: 96px; object-fit: contain;">
+                        @else
+                            <span class="badge bg-label-primary rounded p-4 mb-3"><i class="bx bx-buildings" style="font-size: 3rem;"></i></span>
+                        @endif
                         <h4 class="mb-1">{{ $company->name }}</h4>
                         <div class="d-flex flex-wrap justify-content-center gap-1 mb-3">
                             <span class="badge bg-label-primary">{{ $company->code }}</span>
@@ -109,7 +113,14 @@
                             </div>
                         </div>
                         <div class="row g-3">
-                            <div class="col-12"><small class="text-muted text-uppercase d-block">Gambar</small><span class="fw-medium">{{ $company->image ?: '-' }}</span></div>
+                            <div class="col-12">
+                                <small class="text-muted text-uppercase d-block mb-2">Gambar</small>
+                                @if($company->imageUrl())
+                                    <img src="{{ $company->imageUrl() }}" alt="Logo {{ $company->name }}" class="img-fluid rounded border" style="max-height: 160px;">
+                                @else
+                                    <span class="fw-medium">-</span>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>

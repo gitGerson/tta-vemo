@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\DataTables\MaintenanceDailyReportDataTable;
+use App\DataTables\MaintenanceMonthlyAnalysisDataTable;
 use App\DataTables\MaintenanceYearReportDataTable;
 use App\DataTables\RecordDailyReportDataTable;
+use App\DataTables\RecordMonthlyAnalysisDataTable;
 use App\DataTables\RecordMonthlyReportDataTable;
+use App\Exports\MaintenanceMonthlyAnalysisExport;
+use App\Exports\RecordMonthlyAnalysisExport;
 use App\Models\Company;
 use App\Models\Maintenance;
 use App\Models\MaintenanceDetail;
@@ -13,9 +17,11 @@ use App\Models\Record;
 use App\Models\Vehicle;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
@@ -35,8 +41,7 @@ class ReportController extends Controller
         return view('reports.record.daily', [
             'category' => $category,
             'table' => new RecordDailyReportDataTable($records, Vehicle::all(), $category),
-            'company' => Company::all(),
-            'defaluteCompany' => $this->defaultCompany(),
+            'company' => $this->selectableCompanies(),
             'QueryCompany' => $companyId,
         ]);
     }
@@ -53,11 +58,74 @@ class ReportController extends Controller
 
         return view('reports.record.monthly', [
             'table' => new RecordMonthlyReportDataTable($records, $vehicles),
-            'company' => Company::all(),
+            'company' => $this->selectableCompanies(),
             'vehicles' => $vehicles,
             'date' => $dateString,
-            'defaluteCompany' => $this->defaultCompany(),
+            'companyId' => $companyId,
         ]);
+    }
+
+    public function analysisMonthly(Request $request)
+    {
+        $dateString = $request->query('date', Carbon::now()->format('Y-m'));
+        $date = Carbon::parse($dateString.'-01');
+        $companyId = $this->resolveCompanyId($request);
+        $unit = $request->query('unit');
+
+        // Empty by default: no data is shown until a company is selected.
+        $rows = $companyId !== null
+            ? $this->fetchMonthlyAnalysis($date, $companyId, $unit)
+            : new Collection;
+
+        return view('reports.record.analysis-monthly', [
+            'table' => new RecordMonthlyAnalysisDataTable($rows),
+            'company' => $this->selectableCompanies(),
+            'vehicles' => Vehicle::all(),
+            'date' => $dateString,
+            'companyId' => $companyId,
+        ]);
+    }
+
+    public function analysisMonthlyPdf(Request $request)
+    {
+        $dateString = $request->query('date', Carbon::now()->format('Y-m'));
+        $date = Carbon::parse($dateString.'-01');
+        $companyId = $this->resolvePrintableCompanyId($request);
+        $unit = $request->query('unit');
+
+        if ($companyId === null) {
+            return $this->missingPrintableCompanyResponse();
+        }
+
+        $rows = $this->fetchMonthlyAnalysis($date, $companyId, $unit);
+
+        $pdf = Pdf::loadView('reports.pdf.analysis-monthly', [
+            'rows' => $rows,
+            'date' => $date,
+            'unit' => $unit,
+            'company' => Company::find($companyId),
+        ])->setPaper('A4', 'portrait');
+
+        return $pdf->download("analisa_bulanan_bbm_{$date->format('Y_m')}.pdf");
+    }
+
+    public function analysisMonthlyExcel(Request $request)
+    {
+        $dateString = $request->query('date', Carbon::now()->format('Y-m'));
+        $date = Carbon::parse($dateString.'-01');
+        $companyId = $this->resolvePrintableCompanyId($request);
+        $unit = $request->query('unit');
+
+        if ($companyId === null) {
+            return $this->missingPrintableCompanyResponse();
+        }
+
+        $rows = $this->fetchMonthlyAnalysis($date, $companyId, $unit);
+
+        return Excel::download(
+            new RecordMonthlyAnalysisExport($rows, Company::find($companyId), $date, $unit),
+            "analisa_bulanan_bbm_{$date->format('Y_m')}.xlsx"
+        );
     }
 
     public function maintenancesDaily(Request $request)
@@ -65,15 +133,17 @@ class ReportController extends Controller
         $startDate = Carbon::parse($request->query('start_date', Carbon::now()->startOfMonth()->toDateString()))->toDateString();
         $endDate = Carbon::parse($request->query('end_date', Carbon::now()->toDateString()))->toDateString();
         $unitPlate = $request->query('unit');
-        $companyId = $request->query('company') ? (int) $request->query('company') : null;
+        $companyId = $this->resolveCompanyId($request);
 
         $unit = $unitPlate
-            ? Vehicle::where('plat_new', $unitPlate)->first()
+            ? Vehicle::where('plat_new', $unitPlate)
+                ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
+                ->first()
             : null;
 
         $table = null;
         if ($unitPlate) {
-            $table = new MaintenanceDailyReportDataTable($this->fetchMaintenanceDetails($unitPlate, $startDate, $endDate));
+            $table = new MaintenanceDailyReportDataTable($this->fetchMaintenanceDetails($unitPlate, $startDate, $endDate, $companyId));
         }
 
         return view('reports.maintenances.daily', [
@@ -94,13 +164,17 @@ class ReportController extends Controller
         $startDate = $month->copy()->startOfMonth()->toDateString();
         $endDate = $month->copy()->endOfMonth()->toDateString();
         $unitPlate = $request->query('unit');
-        $companyId = $request->query('company') ? (int) $request->query('company') : null;
+        $companyId = $this->resolveCompanyId($request);
 
-        $unit = $unitPlate ? Vehicle::where('plat_new', $unitPlate)->first() : null;
+        $unit = $unitPlate
+            ? Vehicle::where('plat_new', $unitPlate)
+                ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
+                ->first()
+            : null;
 
         $table = null;
         if ($unitPlate) {
-            $table = new MaintenanceDailyReportDataTable($this->fetchMaintenanceDetails($unitPlate, $startDate, $endDate));
+            $table = new MaintenanceDailyReportDataTable($this->fetchMaintenanceDetails($unitPlate, $startDate, $endDate, $companyId));
         }
 
         return view('reports.maintenances.monthly', [
@@ -113,10 +187,73 @@ class ReportController extends Controller
         ]);
     }
 
+    public function analysisMaintenancesMonthly(Request $request)
+    {
+        $dateString = $request->query('date', Carbon::now()->format('Y-m'));
+        $date = Carbon::parse($dateString.'-01');
+        $companyId = $this->resolveCompanyId($request);
+        $unit = $request->query('unit');
+
+        // Empty by default: no data is shown until a company is selected.
+        $rows = $companyId !== null
+            ? $this->fetchMonthlyMaintenanceAnalysis($date, $companyId, $unit)
+            : new Collection;
+
+        return view('reports.maintenances.analysis-monthly', [
+            'table' => new MaintenanceMonthlyAnalysisDataTable($rows),
+            'companies' => $this->selectableCompanies(),
+            'vehicles' => Vehicle::all(),
+            'date' => $dateString,
+            'companyId' => $companyId,
+        ]);
+    }
+
+    public function analysisMaintenancesMonthlyPdf(Request $request)
+    {
+        $dateString = $request->query('date', Carbon::now()->format('Y-m'));
+        $date = Carbon::parse($dateString.'-01');
+        $companyId = $this->resolvePrintableCompanyId($request);
+        $unit = $request->query('unit');
+
+        if ($companyId === null) {
+            return $this->missingPrintableCompanyResponse();
+        }
+
+        $rows = $this->fetchMonthlyMaintenanceAnalysis($date, $companyId, $unit);
+
+        $pdf = Pdf::loadView('reports.pdf.analysis-maintenances-monthly', [
+            'rows' => $rows,
+            'date' => $date,
+            'unit' => $unit,
+            'company' => Company::find($companyId),
+        ])->setPaper('A4', 'portrait');
+
+        return $pdf->download("analisa_bulanan_pemeliharaan_{$date->format('Y_m')}.pdf");
+    }
+
+    public function analysisMaintenancesMonthlyExcel(Request $request)
+    {
+        $dateString = $request->query('date', Carbon::now()->format('Y-m'));
+        $date = Carbon::parse($dateString.'-01');
+        $companyId = $this->resolvePrintableCompanyId($request);
+        $unit = $request->query('unit');
+
+        if ($companyId === null) {
+            return $this->missingPrintableCompanyResponse();
+        }
+
+        $rows = $this->fetchMonthlyMaintenanceAnalysis($date, $companyId, $unit);
+
+        return Excel::download(
+            new MaintenanceMonthlyAnalysisExport($rows, Company::find($companyId), $date, $unit),
+            "analisa_bulanan_pemeliharaan_{$date->format('Y_m')}.xlsx"
+        );
+    }
+
     public function maintenancesYear(Request $request)
     {
         $year = $request->query('year', Carbon::now()->year);
-        $companyId = $request->query('company') ? (int) $request->query('company') : null;
+        $companyId = $this->resolveCompanyId($request);
 
         [$mtc, $vehicles] = $this->fetchYearlyMaintenance($year, $companyId);
 
@@ -131,7 +268,11 @@ class ReportController extends Controller
     {
         $category = strtoupper($request->query('category', 'KESELURUHAN'));
         $date = Carbon::parse($request->query('date', Carbon::now()->toDateString()))->toDateString();
-        $companyId = $this->resolveCompanyId($request);
+        $companyId = $this->resolvePrintableCompanyId($request);
+
+        if ($companyId === null) {
+            return $this->missingPrintableCompanyResponse();
+        }
 
         $records = Record::query()
             ->whereDate('date', $date)
@@ -156,8 +297,12 @@ class ReportController extends Controller
     {
         $dateString = $request->query('date', Carbon::now()->format('Y-m'));
         $date = Carbon::parse($dateString.'-01');
-        $companyId = $this->resolveCompanyId($request);
+        $companyId = $this->resolvePrintableCompanyId($request);
         $unit = $request->query('unit');
+
+        if ($companyId === null) {
+            return $this->missingPrintableCompanyResponse();
+        }
 
         $records = $this->fetchMonthlyRecords($date, $companyId, $unit);
 
@@ -174,16 +319,23 @@ class ReportController extends Controller
 
     public function maintenancesDailyPdf(Request $request)
     {
+        $companyId = $this->resolvePrintableCompanyId($request);
         $startDate = Carbon::parse($request->query('start_date', Carbon::now()->startOfMonth()->toDateString()))->toDateString();
         $endDate = Carbon::parse($request->query('end_date', Carbon::now()->toDateString()))->toDateString();
         $unitPlate = $request->query('unit');
 
+        if ($companyId === null) {
+            return $this->missingPrintableCompanyResponse();
+        }
+
         $unit = $unitPlate
-            ? Vehicle::where('plat_new', $unitPlate)->first()
+            ? Vehicle::where('plat_new', $unitPlate)
+                ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
+                ->first()
             : null;
 
         $detailMtc = $unitPlate
-            ? $this->fetchMaintenanceDetails($unitPlate, $startDate, $endDate)
+            ? $this->fetchMaintenanceDetails($unitPlate, $startDate, $endDate, $companyId)
             : collect();
 
         $pdf = Pdf::loadView('reports.pdf.maintenances-daily', [
@@ -198,14 +350,23 @@ class ReportController extends Controller
 
     public function maintenancesMonthlyPdf(Request $request)
     {
+        $companyId = $this->resolvePrintableCompanyId($request);
         $dateString = $request->query('date', Carbon::now()->format('Y-m'));
         $month = Carbon::parse($dateString.'-01');
         $startDate = $month->copy()->startOfMonth()->toDateString();
         $endDate = $month->copy()->endOfMonth()->toDateString();
         $unitPlate = $request->query('unit');
 
-        $unit = $unitPlate ? Vehicle::where('plat_new', $unitPlate)->first() : null;
-        $detailMtc = $unitPlate ? $this->fetchMaintenanceDetails($unitPlate, $startDate, $endDate) : collect();
+        if ($companyId === null) {
+            return $this->missingPrintableCompanyResponse();
+        }
+
+        $unit = $unitPlate
+            ? Vehicle::where('plat_new', $unitPlate)
+                ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
+                ->first()
+            : null;
+        $detailMtc = $unitPlate ? $this->fetchMaintenanceDetails($unitPlate, $startDate, $endDate, $companyId) : collect();
 
         $pdf = Pdf::loadView('reports.pdf.maintenances-daily', [
             'start_date' => $startDate,
@@ -220,7 +381,12 @@ class ReportController extends Controller
     public function maintenancesYearPdf(Request $request)
     {
         $year = (int) $request->query('year', Carbon::now()->year);
-        $companyId = $request->query('company') ? (int) $request->query('company') : null;
+        $companyId = $this->resolvePrintableCompanyId($request);
+
+        if ($companyId === null) {
+            return $this->missingPrintableCompanyResponse();
+        }
+
         [$mtc, $vehicles] = $this->fetchYearlyMaintenance($year, $companyId);
 
         $pdf = Pdf::loadView('reports.pdf.maintenances-year', [
@@ -232,10 +398,15 @@ class ReportController extends Controller
         return $pdf->download("laporan_pemeliharaan_tahunan_{$year}.pdf");
     }
 
-    public function maintenancesYearExcel(Request $request): StreamedResponse
+    public function maintenancesYearExcel(Request $request): StreamedResponse|RedirectResponse
     {
         $year = $request->query('year', Carbon::now()->year);
-        $companyId = $request->query('company') ? (int) $request->query('company') : null;
+        $companyId = $this->resolvePrintableCompanyId($request);
+
+        if ($companyId === null) {
+            return $this->missingPrintableCompanyResponse();
+        }
+
         [$mtc, $vehicles] = $this->fetchYearlyMaintenance($year, $companyId);
 
         $header = ['KENDARAAN', 'TAHUN MASUK'];
@@ -298,19 +469,32 @@ class ReportController extends Controller
     private function resolveCompanyId(Request $request): ?int
     {
         $companyId = $request->query('company');
-        if ($companyId) {
-            return (int) $companyId;
+        if ($companyId === null || $companyId === '') {
+            return null;
         }
 
-        return $this->defaultCompany()?->id;
+        return (int) $companyId;
     }
 
-    private function defaultCompany(): ?Company
+    private function resolvePrintableCompanyId(Request $request): ?int
     {
-        return Company::where('code', 'TTI')->first() ?? Company::first();
+        $companyId = $this->resolveCompanyId($request);
+
+        if ($companyId === null) {
+            return null;
+        }
+
+        return Company::query()->whereKey($companyId)->exists() ? $companyId : null;
     }
 
-    private function fetchMaintenanceDetails(string $plate, string $startDate, string $endDate): Collection
+    private function missingPrintableCompanyResponse(): RedirectResponse
+    {
+        return back()
+            ->withInput()
+            ->withErrors(['company' => 'Pilih satu perusahaan untuk mencetak.']);
+    }
+
+    private function fetchMaintenanceDetails(string $plate, string $startDate, string $endDate, ?int $companyId = null): Collection
     {
         return MaintenanceDetail::query()
             ->select([
@@ -329,6 +513,7 @@ class ReportController extends Controller
             ])
             ->join('maintenances', 'maintenances.id', '=', 'maintenances_details.maintenance_id')
             ->where('maintenances.no_pol', $plate)
+            ->when($companyId, fn ($query) => $query->where('maintenances.company_id', $companyId))
             ->where('maintenances.status', Maintenance::STATUS_COMPLETED)
             ->whereBetween(DB::raw('COALESCE(maintenances.date_out, maintenances.date_in)'), [$startDate, $endDate])
             ->orderByRaw('COALESCE(maintenances.date_out, maintenances.date_in) ASC')
@@ -373,5 +558,74 @@ class ReportController extends Controller
             ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
             ->orderBy('date')
             ->get();
+    }
+
+    /**
+     * Aggregate a month's fuel records into one summary row per vehicle (nopol):
+     * trip count, total KM, total liters, total rupiah, and km/liter consumption.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function fetchMonthlyAnalysis(Carbon $date, ?int $companyId, ?string $unit): Collection
+    {
+        $records = $this->fetchMonthlyRecords($date, $companyId, $unit);
+
+        $typeByPlate = Vehicle::query()
+            ->whereNotNull('plat_new')
+            ->pluck('type', 'plat_new');
+
+        return $records
+            ->groupBy('no_pol')
+            ->map(function (Collection $group, $noPol) use ($typeByPlate): array {
+                $totalKm = $group->sum(fn ($record) => (float) ($record->totals ?? 0));
+                $totalLiter = $group->sum(fn ($record) => (float) ($record->bbm ?? 0));
+                $totalIdr = $group->sum(fn ($record) => (float) ($record->idr ?? 0));
+
+                return [
+                    'no_pol' => $noPol,
+                    'jenis' => $typeByPlate->get($noPol) ?: '-',
+                    'trip' => $group->count(),
+                    'total_km' => $totalKm,
+                    'total_liter' => $totalLiter,
+                    'total_idr' => $totalIdr,
+                    'km_per_liter' => $totalLiter > 0 ? $totalKm / $totalLiter : 0.0,
+                ];
+            })
+            ->sortBy('no_pol')
+            ->values();
+    }
+
+    /**
+     * Aggregate a month's COMPLETED maintenances into one summary row per vehicle
+     * (nopol): maintenance count and total cost (total_amount).
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function fetchMonthlyMaintenanceAnalysis(Carbon $date, ?int $companyId, ?string $unit): Collection
+    {
+        $startDate = $date->copy()->startOfMonth()->toDateString();
+        $endDate = $date->copy()->endOfMonth()->toDateString();
+
+        $maintenances = Maintenance::query()
+            ->where('status', Maintenance::STATUS_COMPLETED)
+            ->when($unit, fn ($query) => $query->where('no_pol', $unit))
+            ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
+            ->whereBetween(DB::raw('COALESCE(date_out, date_in)'), [$startDate, $endDate])
+            ->get(['no_pol', 'total_amount']);
+
+        $typeByPlate = Vehicle::query()
+            ->whereNotNull('plat_new')
+            ->pluck('type', 'plat_new');
+
+        return $maintenances
+            ->groupBy('no_pol')
+            ->map(fn (Collection $group, $noPol): array => [
+                'no_pol' => $noPol,
+                'jenis' => $typeByPlate->get($noPol) ?: '-',
+                'maintenance_count' => $group->count(),
+                'total_cost' => $group->sum(fn ($maintenance) => (float) ($maintenance->total_amount ?? 0)),
+            ])
+            ->sortBy('no_pol')
+            ->values();
     }
 }

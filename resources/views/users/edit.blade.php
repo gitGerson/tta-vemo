@@ -1,7 +1,7 @@
 @extends('layouts.sneat')
 
 @section('title')
-    Edit User - {{ $user->name }}
+    Ubah Pengguna - {{ $user->name }}
 @endsection
 
 @section('content')
@@ -67,20 +67,22 @@
                             @method('PUT')
 
                             <div class="mb-3">
-                                <label for="company_ids" class="form-label">Perusahaan</label>
-                                <select name="company_ids[]" id="company_ids" class="form-select @error('company_ids') is-invalid @enderror @error('company_ids.*') is-invalid @enderror" multiple>
+                                <x-form.select
+                                    name="company_ids"
+                                    id="company_ids"
+                                    label="Perusahaan"
+                                    mode="select2"
+                                    multiple
+                                    placeholder="Pilih perusahaan..."
+                                    :inputClass="$errors->has('company_ids.*') ? 'is-invalid' : null"
+                                >
                                     @foreach($companies as $company)
                                         <option value="{{ $company->id }}" @selected(in_array($company->id, old('company_ids', $user->companies->pluck('id')->all())))>
                                             {{ $company->name }} ({{ $company->code }})
                                         </option>
                                     @endforeach
-                                </select>
-                                @error('company_ids')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                @error('company_ids.*')
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
+                                </x-form.select>
+                                <x-form.error name="company_ids.*" />
                             </div>
 
                             <button type="submit" class="btn btn-primary btn-sm">
@@ -182,7 +184,7 @@
 
                             <div class="d-flex justify-content-end">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="bx bx-save me-1"></i> Save Permissions
+                                    <i class="bx bx-save me-1"></i> Simpan Izin
                                 </button>
                             </div>
                         </form>

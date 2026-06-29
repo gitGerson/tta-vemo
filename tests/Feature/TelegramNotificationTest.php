@@ -94,7 +94,7 @@ class TelegramNotificationTest extends TestCase
         $this->assertSame(1, TelegramNotificationLog::where('user_id', $user->id)->count());
     }
 
-    public function test_dispatch_skips_users_without_linked_telegram(): void
+    public function test_dispatch_skips_telegram_for_users_without_linked_telegram(): void
     {
         Notification::fake();
 
@@ -105,7 +105,7 @@ class TelegramNotificationTest extends TestCase
 
         $this->artisan('telegram:dispatch-reminders')->assertSuccessful();
 
-        Notification::assertNothingSentTo($user);
+        Notification::assertNotSentTo($user, ReminderTelegramNotification::class);
     }
 
     private function makeExpiringInsurance(Company $company, int $daysFromNow): VehicleInsurance

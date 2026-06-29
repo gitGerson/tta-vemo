@@ -15,11 +15,18 @@
 
         <x-table :table="$table" engine="tabulator" title="Daftar Perusahaan">
             <x-slot:actions>
-                @if(auth()->user()->hasPermission('master.companies.create'))
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="btn-tambah-company" data-bs-toggle="modal" data-bs-target="#company-modal">
-                        <i class="bx bx-plus me-1"></i> Tambah Perusahaan
-                    </button>
-                @endif
+                <div class="d-flex gap-2">
+                    @if(auth()->user()->hasPermission('master.companies.delete'))
+                        <a href="{{ route('companies.trash') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bx bx-trash me-1"></i> Sampah
+                        </a>
+                    @endif
+                    @if(auth()->user()->hasPermission('master.companies.create'))
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btn-tambah-company" data-bs-toggle="modal" data-bs-target="#company-modal">
+                            <i class="bx bx-plus me-1"></i> Tambah Perusahaan
+                        </button>
+                    @endif
+                </div>
             </x-slot:actions>
         </x-table>
     </div>
@@ -62,6 +69,21 @@
         if (el) el.value = value ?? '';
     }
 
+    // FilePond reads its existing file from the input's data attribute at init
+    // time, so the image must be configured before form:enhance (re)builds the
+    // pond. Destroy any pond from a previous open so it re-inits with the new set.
+    function prepareImageInput(url) {
+        const input = getForm().querySelector('input[type="file"][data-filepond-enabled="1"]');
+        if (!input) return;
+
+        if (window.FilePond && window.FilePond.find(input)) {
+            window.FilePond.destroy(input);
+        }
+
+        delete input.dataset.filepondInitialized;
+        input.dataset.filepondExistingFiles = url ? JSON.stringify([url]) : '[]';
+    }
+
     function resetToCreate() {
         const form = getForm();
         form.reset();
@@ -77,18 +99,18 @@
         form.action = d.updateUrl;
         document.getElementById('company-form-method').value = 'PUT';
         document.getElementById('company-form-action').value = d.updateUrl;
-        document.getElementById('company-modal-title').textContent = 'Edit Perusahaan: ' + d.name;
+        document.getElementById('company-modal-title').textContent = 'Ubah Perusahaan: ' + d.name;
         form.querySelector('[type="submit"]').textContent = 'Perbarui';
 
-        setField('code', d.code);
         setField('name', d.name);
         setField('email', d.email);
         setField('phone', d.phone);
-        setField('image', d.image);
         setField('notes', d.notes);
     }
 
     modalEl.addEventListener('shown.bs.modal', function () {
+        prepareImageInput(pendingEditData ? pendingEditData.imageUrl : null);
+
         document.dispatchEvent(new Event('form:enhance'));
 
         if (pendingEditData) {
@@ -109,7 +131,7 @@
             name: btn.dataset.name,
             email: btn.dataset.email,
             phone: btn.dataset.phone,
-            image: btn.dataset.image,
+            imageUrl: btn.dataset.imageUrl,
             notes: btn.dataset.notes,
         };
 
@@ -122,7 +144,7 @@
                 const form = getForm();
                 form.action = @json(old('_form_action'));
                 document.getElementById('company-form-method').value = 'PUT';
-                document.getElementById('company-modal-title').textContent = 'Edit Perusahaan: ' + @json(old('name'));
+                document.getElementById('company-modal-title').textContent = 'Ubah Perusahaan: ' + @json(old('name'));
                 form.querySelector('[type="submit"]').textContent = 'Perbarui';
             })();
         @endif

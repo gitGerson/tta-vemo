@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToCompanyTenant;
+use App\Models\Concerns\HasDiffrntHashId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Maintenance extends Model
 {
-    use Auditable, BelongsToCompanyTenant, HasFactory, SoftDeletes;
+    use Auditable, BelongsToCompanyTenant, HasDiffrntHashId, HasFactory, SoftDeletes;
 
     protected $table = 'maintenances';
 

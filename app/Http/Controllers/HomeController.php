@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\Maintenance;
 use App\Models\Vehicle;
 use App\Services\DashboardMetricsService;
@@ -9,6 +10,9 @@ use App\Services\ServiceReminderService;
 use App\Services\VehicleInsuranceMonitorService;
 use App\Services\VehiclePhotoMonitorService;
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class HomeController extends Controller
 {
@@ -33,13 +37,23 @@ class HomeController extends Controller
      *
      * @return Renderable
      */
-    public function index(ServiceReminderService $serviceReminders, VehiclePhotoMonitorService $photoMonitor, VehicleInsuranceMonitorService $insuranceMonitor, DashboardMetricsService $metrics)
+    public function index(Request $request, ServiceReminderService $serviceReminders, VehiclePhotoMonitorService $photoMonitor, VehicleInsuranceMonitorService $insuranceMonitor, DashboardMetricsService $metrics)
     {
-        $activePlates = Vehicle::where('status', 'ACTIVE')->pluck('plat_new');
-        $passive = Vehicle::where('status', 'PASSIVE')->count();
+        $user = auth()->user();
+        $filters = $this->resolveDashboardFilters($request);
+        $selectedCompanyId = $filters['company_id'];
+        $selectedMonth = $filters['month'];
+
+        $activePlates = Vehicle::where('status', 'ACTIVE')
+            ->when($selectedCompanyId, fn ($query) => $query->where('company_id', $selectedCompanyId))
+            ->pluck('plat_new');
+        $passive = Vehicle::where('status', 'PASSIVE')
+            ->when($selectedCompanyId, fn ($query) => $query->where('company_id', $selectedCompanyId))
+            ->count();
 
         $draftPlates = Maintenance::where('status', Maintenance::STATUS_DRAFT)
             ->whereIn('no_pol', $activePlates)
+            ->when($selectedCompanyId, fn ($query) => $query->where('company_id', $selectedCompanyId))
             ->distinct()
             ->pluck('no_pol');
 
@@ -47,6 +61,7 @@ class HomeController extends Controller
             ->where('is_confirmed', false)
             ->whereIn('no_pol', $activePlates)
             ->whereNotIn('no_pol', $draftPlates)
+            ->when($selectedCompanyId, fn ($query) => $query->where('company_id', $selectedCompanyId))
             ->distinct()
             ->pluck('no_pol');
 
@@ -59,8 +74,8 @@ class HomeController extends Controller
             'active' => $activePlates->count(),
             'items' => [
                 [
-                    'label' => 'Operational',
-                    'sublabel' => 'Active, no open work',
+                    'label' => 'Operasional',
+                    'sublabel' => 'Aktif, tidak ada pekerjaan terbuka',
                     'count' => $operational,
                     'color' => 'success',
                     'hex' => '#71dd37',
@@ -68,8 +83,8 @@ class HomeController extends Controller
                     'link' => route('vehicles.index'),
                 ],
                 [
-                    'label' => 'Under Maintenance',
-                    'sublabel' => 'Service in progress',
+                    'label' => 'Dalam Pemeliharaan',
+                    'sublabel' => 'Servis sedang berjalan',
                     'count' => $underMaintenance,
                     'color' => 'warning',
                     'hex' => '#ffab00',
@@ -77,8 +92,8 @@ class HomeController extends Controller
                     'link' => route('maintenances.index'),
                 ],
                 [
-                    'label' => 'Awaiting Confirmation',
-                    'sublabel' => 'Completed, needs review',
+                    'label' => 'Menunggu Konfirmasi',
+                    'sublabel' => 'Selesai, perlu ditinjau',
                     'count' => $awaiting,
                     'color' => 'info',
                     'hex' => '#03c3ec',
@@ -86,8 +101,8 @@ class HomeController extends Controller
                     'link' => route('maintenances.index'),
                 ],
                 [
-                    'label' => 'Inactive',
-                    'sublabel' => 'Parked / retired',
+                    'label' => 'Tidak Aktif',
+                    'sublabel' => 'Diparkir / tidak digunakan',
                     'count' => $passive,
                     'color' => 'secondary',
                     'hex' => '#8592a3',
@@ -97,9 +112,19 @@ class HomeController extends Controller
             ],
         ];
 
-        $plates = Vehicle::pluck('plat_new');
+        $plates = Vehicle::query()
+            ->when($selectedCompanyId, fn ($query) => $query->where('company_id', $selectedCompanyId))
+            ->pluck('plat_new');
 
         $recentMaintenance = Maintenance::whereIn('no_pol', $plates)
+            ->when($selectedCompanyId, fn ($query) => $query->where('company_id', $selectedCompanyId))
+            ->where(function ($query) use ($selectedMonth): void {
+                $query->whereBetween('date_out', [$selectedMonth->toDateString(), $selectedMonth->copy()->endOfMonth()->toDateString()])
+                    ->orWhere(function ($query) use ($selectedMonth): void {
+                        $query->whereNull('date_out')
+                            ->whereBetween('date_in', [$selectedMonth->toDateString(), $selectedMonth->copy()->endOfMonth()->toDateString()]);
+                    });
+            })
             ->latest('updated_at')
             ->limit(self::MAX_LIST_ITEMS)
             ->get()
@@ -122,41 +147,40 @@ class HomeController extends Controller
         // Gated by a dedicated permission so the reminder audience can be defined
         // independently. dueVehicles() is company-scoped via the Vehicle
         // CompanyTenantScope (bypassed by management.tenant.bypass).
-        $canRemind = auth()->user()?->hasPermission('operational.maintenances.reminders') === true;
-        $due = $canRemind ? $serviceReminders->dueVehicles() : collect();
+        $canRemind = $user?->hasPermission('operational.maintenances.reminders') === true;
+        $due = $canRemind ? $serviceReminders->dueVehicles($selectedCompanyId) : collect();
 
         // Monthly photo reminders, gated by a dedicated permission and company-scoped via
         // the Vehicle CompanyTenantScope (bypassed by management.tenant.bypass).
-        $canPhotoRemind = auth()->user()?->hasPermission('operational.vehicle_photos.reminders') === true;
-        $missingPhotos = $canPhotoRemind ? $photoMonitor->incompleteVehicles() : collect();
+        $canPhotoRemind = $user?->hasPermission('operational.vehicle_photos.reminders') === true;
+        $missingPhotos = $canPhotoRemind ? $photoMonitor->incompleteVehicles($selectedMonth, $selectedCompanyId) : collect();
 
         // Insurance expiry reminders (H-30/14/7/3), gated by a dedicated permission and
         // company-scoped via the VehicleInsurance CompanyTenantScope.
-        $canInsuranceRemind = auth()->user()?->hasPermission('master.vehicle_insurances.reminders') === true;
+        $canInsuranceRemind = $user?->hasPermission('master.vehicle_insurances.reminders') === true;
         // Overdue (lapsed) policies first, then those approaching expiry.
         $insurance = $canInsuranceRemind
-            ? $insuranceMonitor->overduePolicies()->concat($insuranceMonitor->expiringPolicies())
+            ? $insuranceMonitor->overduePolicies($selectedMonth, $selectedCompanyId)->concat($insuranceMonitor->expiringPolicies($selectedMonth, $selectedCompanyId))
             : collect();
 
         // At-a-glance KPI cards. Actionable reminder counts are shown first (when the
         // user may see them), padded with always-available fleet stats so the row never
         // looks sparse. The top 4 are rendered on the dashboard.
         $kpis = collect([
-            ['visible' => $canRemind, 'label' => 'Due for Service', 'value' => $due->count(), 'sub' => 'past service threshold', 'icon' => 'bx-wrench', 'color' => 'warning', 'link' => route('maintenances.index')],
-            ['visible' => $canInsuranceRemind, 'label' => 'Insurance Attention', 'value' => $insurance->count(), 'sub' => 'expiring or overdue', 'icon' => 'bx-shield-quarter', 'color' => 'danger', 'link' => route('vehicle-insurances.index')],
-            ['visible' => $canPhotoRemind, 'label' => 'Photos Incomplete', 'value' => $missingPhotos->count(), 'sub' => 'missing this month', 'icon' => 'bx-camera', 'color' => 'info', 'link' => route('vehicles.index')],
-            ['visible' => true, 'label' => 'Total Vehicles', 'value' => $conditionSummary['total'], 'sub' => $conditionSummary['active'].' active', 'icon' => 'bx-car', 'color' => 'primary', 'link' => route('vehicles.index')],
-            ['visible' => true, 'label' => 'Under Maintenance', 'value' => $underMaintenance, 'sub' => 'service in progress', 'icon' => 'bx-cog', 'color' => 'warning', 'link' => route('maintenances.index')],
-            ['visible' => true, 'label' => 'Awaiting Confirmation', 'value' => $awaiting, 'sub' => 'completed, needs review', 'icon' => 'bx-time-five', 'color' => 'info', 'link' => route('maintenances.index')],
+            ['visible' => $canRemind, 'label' => 'Tenggat Waktu Servis', 'value' => $due->count(), 'sub' => 'melewati batas servis', 'icon' => 'bx-wrench', 'color' => 'warning', 'link' => route('maintenances.index')],
+            ['visible' => $canInsuranceRemind, 'label' => 'Perhatian Asuransi', 'value' => $insurance->count(), 'sub' => 'akan berakhir atau terlambat', 'icon' => 'bx-shield-quarter', 'color' => 'danger', 'link' => route('vehicle-insurances.index')],
+            ['visible' => $canPhotoRemind, 'label' => 'Foto Belum Lengkap', 'value' => $missingPhotos->count(), 'sub' => 'belum lengkap bulan ini', 'icon' => 'bx-camera', 'color' => 'info', 'link' => route('vehicles.index')],
+            ['visible' => true, 'label' => 'Total Kendaraan', 'value' => $conditionSummary['total'], 'sub' => $conditionSummary['active'].' aktif', 'icon' => 'bx-car', 'color' => 'primary', 'link' => route('vehicles.index')],
+            ['visible' => true, 'label' => 'Dalam Pemeliharaan', 'value' => $underMaintenance, 'sub' => 'servis sedang berjalan', 'icon' => 'bx-cog', 'color' => 'warning', 'link' => route('maintenances.index')],
+            ['visible' => true, 'label' => 'Menunggu Konfirmasi', 'value' => $awaiting, 'sub' => 'selesai, perlu ditinjau', 'icon' => 'bx-time-five', 'color' => 'info', 'link' => route('maintenances.index')],
         ])->filter(fn (array $kpi): bool => $kpi['visible'])->take(4)->values()->all();
 
         // Quick-action buttons, gated so each only appears when the user can use it.
-        $user = auth()->user();
         $quickActions = collect([
-            ['label' => 'Log Service', 'icon' => 'bx-wrench', 'route' => 'maintenances.create', 'perm' => 'operational.maintenances.create'],
+            ['label' => 'Catat Servis', 'icon' => 'bx-wrench', 'route' => 'maintenances.create', 'perm' => 'operational.maintenances.create'],
             ['label' => 'Scan QR', 'icon' => 'bx-qr-scan', 'route' => 'qr-scan.index', 'perm' => 'operational.qr_scan.view'],
-            ['label' => 'Add Vehicle', 'icon' => 'bx-car', 'route' => 'vehicles.create', 'perm' => 'master.vehicles.create'],
-            ['label' => 'All Vehicles', 'icon' => 'bx-list-ul', 'route' => 'vehicles.index', 'perm' => 'master.vehicles.view'],
+            ['label' => 'Tambah Kendaraan', 'icon' => 'bx-car', 'route' => 'vehicles.create', 'perm' => 'master.vehicles.create'],
+            ['label' => 'Semua Kendaraan', 'icon' => 'bx-list-ul', 'route' => 'vehicles.index', 'perm' => 'master.vehicles.view'],
         ])->filter(fn (array $action): bool => $user?->hasPermission($action['perm']) === true)
             ->map(fn (array $action): array => ['label' => $action['label'], 'icon' => $action['icon'], 'url' => route($action['route'])])
             ->values()->all();
@@ -166,6 +190,13 @@ class HomeController extends Controller
         $canViewFinancials = $user?->hasPermission('dashboard.financials.view') === true;
 
         return view('home', [
+            'dashboardContext' => [
+                'company' => $this->dashboardCompanyLabel($filters['company_options'], $selectedCompanyId),
+                'company_options' => $filters['company_options'],
+                'selected_company_id' => $selectedCompanyId,
+                'selected_month' => $selectedMonth->format('Y-m'),
+                'month' => $selectedMonth->locale('id')->translatedFormat('F Y'),
+            ],
             'conditionSummary' => $conditionSummary,
             'recentMaintenance' => $recentMaintenance,
             'kpis' => $kpis,
@@ -175,12 +206,12 @@ class HomeController extends Controller
             'insuranceReminders' => ['visible' => $canInsuranceRemind, 'count' => $insurance->count(), 'items' => $insurance->take(self::MAX_LIST_ITEMS)->all()],
             'financials' => [
                 'visible' => $canViewFinancials,
-                'summary' => $canViewFinancials ? $metrics->financialSummary() : null,
-                'trend' => $canViewFinancials ? $metrics->spendTrend() : null,
+                'summary' => $canViewFinancials ? $metrics->financialSummary(month: $selectedMonth, companyId: $selectedCompanyId) : null,
+                'trend' => $canViewFinancials ? $metrics->spendTrend(month: $selectedMonth, companyId: $selectedCompanyId) : null,
             ],
-            'utilization' => $metrics->utilizationSummary(),
-            'fleetComposition' => $metrics->fleetComposition(),
-            'maintenanceVolume' => $metrics->maintenanceVolumeTrend(),
+            'utilization' => $metrics->utilizationSummary($selectedMonth, $selectedCompanyId),
+            'fleetComposition' => $metrics->fleetComposition($selectedCompanyId),
+            'maintenanceVolume' => $metrics->maintenanceVolumeTrend(month: $selectedMonth, companyId: $selectedCompanyId),
         ]);
     }
 
@@ -193,13 +224,13 @@ class HomeController extends Controller
     private function classifyMaintenance(Maintenance $maintenance): array
     {
         if ($maintenance->status === Maintenance::STATUS_CANCELLED) {
-            return ['label' => 'Cancelled', 'color' => 'danger', 'icon' => 'bx-x-circle'];
+            return ['label' => 'Dibatalkan', 'color' => 'danger', 'icon' => 'bx-x-circle'];
         }
 
         if ($maintenance->status === Maintenance::STATUS_COMPLETED) {
             return $maintenance->is_confirmed
-                ? ['label' => 'Done', 'color' => 'success', 'icon' => 'bx-check-circle']
-                : ['label' => 'Needs Follow-up', 'color' => 'warning', 'icon' => 'bx-error-circle'];
+                ? ['label' => 'Selesai', 'color' => 'success', 'icon' => 'bx-check-circle']
+                : ['label' => 'Perlu Tindak Lanjut', 'color' => 'warning', 'icon' => 'bx-error-circle'];
         }
 
         // DRAFT: under maintenance, but flag as follow-up once it has gone stale.
@@ -207,7 +238,53 @@ class HomeController extends Controller
             && $maintenance->updated_at->lt(now()->subDays(7));
 
         return $stale
-            ? ['label' => 'Needs Follow-up', 'color' => 'warning', 'icon' => 'bx-error-circle']
-            : ['label' => 'Under Maintenance', 'color' => 'info', 'icon' => 'bx-wrench'];
+            ? ['label' => 'Perlu Tindak Lanjut', 'color' => 'warning', 'icon' => 'bx-error-circle']
+            : ['label' => 'Dalam Pemeliharaan', 'color' => 'info', 'icon' => 'bx-wrench'];
+    }
+
+    /**
+     * @return array{company_options: Collection<int, Company>, company_id: ?int, month: Carbon}
+     */
+    private function resolveDashboardFilters(Request $request): array
+    {
+        $companyOptions = Company::query()
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $requestedCompanyId = (int) $request->query('company', 0);
+        $selectedCompanyId = $companyOptions->contains('id', $requestedCompanyId) ? $requestedCompanyId : null;
+
+        $month = $this->parseDashboardMonth($request->query('month'));
+
+        return [
+            'company_options' => $companyOptions,
+            'company_id' => $selectedCompanyId,
+            'month' => $month,
+        ];
+    }
+
+    private function parseDashboardMonth(mixed $value): Carbon
+    {
+        if (
+            is_string($value)
+            && preg_match('/^\d{4}-\d{2}$/', $value) === 1
+            && Carbon::canBeCreatedFromFormat($value.'-01', 'Y-m-d')
+        ) {
+            return Carbon::createFromFormat('Y-m-d', $value.'-01')->startOfMonth();
+        }
+
+        return now()->startOfMonth();
+    }
+
+    /**
+     * @param  Collection<int, Company>  $companyOptions
+     */
+    private function dashboardCompanyLabel(Collection $companyOptions, ?int $selectedCompanyId): string
+    {
+        if ($selectedCompanyId !== null) {
+            return $companyOptions->firstWhere('id', $selectedCompanyId)?->name ?? '-';
+        }
+
+        return 'Semua Perusahaan';
     }
 }

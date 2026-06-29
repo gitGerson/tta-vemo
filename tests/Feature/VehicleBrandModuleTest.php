@@ -31,7 +31,7 @@ class VehicleBrandModuleTest extends TestCase
 
         $this->get(route('vehicle-brands.index'))
             ->assertOk()
-            ->assertSee('Daftar Vehicle Brand');
+            ->assertSee('Daftar Merek Kendaraan');
     }
 
     public function test_authorized_user_can_create_vehicle_brand_with_logo(): void
@@ -42,20 +42,19 @@ class VehicleBrandModuleTest extends TestCase
         Storage::disk('local')->put('tmp/filepond/logo.png', $this->fakeImageContents());
 
         $this->post(route('vehicle-brands.store'), [
-            'code' => 'toy',
             'name' => 'toyota',
             'logo' => 'tmp/filepond/logo.png',
             'descriptions' => 'Japanese vehicle brand.',
         ])->assertRedirect(route('vehicle-brands.index'));
 
-        $vehicleBrand = VehicleBrand::query()->where('code', 'TOY')->firstOrFail();
+        $vehicleBrand = VehicleBrand::query()->where('name', 'TOYOTA')->firstOrFail();
 
-        $this->assertSame('TOYOTA', $vehicleBrand->name);
+        // Code is generated automatically rather than supplied by the user.
+        $this->assertSame('VB-0001', $vehicleBrand->code);
         $this->assertStringStartsWith('vehicle_brand_logos/', $vehicleBrand->logo);
         Storage::disk('s3')->assertExists($vehicleBrand->logo);
         $this->assertDatabaseHas('vehicle_brands', [
             'id' => $vehicleBrand->id,
-            'code' => 'TOY',
             'name' => 'TOYOTA',
             'descriptions' => 'Japanese vehicle brand.',
         ]);
@@ -87,18 +86,48 @@ class VehicleBrandModuleTest extends TestCase
         ]);
     }
 
-    public function test_vehicle_brand_requires_unique_code_and_name(): void
+    public function test_keeping_existing_logo_tolerates_changing_signed_url(): void
+    {
+        Storage::fake('s3');
+        // Pre-signed URLs differ on every generation (signature/expiry query string).
+        // Emulate that so the logo URL embedded in the form (page load) differs from
+        // the one regenerated on submit.
+        Storage::disk('s3')->buildTemporaryUrlsUsing(
+            fn (string $path, $expiration, array $options = []): string => 'https://cdn.test/'.$path.'?sig='.uniqid()
+        );
+
+        $this->actingAs($this->userWithVehicleBrandPermissions());
+        Storage::disk('s3')->put('vehicle_brand_logos/existing.png', 'old');
+        $vehicleBrand = VehicleBrand::factory()->create([
+            'code' => 'HND',
+            'name' => 'HONDA',
+            'logo' => 'vehicle_brand_logos/existing.png',
+        ]);
+
+        $this->put(route('vehicle-brands.update', $vehicleBrand), [
+            'code' => $vehicleBrand->code,
+            'name' => 'honda motor',
+            'logo' => $vehicleBrand->logoUrl(),
+            'descriptions' => 'Updated description.',
+        ])->assertRedirect(route('vehicle-brands.index'));
+
+        $this->assertDatabaseHas('vehicle_brands', [
+            'id' => $vehicleBrand->id,
+            'name' => 'HONDA MOTOR',
+            'logo' => 'vehicle_brand_logos/existing.png',
+        ]);
+    }
+
+    public function test_vehicle_brand_requires_unique_name(): void
     {
         $this->actingAs($this->userWithVehicleBrandPermissions());
         VehicleBrand::factory()->create([
-            'code' => 'TYT',
             'name' => 'TOYOTA',
         ]);
 
         $this->post(route('vehicle-brands.store'), [
-            'code' => 'TYT',
             'name' => 'TOYOTA',
-        ])->assertSessionHasErrors(['code', 'name']);
+        ])->assertSessionHasErrors(['name']);
     }
 
     public function test_authorized_user_can_view_vehicle_brand_detail_fragment(): void

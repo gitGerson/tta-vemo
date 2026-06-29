@@ -163,6 +163,7 @@ function initFilePondInputs() {
         const itemPanelAspectRatio = input.dataset.filepondItemPanelAspectRatio || null;
 
         window.FilePond.create(input, {
+            disabled: input.disabled,
             allowMultiple: input.hasAttribute('multiple'),
             maxFileSize: input.dataset.filepondMaxFileSize || null,
             acceptedFileTypes: acceptedTypes.length ? acceptedTypes : null,

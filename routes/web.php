@@ -155,7 +155,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/companies/{company}/drivers/data', [CompanyController::class, 'getDriverData'])->name('companies.drivers.data');
         Route::get('/companies/{company}/users/data', [CompanyController::class, 'getUserData'])->name('companies.users.data');
         Route::get('/companies/{company}/vehicles/data', [CompanyController::class, 'getVehicleData'])->name('companies.vehicles.data');
-        Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
     });
 
     Route::middleware(['permission:master.companies.create'])->group(function () {
@@ -167,7 +166,21 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::middleware(['permission:master.companies.delete'])->group(function () {
+        Route::get('/companies/trash', [CompanyController::class, 'trash'])->name('companies.trash');
+        Route::get('/companies/trash/data', [CompanyController::class, 'getTrashData'])->name('companies.trash.data');
         Route::delete('/companies/{company}', [CompanyController::class, 'destroy'])->name('companies.destroy');
+    });
+
+    Route::middleware(['permission:master.companies.restore'])->group(function () {
+        Route::post('/companies/{company}/restore', [CompanyController::class, 'restore'])->withTrashed()->name('companies.restore');
+    });
+
+    Route::middleware(['permission:master.companies.force_delete'])->group(function () {
+        Route::delete('/companies/{company}/force-delete', [CompanyController::class, 'forceDelete'])->withTrashed()->name('companies.force-delete');
+    });
+
+    Route::middleware(['permission:master.companies.view'])->group(function () {
+        Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
     });
 
     // Vehicle master data routes with permissions
@@ -248,18 +261,22 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/vehicle-insurances/{vehicleInsurance}', [VehicleInsuranceController::class, 'show'])->name('vehicle-insurances.show');
     });
 
-    // Vehicle monthly photo (Foto Kendaraan) routes with permissions
-    Route::middleware(['permission:operational.vehicle_photos.view'])->group(function () {
-        Route::get('/vehicles/{vehicle}/photos/data', [VehiclePhotoController::class, 'getDataForVehicle'])->name('vehicles.photos.data');
-        Route::get('/vehicle-photos/data', [VehiclePhotoController::class, 'getData'])->name('vehicle-photos.data');
-        Route::get('/vehicle-photos/{vehiclePhoto}', [VehiclePhotoController::class, 'show'])->name('vehicle-photos.show')->whereNumber('vehiclePhoto');
-        Route::post('/vehicle-photos/{vehiclePhoto}/comments', [VehiclePhotoController::class, 'storeComment'])->name('vehicle-photos.comments.store')->whereNumber('vehiclePhoto');
-        Route::delete('/vehicle-photos/{vehiclePhoto}/comments/{comment}', [VehiclePhotoController::class, 'destroyComment'])->name('vehicle-photos.comments.destroy')->whereNumber(['vehiclePhoto', 'comment']);
-    });
-
+    // Vehicle monthly photo (Foto Kendaraan) routes with permissions.
+    // The create route is declared before the show route so the static
+    // /vehicle-photos/create path is matched first and not captured by the dynamic
+    // /vehicle-photos/{vehiclePhoto}: the route key is now an alphanumeric hashid, so the
+    // two can no longer be told apart by a numeric constraint.
     Route::middleware(['permission:operational.vehicle_photos.create'])->group(function () {
         Route::get('/vehicle-photos/create', [VehiclePhotoController::class, 'create'])->name('vehicle-photos.create');
         Route::post('/vehicle-photos', [VehiclePhotoController::class, 'store'])->name('vehicle-photos.store');
+    });
+
+    Route::middleware(['permission:operational.vehicle_photos.view'])->group(function () {
+        Route::get('/vehicles/{vehicle}/photos/data', [VehiclePhotoController::class, 'getDataForVehicle'])->name('vehicles.photos.data');
+        Route::get('/vehicle-photos/data', [VehiclePhotoController::class, 'getData'])->name('vehicle-photos.data');
+        Route::get('/vehicle-photos/{vehiclePhoto}', [VehiclePhotoController::class, 'show'])->name('vehicle-photos.show');
+        Route::post('/vehicle-photos/{vehiclePhoto}/comments', [VehiclePhotoController::class, 'storeComment'])->name('vehicle-photos.comments.store');
+        Route::delete('/vehicle-photos/{vehiclePhoto}/comments/{comment}', [VehiclePhotoController::class, 'destroyComment'])->name('vehicle-photos.comments.destroy');
     });
 
     Route::middleware(['permission:operational.vehicle_photos.edit'])->group(function () {
@@ -360,6 +377,13 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:reports.monthly.export'])->group(function () {
         Route::get('/report/monthly/pdf', [ReportController::class, 'monthlyPdf'])->name('report.monthly.pdf');
     });
+    Route::middleware(['permission:reports.analysis_monthly.view'])->group(function () {
+        Route::get('/report/analysis/monthly', [ReportController::class, 'analysisMonthly'])->name('report.analysis.monthly');
+    });
+    Route::middleware(['permission:reports.analysis_monthly.export'])->group(function () {
+        Route::get('/report/analysis/monthly/pdf', [ReportController::class, 'analysisMonthlyPdf'])->name('report.analysis.monthly.pdf');
+        Route::get('/report/analysis/monthly/excel', [ReportController::class, 'analysisMonthlyExcel'])->name('report.analysis.monthly.excel');
+    });
     Route::middleware(['permission:reports.maintenances.daily.view'])->group(function () {
         Route::get('/report/maintenances/daily', [ReportController::class, 'maintenancesDaily'])->name('report.maintenances.daily');
     });
@@ -371,6 +395,13 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::middleware(['permission:reports.maintenances.monthly.export'])->group(function () {
         Route::get('/report/maintenances/monthly/pdf', [ReportController::class, 'maintenancesMonthlyPdf'])->name('report.maintenances.monthly.pdf');
+    });
+    Route::middleware(['permission:reports.analysis_maintenances_monthly.view'])->group(function () {
+        Route::get('/report/analysis/maintenances/monthly', [ReportController::class, 'analysisMaintenancesMonthly'])->name('report.analysis.maintenances.monthly');
+    });
+    Route::middleware(['permission:reports.analysis_maintenances_monthly.export'])->group(function () {
+        Route::get('/report/analysis/maintenances/monthly/pdf', [ReportController::class, 'analysisMaintenancesMonthlyPdf'])->name('report.analysis.maintenances.monthly.pdf');
+        Route::get('/report/analysis/maintenances/monthly/excel', [ReportController::class, 'analysisMaintenancesMonthlyExcel'])->name('report.analysis.maintenances.monthly.excel');
     });
     Route::middleware(['permission:reports.maintenances.year.view'])->group(function () {
         Route::get('/report/maintenances/year', [ReportController::class, 'maintenancesYear'])->name('report.maintenances.year');
@@ -449,7 +480,6 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:master.fuel_types.view'])->group(function () {
         Route::get('/fuel-types', [FuelTypeController::class, 'index'])->name('fuel-types.index');
         Route::get('/fuel-types/data', [FuelTypeController::class, 'getData'])->name('fuel-types.data');
-        Route::get('/fuel-types/{fuelType}', [FuelTypeController::class, 'show'])->name('fuel-types.show');
     });
 
     Route::middleware(['permission:master.fuel_types.create'])->group(function () {
@@ -461,14 +491,27 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::middleware(['permission:master.fuel_types.delete'])->group(function () {
+        Route::get('/fuel-types/trash', [FuelTypeController::class, 'trash'])->name('fuel-types.trash');
+        Route::get('/fuel-types/trash/data', [FuelTypeController::class, 'getTrashData'])->name('fuel-types.trash.data');
         Route::delete('/fuel-types/{fuelType}', [FuelTypeController::class, 'destroy'])->name('fuel-types.destroy');
+    });
+
+    Route::middleware(['permission:master.fuel_types.restore'])->group(function () {
+        Route::post('/fuel-types/{fuelType}/restore', [FuelTypeController::class, 'restore'])->withTrashed()->name('fuel-types.restore');
+    });
+
+    Route::middleware(['permission:master.fuel_types.force_delete'])->group(function () {
+        Route::delete('/fuel-types/{fuelType}/force-delete', [FuelTypeController::class, 'forceDelete'])->withTrashed()->name('fuel-types.force-delete');
+    });
+
+    Route::middleware(['permission:master.fuel_types.view'])->group(function () {
+        Route::get('/fuel-types/{fuelType}', [FuelTypeController::class, 'show'])->name('fuel-types.show');
     });
 
     // Vehicle type master data routes with permissions
     Route::middleware(['permission:master.vehicle_types.view'])->group(function () {
         Route::get('/vehicle-types', [VehicleTypeController::class, 'index'])->name('vehicle-types.index');
         Route::get('/vehicle-types/data', [VehicleTypeController::class, 'getData'])->name('vehicle-types.data');
-        Route::get('/vehicle-types/{vehicleType}', [VehicleTypeController::class, 'show'])->name('vehicle-types.show');
     });
 
     Route::middleware(['permission:master.vehicle_types.create'])->group(function () {
@@ -480,14 +523,27 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::middleware(['permission:master.vehicle_types.delete'])->group(function () {
+        Route::get('/vehicle-types/trash', [VehicleTypeController::class, 'trash'])->name('vehicle-types.trash');
+        Route::get('/vehicle-types/trash/data', [VehicleTypeController::class, 'getTrashData'])->name('vehicle-types.trash.data');
         Route::delete('/vehicle-types/{vehicleType}', [VehicleTypeController::class, 'destroy'])->name('vehicle-types.destroy');
+    });
+
+    Route::middleware(['permission:master.vehicle_types.restore'])->group(function () {
+        Route::post('/vehicle-types/{vehicleType}/restore', [VehicleTypeController::class, 'restore'])->withTrashed()->name('vehicle-types.restore');
+    });
+
+    Route::middleware(['permission:master.vehicle_types.force_delete'])->group(function () {
+        Route::delete('/vehicle-types/{vehicleType}/force-delete', [VehicleTypeController::class, 'forceDelete'])->withTrashed()->name('vehicle-types.force-delete');
+    });
+
+    Route::middleware(['permission:master.vehicle_types.view'])->group(function () {
+        Route::get('/vehicle-types/{vehicleType}', [VehicleTypeController::class, 'show'])->name('vehicle-types.show');
     });
 
     // Vehicle brand master data routes with permissions
     Route::middleware(['permission:master.vehicle_brands.view'])->group(function () {
         Route::get('/vehicle-brands', [VehicleBrandController::class, 'index'])->name('vehicle-brands.index');
         Route::get('/vehicle-brands/data', [VehicleBrandController::class, 'getData'])->name('vehicle-brands.data');
-        Route::get('/vehicle-brands/{vehicleBrand}', [VehicleBrandController::class, 'show'])->name('vehicle-brands.show');
     });
 
     Route::middleware(['permission:master.vehicle_brands.create'])->group(function () {
@@ -499,11 +555,26 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::middleware(['permission:master.vehicle_brands.delete'])->group(function () {
+        Route::get('/vehicle-brands/trash', [VehicleBrandController::class, 'trash'])->name('vehicle-brands.trash');
+        Route::get('/vehicle-brands/trash/data', [VehicleBrandController::class, 'getTrashData'])->name('vehicle-brands.trash.data');
         Route::delete('/vehicle-brands/{vehicleBrand}', [VehicleBrandController::class, 'destroy'])->name('vehicle-brands.destroy');
+    });
+
+    Route::middleware(['permission:master.vehicle_brands.restore'])->group(function () {
+        Route::post('/vehicle-brands/{vehicleBrand}/restore', [VehicleBrandController::class, 'restore'])->withTrashed()->name('vehicle-brands.restore');
+    });
+
+    Route::middleware(['permission:master.vehicle_brands.force_delete'])->group(function () {
+        Route::delete('/vehicle-brands/{vehicleBrand}/force-delete', [VehicleBrandController::class, 'forceDelete'])->withTrashed()->name('vehicle-brands.force-delete');
+    });
+
+    Route::middleware(['permission:master.vehicle_brands.view'])->group(function () {
+        Route::get('/vehicle-brands/{vehicleBrand}', [VehicleBrandController::class, 'show'])->name('vehicle-brands.show');
     });
 
     // Generic FilePond routes
     Route::post('/uploads/process', [FileUploadController::class, 'process'])->name('uploads.process');
+    Route::post('/uploads/attachments/process', [FileUploadController::class, 'processAttachment'])->name('uploads.attachments.process');
     Route::delete('/uploads/revert', [FileUploadController::class, 'revert'])->name('uploads.revert');
     Route::get('/uploads/load', [FileUploadController::class, 'load'])->name('uploads.load');
     Route::get('/uploads/proxy', [FileUploadController::class, 'proxy'])->name('uploads.proxy');

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\S3Url;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -70,7 +71,10 @@ class FilePondUploadService
             $mimeExtensions
         ))));
 
-        $existingReferences = array_values(array_filter($existingReferences));
+        $existingReferences = array_values(array_filter(array_map(
+            fn (?string $reference): ?string => S3Url::reference($reference),
+            $existingReferences
+        )));
 
         return function (string $attribute, mixed $value, Closure $fail) use ($allowedMimeTypes, $existingReferences, $maxKilobytes, $mimeExtensions): void {
             if ($value === null || $value === '') {
@@ -90,11 +94,51 @@ class FilePondUploadService
                 return;
             }
 
-            if (is_string($value) && in_array($value, $existingReferences, true)) {
+            if (is_string($value) && in_array(S3Url::reference($value), $existingReferences, true)) {
                 return;
             }
 
             $this->tempPathValidationRule($allowedMimeTypes, $maxKilobytes)($attribute, $value, $fail);
+        };
+    }
+
+    /**
+     * Validation rule for an attachment of any file type, capped by size.
+     *
+     * @param  array<int, string>  $existingReferences
+     */
+    public function fileUploadValidationRule(
+        int $maxKilobytes = 51200,
+        array $existingReferences = []
+    ): Closure {
+        $existingReferences = array_values(array_filter(array_map(
+            fn (?string $reference): ?string => S3Url::reference($reference),
+            $existingReferences
+        )));
+
+        return function (string $attribute, mixed $value, Closure $fail) use ($existingReferences, $maxKilobytes): void {
+            if ($value === null || $value === '') {
+                return;
+            }
+
+            if ($value instanceof UploadedFile) {
+                $validator = validator(
+                    ['upload' => $value],
+                    ['upload' => ['file', 'max:'.$maxKilobytes]]
+                );
+
+                if ($validator->fails()) {
+                    $fail($validator->errors()->first('upload'));
+                }
+
+                return;
+            }
+
+            if (is_string($value) && in_array(S3Url::reference($value), $existingReferences, true)) {
+                return;
+            }
+
+            $this->tempPathValidationRule([], $maxKilobytes)($attribute, $value, $fail);
         };
     }
 

@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDiffrntHashId;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class VehicleSnapshot extends Model
 {
+    use HasDiffrntHashId;
+
     protected $table = 'vehicle_snapshots';
 
     protected $fillable = [
@@ -25,6 +28,10 @@ class VehicleSnapshot extends Model
         'vin_number',
         'bpkb_image',
         'stnk_image',
+        'kir_image',
+        'bpkb_due_date',
+        'stnk_due_date',
+        'kir_due_date',
         'purchase_price',
         'selling_price',
         'purchase_date',
@@ -38,6 +45,10 @@ class VehicleSnapshot extends Model
             'isprivate' => 'boolean',
             'bpkb_image' => 'array',
             'stnk_image' => 'array',
+            'kir_image' => 'array',
+            'bpkb_due_date' => 'date',
+            'stnk_due_date' => 'date',
+            'kir_due_date' => 'date',
             'purchase_price' => 'decimal:2',
             'selling_price' => 'decimal:2',
             'purchase_date' => 'date',
@@ -76,6 +87,10 @@ class VehicleSnapshot extends Model
             'vin_number' => $vehicle->vin_number,
             'bpkb_image' => $vehicle->bpkb_image,
             'stnk_image' => $vehicle->stnk_image,
+            'kir_image' => $vehicle->kir_image,
+            'bpkb_due_date' => $vehicle->bpkb_due_date,
+            'stnk_due_date' => $vehicle->stnk_due_date,
+            'kir_due_date' => $vehicle->kir_due_date,
             'purchase_price' => $vehicle->purchase_price,
             'selling_price' => $vehicle->selling_price,
             'purchase_date' => $vehicle->purchase_date,

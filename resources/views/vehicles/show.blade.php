@@ -9,6 +9,7 @@
     $vehicleTypeLabel = $vehicle->vehicleType?->name ?? $vehicle->type;
     $bpkb = $vehicle->bpkbImageUrls();
     $stnk = $vehicle->stnkImageUrls();
+    $kir = $vehicle->kirImageUrls();
     $brandLogo = $vehicle->vehicleBrand?->logoUrl();
     $brandName = $vehicle->vehicleBrand?->name;
 @endphp
@@ -53,9 +54,9 @@
                         </span>
                         <h4 class="mb-1">{{ $vehicle->plat_new }}</h4>
                         <div class="d-flex flex-wrap justify-content-center gap-1 mb-3">
-                            <span class="badge {{ $statusClass }}">{{ $vehicle->status }}</span>
+                            <span class="badge {{ $statusClass }}">{{ $vehicle->status === 'ACTIVE' ? 'Aktif' : 'Pasif' }}</span>
                             @if($vehicle->mtc === 'YES')
-                                <span class="badge bg-label-warning">Under Maintenance</span>
+                                <span class="badge bg-label-warning">Dalam Pemeliharaan</span>
                             @endif
                             <span class="badge {{ $vehicle->isprivate ? 'bg-label-info' : 'bg-label-secondary' }}">
                                 {{ $vehicle->isprivate ? 'Kendaraan Pribadi' : 'Kendaraan Umum' }}
@@ -72,7 +73,7 @@
                             </div>
                             <div>
                                 <h5 class="mb-0">{{ $brandName ?? '-' }}</h5>
-                                <small class="text-muted">Brand</small>
+                                <small class="text-muted">Merek</small>
                             </div>
                             <div>
                                 <h5 class="mb-0">{{ $vehicle->fuelType?->name ?? $vehicle->fuel_type }}</h5>
@@ -154,11 +155,11 @@
                             <span class="badge bg-label-primary rounded p-2 me-2"><i class="bx bx-file"></i></span>
                             <div>
                                 <h6 class="mb-0 fw-semibold">Dokumen</h6>
-                                <small class="text-muted">Foto BPKB dan STNK kendaraan.</small>
+                                <small class="text-muted">Foto BPKB, STNK, dan KIR kendaraan.</small>
                             </div>
                         </div>
                         <div class="row g-3">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <small class="text-muted text-uppercase d-block mb-1">Foto BPKB</small>
                                 <div class="d-flex flex-wrap gap-1">
                                     @forelse($bpkb as $url)
@@ -167,8 +168,10 @@
                                         <span class="text-muted">-</span>
                                     @endforelse
                                 </div>
+                                <small class="text-muted text-uppercase d-block mt-2 mb-1">Tenggat Waktu BPKB</small>
+                                <span class="fw-medium">{{ $vehicle->bpkb_due_date?->format('d M Y') ?? '-' }}</span>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <small class="text-muted text-uppercase d-block mb-1">Foto STNK</small>
                                 <div class="d-flex flex-wrap gap-1">
                                     @forelse($stnk as $url)
@@ -177,6 +180,20 @@
                                         <span class="text-muted">-</span>
                                     @endforelse
                                 </div>
+                                <small class="text-muted text-uppercase d-block mt-2 mb-1">Tenggat Waktu STNK</small>
+                                <span class="fw-medium">{{ $vehicle->stnk_due_date?->format('d M Y') ?? '-' }}</span>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted text-uppercase d-block mb-1">Foto KIR</small>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @forelse($kir as $url)
+                                        <a href="{{ $url }}" target="_blank" rel="noopener"><img src="{{ $url }}" alt="KIR" class="rounded border" style="height: 56px; width: auto;"></a>
+                                    @empty
+                                        <span class="text-muted">-</span>
+                                    @endforelse
+                                </div>
+                                <small class="text-muted text-uppercase d-block mt-2 mb-1">Tenggat Waktu KIR</small>
+                                <span class="fw-medium">{{ $vehicle->kir_due_date?->format('d M Y') ?? '-' }}</span>
                             </div>
                         </div>
                     </div>

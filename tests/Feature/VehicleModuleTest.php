@@ -44,7 +44,7 @@ class VehicleModuleTest extends TestCase
         $vehicle = Vehicle::factory()->create();
 
         $this->get(route('vehicles.create'))->assertOk()->assertSee('Tambah Kendaraan');
-        $this->get(route('vehicles.edit', $vehicle))->assertOk()->assertSee('Edit Kendaraan');
+        $this->get(route('vehicles.edit', $vehicle))->assertOk()->assertSee('Ubah Kendaraan');
     }
 
     public function test_authorized_user_can_create_vehicle(): void
@@ -292,6 +292,7 @@ class VehicleModuleTest extends TestCase
             'purchase_date' => '2024-01-15',
             'sale_date' => '2026-02-20',
             'bpkb_image' => ['tmp/filepond/a.jpg', 'tmp/filepond/b.jpg'],
+            'bpkb_due_date' => '2027-01-15',
             'stnk_image' => [],
         ]);
 
@@ -327,6 +328,7 @@ class VehicleModuleTest extends TestCase
         $payload = array_merge(Vehicle::factory()->make()->toArray(), [
             'plat_new' => $vehicle->plat_new,
             'bpkb_image' => [$vehicle->bpkbImageUrls()[0], 'tmp/filepond/new.jpg'],
+            'bpkb_due_date' => '2027-01-15',
             'stnk_image' => [],
         ]);
 

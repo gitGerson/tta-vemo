@@ -28,6 +28,23 @@ class FileUploadController extends Controller
             ->header('Content-Type', 'text/plain');
     }
 
+    public function processAttachment(Request $request): Response
+    {
+        $uploadedFile = collect($request->allFiles())->flatten()->first();
+
+        if (! $uploadedFile) {
+            abort(422, 'No file uploaded.');
+        }
+
+        validator(
+            ['upload' => $uploadedFile],
+            ['upload' => ['required', 'file', 'max:51200']]
+        )->validate();
+
+        return response($this->filePondUploads->storeTemporaryUpload($uploadedFile), 200)
+            ->header('Content-Type', 'text/plain');
+    }
+
     public function revert(Request $request): Response
     {
         $this->filePondUploads->deleteTemporaryUpload(trim($request->getContent()));

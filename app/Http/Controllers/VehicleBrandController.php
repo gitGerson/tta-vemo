@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\DataTables\VehicleBrandDataTable;
+use App\DataTables\VehicleBrandTrashDataTable;
 use App\Http\Requests\VehicleBrandStoreRequest;
 use App\Http\Requests\VehicleBrandUpdateRequest;
 use App\Models\VehicleBrand;
@@ -25,7 +26,7 @@ class VehicleBrandController extends Controller
 
         VehicleBrand::create($data);
 
-        return redirect()->route('vehicle-brands.index')->with('success', 'Vehicle brand berhasil ditambahkan.');
+        return redirect()->route('vehicle-brands.index')->with('success', 'Merek kendaraan berhasil ditambahkan.');
     }
 
     public function show(VehicleBrand $vehicleBrand)
@@ -40,18 +41,42 @@ class VehicleBrandController extends Controller
 
         $vehicleBrand->update($data);
 
-        return redirect()->route('vehicle-brands.index')->with('success', 'Vehicle brand berhasil diperbarui.');
+        return redirect()->route('vehicle-brands.index')->with('success', 'Merek kendaraan berhasil diperbarui.');
     }
 
     public function destroy(VehicleBrand $vehicleBrand)
     {
         $vehicleBrand->delete();
 
-        return redirect()->route('vehicle-brands.index')->with('success', 'Vehicle brand berhasil dihapus.');
+        return redirect()->route('vehicle-brands.index')->with('success', 'Merek kendaraan berhasil dihapus.');
+    }
+
+    public function trash()
+    {
+        return view('vehicle-brands.trash', ['table' => new VehicleBrandTrashDataTable]);
+    }
+
+    public function restore(VehicleBrand $vehicleBrand)
+    {
+        $vehicleBrand->restore();
+
+        return redirect()->route('vehicle-brands.trash')->with('success', 'Merek kendaraan berhasil dipulihkan.');
+    }
+
+    public function forceDelete(VehicleBrand $vehicleBrand)
+    {
+        $vehicleBrand->forceDelete();
+
+        return redirect()->route('vehicle-brands.trash')->with('success', 'Merek kendaraan berhasil dihapus permanen.');
     }
 
     public function getData(Request $request)
     {
         return (new VehicleBrandDataTable)->responseFor($request);
+    }
+
+    public function getTrashData(Request $request)
+    {
+        return (new VehicleBrandTrashDataTable)->responseFor($request);
     }
 }

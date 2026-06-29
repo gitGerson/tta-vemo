@@ -9,10 +9,14 @@ use App\Http\Requests\VehicleInsuranceStoreRequest;
 use App\Http\Requests\VehicleInsuranceUpdateRequest;
 use App\Models\Vehicle;
 use App\Models\VehicleInsurance;
+use App\Services\FilePondUploadService;
+use App\Support\S3Url;
 use Illuminate\Http\Request;
 
 class VehicleInsuranceController extends Controller
 {
+    public function __construct(protected FilePondUploadService $filePond) {}
+
     public function index()
     {
         return view('vehicle-insurances.index', [
@@ -30,7 +34,13 @@ class VehicleInsuranceController extends Controller
 
     public function store(VehicleInsuranceStoreRequest $request)
     {
-        VehicleInsurance::create($request->validated());
+        $data = $request->validated();
+
+        if ($this->canEditAttachments($request)) {
+            $data['attachments'] = $this->resolveAttachments($request, null);
+        }
+
+        VehicleInsurance::create($data);
 
         return redirect()->route('vehicle-insurances.index')->with('success', 'Data asuransi berhasil ditambahkan.');
     }
@@ -55,7 +65,14 @@ class VehicleInsuranceController extends Controller
 
     public function update(VehicleInsurance $vehicleInsurance, VehicleInsuranceUpdateRequest $request)
     {
-        $vehicleInsurance->update($request->validated());
+        $data = $request->validated();
+
+        // Without the attachments field permission, leave the stored attachments untouched.
+        if ($this->canEditAttachments($request)) {
+            $data['attachments'] = $this->resolveAttachments($request, $vehicleInsurance);
+        }
+
+        $vehicleInsurance->update($data);
 
         return redirect()->route('vehicle-insurances.index')->with('success', 'Data asuransi berhasil diperbarui.');
     }
@@ -109,5 +126,34 @@ class VehicleInsuranceController extends Controller
     private function vehicleOptions()
     {
         return Vehicle::query()->orderBy('plat_new')->get(['id', 'plat_new', 'type']);
+    }
+
+    private function canEditAttachments(Request $request): bool
+    {
+        return $request->user()?->hasPermission(VehicleInsurance::fieldPermission('attachments')) ?? false;
+    }
+
+    /**
+     * Merge kept existing attachments with newly uploaded ones into the stored path list.
+     *
+     * @return array<int, string>
+     */
+    private function resolveAttachments(Request $request, ?VehicleInsurance $insurance): array
+    {
+        $existingPaths = $insurance?->attachments ?? [];
+
+        $urlToPath = collect($existingPaths)->mapWithKeys(fn (string $path): array => [
+            S3Url::reference(S3Url::temporary($path)) => $path,
+        ]);
+
+        $kept = collect((array) $request->input('attachments', []))
+            ->filter(fn ($value): bool => is_string($value) && $urlToPath->has(S3Url::reference($value)))
+            ->map(fn (string $url): string => $urlToPath->get(S3Url::reference($url)))
+            ->values()
+            ->all();
+
+        $new = $this->filePond->storeManyFromRequestField($request, 'attachments', 'insurance_documents', 's3');
+
+        return array_values(array_merge($kept, $new));
     }
 }

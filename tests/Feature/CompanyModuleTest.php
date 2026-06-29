@@ -39,11 +39,10 @@ class CompanyModuleTest extends TestCase
         $this->actingAs($this->userWithCompanyPermissions());
 
         $payload = Company::factory()->make([
-            'code' => 'TTA001',
             'name' => 'TTA Company',
             'email' => 'tta@example.test',
             'phone' => '021123456',
-            'image' => 'companies/tta.png',
+            'image' => null,
             'notes' => 'Main company',
         ])->toArray();
 
@@ -51,13 +50,14 @@ class CompanyModuleTest extends TestCase
             ->assertRedirect(route('companies.index'));
 
         $this->assertDatabaseHas('companies', [
-            'code' => 'TTA001',
             'name' => 'TTA Company',
             'email' => 'tta@example.test',
             'phone' => '021123456',
-            'image' => 'companies/tta.png',
             'notes' => 'Main company',
         ]);
+
+        // Code is generated automatically rather than supplied by the user.
+        $this->assertSame('CMP-0001', Company::query()->where('name', 'TTA Company')->value('code'));
     }
 
     public function test_authorized_user_can_update_company(): void
@@ -70,7 +70,7 @@ class CompanyModuleTest extends TestCase
             'name' => 'Updated Company',
             'email' => 'updated@example.test',
             'phone' => '021654321',
-            'image' => 'companies/updated.png',
+            'image' => null,
             'notes' => 'Updated description',
         ])->toArray();
 
@@ -82,7 +82,6 @@ class CompanyModuleTest extends TestCase
             'name' => 'Updated Company',
             'email' => 'updated@example.test',
             'phone' => '021654321',
-            'image' => 'companies/updated.png',
             'notes' => 'Updated description',
         ]);
     }

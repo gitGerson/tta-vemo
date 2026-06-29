@@ -54,8 +54,8 @@
                 </div>
 
                 <div class="col-md-6">
-                    <x-form.date name="date_birth" label="Tanggal Lahir" :value="$driver?->date_birth?->format('Y-m-d')"
-                        inputClass="form-control-sm" required />
+                    <x-form.date name="date_birth" label="Tanggal Lahir" :value="$driver?->date_birth?->format('d-m-Y')"
+                        mode="daterangepicker" :single="true" :autoApply="true" format="DD-MM-YYYY" placeholder="Pilih tanggal..." inputClass="form-control-sm" required />
                 </div>
 
                 <div class="col-md-6">
@@ -70,12 +70,12 @@
 
                 {{-- Employment --}}
                 <div class="col-md-4">
-                    <x-form.date name="entry_date" label="Tanggal Masuk" :value="$driver?->entry_date?->format('Y-m-d')"
-                        inputClass="form-control-sm" required />
+                    <x-form.date name="entry_date" label="Tanggal Masuk" :value="$driver?->entry_date?->format('d-m-Y')"
+                        mode="daterangepicker" :single="true" :autoApply="true" format="DD-MM-YYYY" placeholder="Pilih tanggal..." inputClass="form-control-sm" required />
                 </div>
 
                 <div class="col-md-4">
-                    <x-form.date name="out_date" label="Tanggal Keluar" :value="$driver?->out_date?->format('Y-m-d')" inputClass="form-control-sm" />
+                    <x-form.date name="out_date" label="Tanggal Keluar" :value="$driver?->out_date?->format('d-m-Y')" mode="daterangepicker" :single="true" :autoApply="true" format="DD-MM-YYYY" placeholder="Pilih tanggal..." inputClass="form-control-sm" />
                 </div>
 
                 <div class="col-md-4">

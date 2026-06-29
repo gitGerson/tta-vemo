@@ -26,13 +26,14 @@ class VehicleInsuranceMonitorService
      *
      * @return Collection<int, array<string, mixed>>
      */
-    public function expiringPolicies(): Collection
+    public function expiringPolicies(?Carbon $today = null, ?int $companyId = null): Collection
     {
-        $today = Carbon::today();
+        $today = ($today ?? Carbon::today())->copy()->startOfDay();
         $maxThreshold = max(self::THRESHOLDS);
 
         return VehicleInsurance::query()
             ->with('vehicle')
+            ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
             ->whereDate('end_date', '>=', $today->toDateString())
             ->whereDate('end_date', '<=', $today->copy()->addDays($maxThreshold)->toDateString())
             ->get()
@@ -71,11 +72,11 @@ class VehicleInsuranceMonitorService
      *
      * @return Collection<int, array<string, mixed>>
      */
-    public function overduePolicies(): Collection
+    public function overduePolicies(?Carbon $today = null, ?int $companyId = null): Collection
     {
-        $today = Carbon::today();
+        $today = ($today ?? Carbon::today())->copy()->startOfDay();
 
-        return $this->latestPolicyPerVehicle()
+        return $this->latestPolicyPerVehicle($companyId)
             ->filter(fn (VehicleInsurance $insurance): bool => $insurance->end_date->copy()->startOfDay()->lt($today))
             ->map(fn (VehicleInsurance $insurance): array => [
                 'insurance_id' => $insurance->id,
@@ -97,10 +98,11 @@ class VehicleInsuranceMonitorService
      *
      * @return Collection<int, VehicleInsurance>
      */
-    private function latestPolicyPerVehicle(): Collection
+    private function latestPolicyPerVehicle(?int $companyId = null): Collection
     {
         return VehicleInsurance::query()
             ->with('vehicle')
+            ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
             ->get()
             ->groupBy('vehicle_id')
             ->map(fn (Collection $policies): VehicleInsurance => $policies

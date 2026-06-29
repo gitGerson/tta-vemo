@@ -35,7 +35,6 @@ class VehicleTypeStoreRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'code' => is_string($this->input('code')) ? Str::upper(trim($this->input('code'))) : $this->input('code'),
             'name' => is_string($this->input('name')) ? Str::upper(trim($this->input('name'))) : $this->input('name'),
             'descriptions' => is_string($this->input('descriptions')) ? trim($this->input('descriptions')) : $this->input('descriptions'),
         ]);

@@ -52,6 +52,19 @@
                     @if($insurance->notes)
                         <div class="col-12"><small class="text-muted text-uppercase d-block">Keterangan</small><span class="fw-medium">{{ $insurance->notes }}</span></div>
                     @endif
+                    <div class="col-12">
+                        <small class="text-muted text-uppercase d-block mb-1">Lampiran</small>
+                        @php($attachments = $insurance->attachmentFiles())
+                        <div class="d-flex flex-wrap gap-2">
+                            @forelse($attachments as $attachment)
+                                <a href="{{ $attachment['url'] }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bx bx-paperclip me-1"></i> {{ $attachment['name'] }}
+                                </a>
+                            @empty
+                                <span class="text-muted">-</span>
+                            @endforelse
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

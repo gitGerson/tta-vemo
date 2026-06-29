@@ -28,6 +28,10 @@ class VehicleDataTable extends DataTable
             'vin_number',
             'bpkb_image',
             'stnk_image',
+            'kir_image',
+            'bpkb_due_date',
+            'stnk_due_date',
+            'kir_due_date',
             'purchase_price',
             'selling_price',
             'purchase_date',
@@ -42,7 +46,7 @@ class VehicleDataTable extends DataTable
             Column::computed('vehicle_type_label', 'Tipe', fn (Vehicle $vehicle): string => $vehicle->vehicleType?->name ?? $vehicle->type)
                 ->orderable(false)
                 ->searchable(false),
-            Column::computed('vehicle_brand_label', 'Brand', fn (Vehicle $vehicle): string => $vehicle->vehicleBrand?->name ?? '-')
+            Column::computed('vehicle_brand_label', 'Merek', fn (Vehicle $vehicle): string => $vehicle->vehicleBrand?->name ?? '-')
                 ->orderable(false)
                 ->searchable(false),
             Column::computed('company_name', 'Perusahaan', fn (Vehicle $vehicle): string => $vehicle->company?->name ?? '-')
@@ -50,7 +54,7 @@ class VehicleDataTable extends DataTable
                 ->searchable(false),
             Column::make('plat_new', 'Plat Nomor'),
             Column::make('machine_number', 'No. Mesin'),
-            Column::make('vin_number', 'VIN'),
+            Column::make('vin_number', 'Nomor Rangka'),
             Column::computed('fuel_type_label', 'Bahan Bakar', fn (Vehicle $vehicle): string => $vehicle->fuelType?->name ?? $vehicle->fuel_type)
                 ->orderable(false)
                 ->searchable(false),
@@ -62,15 +66,22 @@ class VehicleDataTable extends DataTable
                 ->searchable(false),
             Column::computed('sale_date_label', 'Tgl Jual', fn (Vehicle $vehicle): string => $vehicle->sale_date?->format('d M Y') ?? '-')
                 ->searchable(false),
+            Column::computed('bpkb_due_date_label', 'Tenggat Waktu BPKB', fn (Vehicle $vehicle): string => $vehicle->bpkb_due_date?->format('d M Y') ?? '-')
+                ->searchable(false),
+            Column::computed('stnk_due_date_label', 'Tenggat Waktu STNK', fn (Vehicle $vehicle): string => $vehicle->stnk_due_date?->format('d M Y') ?? '-')
+                ->searchable(false),
+            Column::computed('kir_due_date_label', 'Tenggat Waktu KIR', fn (Vehicle $vehicle): string => $vehicle->kir_due_date?->format('d M Y') ?? '-')
+                ->searchable(false),
             Column::computed('status_badges', 'Status', function (Vehicle $vehicle): string {
                 $statusClass = $vehicle->status === 'ACTIVE'
                     ? 'bg-label-success text-success'
                     : 'bg-label-secondary text-secondary';
 
-                $badges = ['<span class="badge '.$statusClass.'">'.e($vehicle->status).'</span>'];
+                $statusLabel = $vehicle->status === 'ACTIVE' ? 'Aktif' : 'Pasif';
+                $badges = ['<span class="badge '.$statusClass.'">'.e($statusLabel).'</span>'];
 
                 if ($vehicle->mtc === 'YES') {
-                    $badges[] = '<span class="badge bg-label-warning text-warning">Under Maintenance</span>';
+                    $badges[] = '<span class="badge bg-label-warning text-warning">Dalam Pemeliharaan</span>';
                 }
 
                 $badges[] = $vehicle->isprivate

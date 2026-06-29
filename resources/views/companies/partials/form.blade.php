@@ -2,17 +2,13 @@
     $company = $company ?? null;
 @endphp
 
-<form method="POST" action="{{ $action }}">
+<form method="POST" action="{{ $action }}" enctype="multipart/form-data">
     @csrf
     <input type="hidden" name="_method" id="company-form-method" value="{{ $method !== 'POST' ? $method : '' }}">
     <input type="hidden" name="_form_action" id="company-form-action" value="{{ $action }}">
 
     <div class="row g-3">
-        <div class="col-md-4">
-            <x-form.text name="code" label="Kode" :value="$company?->code" inputClass="form-control-sm" required maxlength="20" />
-        </div>
-
-        <div class="col-md-8">
+        <div class="col-12">
             <x-form.text name="name" label="Nama" :value="$company?->name" inputClass="form-control-sm" required />
         </div>
 
@@ -25,7 +21,10 @@
         </div>
 
         <div class="col-12">
-            <x-form.text name="image" label="Gambar" :value="$company?->image" inputClass="form-control-sm" maxlength="255" placeholder="URL atau path gambar" />
+            <x-form.file name="image" label="Gambar" mode="filepond" accept="image/*"
+                :acceptedFileTypes="['image/jpeg', 'image/png', 'image/gif', 'image/webp']" maxFileSize="2MB"
+                imagePreviewHeight="200" framePreviewHeight="200"
+                :existingFiles="$company?->imageUrl() ? [$company->imageUrl()] : []" />
         </div>
 
         <div class="col-12">

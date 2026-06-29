@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDiffrntHashId;
 use Database\Factories\CommentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Comment extends Model
 {
     /** @use HasFactory<CommentFactory> */
-    use HasFactory, SoftDeletes;
+    use HasDiffrntHashId, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'body',

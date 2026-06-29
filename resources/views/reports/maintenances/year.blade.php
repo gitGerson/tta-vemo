@@ -7,6 +7,11 @@
 @section('content')
 
 <div class="container-xxl flex-grow-1 container-p-y">
+    @php
+        $canPrint = $companyId !== null;
+        $printTitle = $canPrint ? null : 'Pilih satu perusahaan untuk mencetak';
+    @endphp
+
     <div class="card mb-4">
     <div class="card-body">
         <h6 class="text-primary fw-semibold mb-3">Cetak Laporan Pemeliharaan Tahunan</h6>
@@ -30,22 +35,26 @@
         <div class="col-sm-6 col-md-3">
             <label for="company" class="form-label small mb-1">Perusahaan</label>
             <select name="company" class="form-select form-select-sm select2" id="company">
-                <option value="">Semua perusahaan</option>
+                <option value="" {{ $companyId === null ? 'selected' : '' }}>Semua perusahaan</option>
                 @foreach ($companies as $row)
-                    <option value="{{ $row->id }}" {{ (int) $companyId === (int) $row->id ? 'selected' : '' }}>{{ $row->code ?: $row->name }}</option>
+                    <option value="{{ $row->id }}" {{ (int) $companyId === (int) $row->id ? 'selected' : '' }}>{{ $row->name ?: $row->code }}</option>
                 @endforeach
             </select>
         </div>
 
         <div class="col-sm-6 col-md-auto">
             <a target="_blank"
-                href="{{ route('report.maintenances.year.pdf', ['year' => request()->query('year'), 'company' => $companyId]) }}"
-                class="btn btn-sm btn-primary"><i class="bx bx-printer me-1"></i> Cetak PDF</a>
+                href="{{ $canPrint ? route('report.maintenances.year.pdf', ['year' => request()->query('year'), 'company' => $companyId]) : '#' }}"
+                class="btn btn-sm btn-primary {{ $canPrint ? '' : 'disabled' }}"
+                title="{{ $printTitle }}"
+                aria-disabled="{{ $canPrint ? 'false' : 'true' }}"><i class="bx bx-printer me-1"></i> Cetak PDF</a>
         </div>
 
         <div class="col-sm-6 col-md-auto">
-            <a href="{{ route('report.maintenances.year.excel', ['year' => request()->query('year', ''), 'company' => $companyId]) }}"
-                class="btn btn-sm btn-outline-primary"><i class="bx bx-export me-1"></i> Cetak Excel</a>
+            <a href="{{ $canPrint ? route('report.maintenances.year.excel', ['year' => request()->query('year', ''), 'company' => $companyId]) : '#' }}"
+                class="btn btn-sm btn-outline-primary {{ $canPrint ? '' : 'disabled' }}"
+                title="{{ $printTitle }}"
+                aria-disabled="{{ $canPrint ? 'false' : 'true' }}"><i class="bx bx-export me-1"></i> Cetak Excel</a>
         </div>
 
     </form>

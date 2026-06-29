@@ -9,7 +9,7 @@
      <!-- Desktop Sidebar Toggle -->
      <div class="sidebar-toggle-desktop navbar-nav align-items-xl-center me-4 me-xl-0 d-none d-xl-block">
          <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)" id="sidebar-toggle-btn"
-             title="Toggle Sidebar">
+             title="Buka/tutup sidebar">
              <i class="icon-base bx bx-menu icon-md"></i>
          </a>
      </div>
@@ -21,32 +21,32 @@
                  <span class="w-px-22 h-px-22"><i class="icon-base bx bx-search icon-md"></i></span>
                  <input type="text" id="menu-search"
                      class="form-control border-0 shadow-none ps-1 ps-sm-2 d-md-block d-none"
-                     placeholder="Search menu..." aria-label="Search menu..." autocomplete="off" autofocus />
+                     placeholder="Cari menu..." aria-label="Cari menu..." autocomplete="off" autofocus />
 
                  <!-- Search Results Dropdown -->
                  <div id="search-results" class="dropdown-menu search-dropdown d-none"
                      style="width: 360px; max-height: 420px; overflow-y: auto;">
                      <div class="dropdown-header d-flex justify-content-between align-items-center">
-                         <small class="text-muted fw-semibold">Search Results</small>
+                         <small class="text-muted fw-semibold">Hasil Pencarian</small>
                          <small class="text-muted">
                              <i class="bx bx-info-circle me-1"></i>
-                             <span class="d-none d-sm-inline">Use ↑↓ to navigate, Enter to select</span>
+                             <span class="d-none d-sm-inline">Gunakan ↑↓ untuk navigasi, Enter untuk memilih</span>
                          </small>
                      </div>
                      <div id="search-results-content">
                          <!-- Results will be populated here -->
                      </div>
                      <div id="no-results" class="dropdown-item-text text-center text-muted py-3 d-none">
-                         <i class="bx bx-search-alt-2 me-2"></i>No results found
+                         <i class="bx bx-search-alt-2 me-2"></i>Tidak ada hasil
                          <div class="mt-1">
-                             <small>Try searching for: users, roles, dashboard, logs</small>
+                             <small>Coba cari: pengguna, role, dasbor, log</small>
                          </div>
                      </div>
                      <div class="dropdown-divider my-2"></div>
                      <div class="dropdown-item-text">
                          <small class="text-muted">
                              <i class="bx bx-key me-1"></i>
-                             Press <kbd class="bg-light border px-1 rounded">Ctrl+K</kbd> to focus search
+                             Tekan <kbd class="bg-light border px-1 rounded">Ctrl+K</kbd> untuk fokus ke pencarian
                          </small>
                      </div>
                  </div>
@@ -57,7 +57,7 @@
 
          <ul class="navbar-nav flex-row align-items-center ms-md-auto">
              <li class="nav-item me-3">
-                 <button type="button" class="btn theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+                 <button type="button" class="btn theme-toggle" id="theme-toggle" aria-label="Ubah mode gelap">
                      <i class="theme-toggle-icon bx bx-moon"></i>
                  </button>
              </li>
@@ -72,7 +72,7 @@
                          <span
                              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                              {{ $navbarNotifications['count'] > 9 ? '9+' : $navbarNotifications['count'] }}
-                             <span class="visually-hidden">notifications</span>
+                             <span class="visually-hidden">notifikasi</span>
                          </span>
                      @endif
                  </button>
@@ -83,10 +83,10 @@
                      data-notifications-has-more="{{ ($navbarNotifications['has_more'] ?? false) ? '1' : '0' }}">
                      <li class="dropdown-menu-header border-bottom">
                          <div class="dropdown-header d-flex align-items-center py-3">
-                             <h6 class="mb-0 me-auto">Notifications</h6>
+                             <h6 class="mb-0 me-auto">Notifikasi</h6>
                              @if ($navbarNotifications['count'] > 0)
                                  <span
-                                     class="badge bg-label-primary">{{ $navbarNotifications['count'] }} New</span>
+                                     class="badge bg-label-primary">{{ $navbarNotifications['count'] }} Baru</span>
                              @endif
                          </div>
                      </li>
@@ -111,7 +111,7 @@
                                  <li class="list-group-item text-center text-body-secondary py-4"
                                      data-notifications-empty>
                                      <i class="icon-base bx bx-bell-off d-block mb-2" style="font-size: 1.75rem;"></i>
-                                     No notifications
+                                     Tidak ada notifikasi
                                  </li>
                              @endforelse
                          </ul>
@@ -120,7 +120,7 @@
                          <li class="dropdown-menu-footer border-top">
                              <button type="button" class="btn btn-sm btn-link w-100 py-2 text-decoration-none"
                                  data-notifications-load-more>
-                                 View more
+                                 Lihat lainnya
                              </button>
                          </li>
                      @endif
@@ -197,20 +197,20 @@
                      @if ($canViewProfile)
                          <li>
                              <a class="dropdown-item" href="{{ route('users.show', $currentUser) }}">
-                                 <i class="icon-base bx bx-user icon-md me-3"></i><span>My Profile</span>
+                                 <i class="icon-base bx bx-user icon-md me-3"></i><span>Profil Saya</span>
                              </a>
                          </li>
                      @endif
                      <li>
                          <a class="dropdown-item" href="{{ route('account.telegram') }}">
-                             <i class="icon-base bx bxl-telegram icon-md me-3"></i><span>Connect Telegram</span>
+                             <i class="icon-base bx bxl-telegram icon-md me-3"></i><span>Hubungkan Telegram</span>
                          </a>
                      </li>
                      <li>
                          <a class="dropdown-item" href="{{ route('logout') }}"
                              onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">
-                             <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Log Out</span>
+                             <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Keluar</span>
                          </a>
                          <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                              @csrf

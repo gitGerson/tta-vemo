@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Company;
+use App\Services\FilePondUploadService;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 class CompanyUpdateRequest extends CompanyStoreRequest
@@ -22,7 +23,13 @@ class CompanyUpdateRequest extends CompanyStoreRequest
      */
     public function rules(): array
     {
-        return Company::validationRules($this->company());
+        $company = $this->company();
+        $rules = Company::validationRules($company);
+        $rules['image'] = ['nullable', app(FilePondUploadService::class)->imageUploadValidationRule(
+            existingReferences: array_filter([$company?->imageUrl()]),
+        )];
+
+        return $rules;
     }
 
     protected function company(): ?Company

@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDiffrntHashId;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class UserLog extends Model
 {
+    use HasDiffrntHashId;
+
     protected $fillable = [
         'user_id',
         'target_user_id',
@@ -83,12 +86,12 @@ class UserLog extends Model
 
     public function getChangesTextAttribute()
     {
-        if (!$this->old_values && !$this->new_values) {
+        if (! $this->old_values && ! $this->new_values) {
             return null;
         }
 
         $changes = [];
-        
+
         if ($this->old_values && $this->new_values) {
             foreach ($this->new_values as $key => $newValue) {
                 $oldValue = $this->old_values[$key] ?? null;

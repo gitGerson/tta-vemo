@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\HasDiffrntHashId;
 use Illuminate\Database\Eloquent\Model;
 
 class Permission extends Model
 {
-    use Auditable;
+    use Auditable, HasDiffrntHashId;
 
     protected $fillable = [
         'name',
@@ -28,8 +29,8 @@ class Permission extends Model
     public function roles()
     {
         return $this->belongsToMany(Role::class, 'role_permission')
-                    ->withPivot('created_by')
-                    ->withTimestamps();
+            ->withPivot('created_by')
+            ->withTimestamps();
     }
 
     public function creator()

@@ -3,17 +3,18 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToCompanyTenantThroughPivot;
+use App\Models\Concerns\HasDiffrntHashId;
 use App\Rules\DifferentPhoneNumbers;
+use App\Support\S3Url;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class Driver extends Model
 {
-    use BelongsToCompanyTenantThroughPivot, HasFactory, SoftDeletes;
+    use BelongsToCompanyTenantThroughPivot, HasDiffrntHashId, HasFactory, SoftDeletes;
 
     protected $table = 'drivers';
 
@@ -82,15 +83,7 @@ class Driver extends Model
 
     public function imageUrl(): ?string
     {
-        if (! $this->image) {
-            return null;
-        }
-
-        if (str_starts_with($this->image, 'http')) {
-            return $this->image;
-        }
-
-        return Storage::disk('s3')->url($this->image);
+        return S3Url::temporary($this->image);
     }
 
     public function companies(): BelongsToMany

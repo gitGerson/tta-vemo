@@ -16,7 +16,7 @@
         <x-datatable.card title="Activity Log: {{ $user->name }} ({{ $user->username }})">
             <x-slot:actions>
                 <a href="{{ route('users.show', $user) }}" class="btn btn-info me-2">
-                    <i class="bx bx-show me-1"></i> View User
+                    <i class="bx bx-show me-1"></i> Lihat Pengguna
                 </a>
                 <a href="{{ route('users.index') }}" class="btn btn-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali

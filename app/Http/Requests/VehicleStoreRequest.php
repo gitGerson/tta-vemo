@@ -6,6 +6,7 @@ use App\Models\FuelType;
 use App\Models\Vehicle;
 use App\Models\VehicleType;
 use App\Services\FilePondUploadService;
+use Carbon\Carbon;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -29,6 +30,7 @@ class VehicleStoreRequest extends FormRequest
         $rules = Vehicle::validationRules();
         $rules['bpkb_image.*'] = [app(FilePondUploadService::class)->imageUploadValidationRule()];
         $rules['stnk_image.*'] = [app(FilePondUploadService::class)->imageUploadValidationRule()];
+        $rules['kir_image.*'] = [app(FilePondUploadService::class)->imageUploadValidationRule()];
 
         return $rules;
     }
@@ -54,8 +56,11 @@ class VehicleStoreRequest extends FormRequest
             'vin_number' => $this->normalizeText($this->input('vin_number')),
             'purchase_price' => $this->nullIfBlank($this->input('purchase_price')),
             'selling_price' => $this->nullIfBlank($this->input('selling_price')),
-            'purchase_date' => $this->nullIfBlank($this->input('purchase_date')),
-            'sale_date' => $this->nullIfBlank($this->input('sale_date')),
+            'purchase_date' => $this->normalizeDate($this->nullIfBlank($this->input('purchase_date'))),
+            'sale_date' => $this->normalizeDate($this->nullIfBlank($this->input('sale_date'))),
+            'bpkb_due_date' => $this->normalizeDate($this->nullIfBlank($this->input('bpkb_due_date'))),
+            'stnk_due_date' => $this->normalizeDate($this->nullIfBlank($this->input('stnk_due_date'))),
+            'kir_due_date' => $this->normalizeDate($this->nullIfBlank($this->input('kir_due_date'))),
         ]);
     }
 
@@ -72,6 +77,19 @@ class VehicleStoreRequest extends FormRequest
     protected function nullIfBlank(mixed $value): mixed
     {
         return blank($value) ? null : $value;
+    }
+
+    protected function normalizeDate(mixed $value): mixed
+    {
+        if (
+            ! is_string($value)
+            || ! preg_match('/^\d{2}-\d{2}-\d{4}$/', $value)
+            || ! Carbon::canBeCreatedFromFormat($value, 'd-m-Y')
+        ) {
+            return $value;
+        }
+
+        return Carbon::createFromFormat('d-m-Y', $value)->toDateString();
     }
 
     protected function resolveFuelTypeLabel(): mixed

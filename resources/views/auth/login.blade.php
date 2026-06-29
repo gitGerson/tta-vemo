@@ -81,7 +81,7 @@
                                 <div class="collapse" id="fixCollapse">
                                     <p class="collapse-content">• Advanced User Roles & Permissions<br>
                                         • Export Functionality Enhancement<br>
-                                        • Real-time Notifications<br>
+                                        • Notifikasi Real-time<br>
                                         • Mobile Responsive Improvements<br>
                                         • Performance Optimizations</p>
                                 </div>

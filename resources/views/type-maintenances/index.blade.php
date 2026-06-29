@@ -1,7 +1,7 @@
 @extends('layouts.sneat')
 
 @section('title')
-    Daftar Tipe Maintenance
+    Daftar Tipe Pemeliharaan
 @endsection
 
 @section('content')
@@ -13,12 +13,12 @@
             </div>
         @endif
 
-        <x-table :table="$table" engine="tabulator" title="Daftar Tipe Maintenance">
+        <x-table :table="$table" engine="tabulator" title="Daftar Tipe Pemeliharaan">
             <x-slot:actions>
                 <div class="d-flex gap-2">
                     @if(auth()->user()->hasPermission('master.type_maintenances.delete'))
                         <a href="{{ route('type-maintenances.trash') }}" class="btn btn-sm btn-outline-secondary">
-                            <i class="bx bx-trash me-1"></i> Trash
+                            <i class="bx bx-trash me-1"></i> Sampah
                         </a>
                     @endif
 
@@ -73,7 +73,7 @@
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Detail Tipe Maintenance</h5>
+                    <h5 class="modal-title">Detail Tipe Pemeliharaan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -118,7 +118,7 @@
         form.action = d.updateUrl;
         document.getElementById('type-maintenance-form-method').value = 'PUT';
         document.getElementById('type-maintenance-form-action').value = d.updateUrl;
-        document.getElementById('type-maintenance-modal-title').textContent = 'Edit Tipe: ' + d.name;
+        document.getElementById('type-maintenance-modal-title').textContent = 'Ubah Tipe: ' + d.name;
         form.querySelector('[type="submit"]').textContent = 'Perbarui';
 
         setField('name', d.name);
@@ -155,7 +155,7 @@
                 const form = getForm();
                 form.action = @json(old('_form_action'));
                 document.getElementById('type-maintenance-form-method').value = 'PUT';
-                document.getElementById('type-maintenance-modal-title').textContent = 'Edit Tipe: ' + @json(old('name'));
+                document.getElementById('type-maintenance-modal-title').textContent = 'Ubah Tipe: ' + @json(old('name'));
                 form.querySelector('[type="submit"]').textContent = 'Perbarui';
             })();
         @endif
