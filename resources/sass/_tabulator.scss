@@ -37,7 +37,11 @@
     box-shadow: none;
 }
 
-.table-tabulator-search {
+// `input` prefix raises specificity above Sneat core.css `.form-control`
+// (display:block; width:100%), which loads after app.css and would otherwise
+// stretch the search box full-width and wrap the toolbar buttons below.
+input.table-tabulator-search {
+    flex: 0 0 auto;
     width: 10rem;
     min-height: 1.85rem;
     padding: 0.24rem 0.45rem;
@@ -59,7 +63,7 @@
         justify-content: flex-start;
     }
 
-    .table-tabulator-search {
+    input.table-tabulator-search {
         display: none;
     }
 
