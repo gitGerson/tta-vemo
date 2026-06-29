@@ -759,6 +759,10 @@ document.addEventListener('shown.bs.tab', (event) => {
     });
 });
 
+// Exposed so content swapped in via AJAX (e.g. the dashboard filter refresh) can
+// initialize its tables. The data-tabulator-initialized guard skips existing ones.
+window.initTabulators = initTabulators;
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initTabulators);
 } else {

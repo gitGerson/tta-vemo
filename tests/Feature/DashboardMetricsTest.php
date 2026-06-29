@@ -113,8 +113,9 @@ class DashboardMetricsTest extends TestCase
             ->assertOk()
             ->assertSeeText('Company')
             ->assertSeeText('Tong Tji Unit Test')
-            ->assertSeeText('Current Month')
-            ->assertSee('value="'.now()->format('Y-m').'"', false);
+            ->assertSeeText('Bulan Aktif')
+            ->assertSee('value="'.now()->format('Y-m').'"', false)
+            ->assertSee('value="'.now()->locale('id')->translatedFormat('F Y').'"', false);
     }
 
     public function test_dashboard_filters_financial_widgets_by_company_and_month(): void
