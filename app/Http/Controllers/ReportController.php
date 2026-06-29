@@ -272,6 +272,8 @@ class ReportController extends Controller
     {
         $mtc = Maintenances::query()
             ->selectRaw('no_pol, MONTH(COALESCE(date_out, date_in)) as month, SUM(total_amount) as total_amount')
+            ->where('status', 'COMPLETED')
+            ->where('is_confirmed', true)
             ->whereYear(DB::raw('COALESCE(date_out, date_in)'), $year)
             ->groupBy('no_pol', 'month')
             ->orderBy('no_pol')
