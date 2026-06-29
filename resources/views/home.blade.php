@@ -2,22 +2,160 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/libs/apex-charts/apex-charts.css') }}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.10.0/dist/css/bootstrap-datepicker3.min.css">
+    <style>
+        .datepicker {
+            z-index: 1080 !important;
+        }
+
+        .datepicker table tr td.active.active,
+        .datepicker table tr td span.active.active,
+        .datepicker table tr td.today {
+            background-color: var(--bs-primary, #696cff);
+            background-image: none;
+            border-color: var(--bs-primary, #696cff);
+        }
+
+        /* Compact month-picker popup. */
+        .datepicker.datepicker-dropdown {
+            width: 216px;
+            padding: 0.35rem;
+            font-size: 0.75rem;
+            min-width: 0;
+        }
+
+        .datepicker-dropdown .datepicker-switch,
+        .datepicker-dropdown .prev,
+        .datepicker-dropdown .next {
+            height: 26px;
+            font-size: 0.8125rem;
+        }
+
+        .datepicker-dropdown .datepicker-months table {
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .datepicker-dropdown .datepicker-months table tr td span {
+            width: 25%;
+            height: 30px;
+            line-height: 30px;
+            margin: 0;
+            font-size: 0.75rem;
+        }
+
+        /* Give the company select a comfortable width so long names don't clip. */
+        .dashboard-filter .select2-container {
+            min-width: 220px;
+        }
+
+        /* Match select2 (bootstrap-5 theme) to Bootstrap's form-select-sm sizing
+           so it lines up with the month input beside it. */
+        .dashboard-filter .select2-container--bootstrap-5 .select2-selection--single {
+            height: calc(1.5em + 0.5rem + 2px);
+            padding: 0.25rem 1.75rem 0.25rem 0.5rem;
+            font-size: 0.8125rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .dashboard-filter .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+            padding: 0;
+            line-height: 1.5;
+        }
+
+        .dashboard-filter #dashboard-month-picker {
+            background-color: var(--bs-paper-bg);
+        }
+
+        /* Compact dropdown panel — scoped to this select's results list only, so
+           other select2 dropdowns in the app keep their default sizing. */
+        #select2-dashboard-company-results .select2-results__option {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8125rem;
+            line-height: 1.3;
+        }
+
+        .select2-dropdown:has(#select2-dashboard-company-results) .select2-search__field {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8125rem;
+        }
+
+        html[data-bs-theme='dark'] .dashboard-filter .select2-selection--single,
+        html[data-bs-theme='dark'] #dashboard-month-picker {
+            color: var(--bs-body-color);
+            background-color: var(--bs-paper-bg) !important;
+            border-color: var(--bs-border-color);
+        }
+
+        html[data-bs-theme='dark'] .dashboard-filter .select2-selection__rendered {
+            color: var(--bs-body-color);
+        }
+
+        html[data-bs-theme='dark'] .select2-dropdown:has(#select2-dashboard-company-results),
+        html[data-bs-theme='dark'] .select2-dropdown:has(#select2-dashboard-company-results) .select2-search__field,
+        html[data-bs-theme='dark'] .datepicker.datepicker-dropdown {
+            color: var(--bs-body-color);
+            background-color: var(--bs-paper-bg);
+            border-color: var(--bs-border-color);
+        }
+
+        html[data-bs-theme='dark'] #select2-dashboard-company-results .select2-results__option--highlighted {
+            color: var(--bs-primary-contrast);
+            background-color: var(--bs-primary);
+        }
+
+        html[data-bs-theme='dark'] .datepicker-dropdown .datepicker-switch:hover,
+        html[data-bs-theme='dark'] .datepicker-dropdown .prev:hover,
+        html[data-bs-theme='dark'] .datepicker-dropdown .next:hover,
+        html[data-bs-theme='dark'] .datepicker-dropdown table tr td span:hover {
+            background-color: var(--bs-secondary-bg);
+        }
+
+        /* Slim top progress bar shown while the dashboard refreshes via AJAX. */
+        #dashboard-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            width: 0;
+            z-index: 2000;
+            opacity: 0;
+            transition: width 0.2s ease, opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        #dashboard-content {
+            transition: opacity 0.15s ease;
+        }
+
+        #dashboard-content.is-loading {
+            opacity: 0.55;
+        }
+    </style>
 @endpush
 
 @section('content')
     <!-- Content -->
-    
+
+    <div id="dashboard-progress" class="bg-primary"></div>
+
     <div class="container-xxl flex-grow-1 container-p-y">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-6">
             <div>
                 <h4 class="mb-1">Dashboard</h4>
                 <p class="mb-0 text-body-secondary">Ringkasan operasional armada</p>
             </div>
-            <form action="{{ route('home') }}" method="GET" class="row g-2 align-items-end">
+            <form action="{{ route('home') }}" method="GET" id="dashboard-filter" class="dashboard-filter row g-2 align-items-end">
                 <div class="col-sm-auto">
-                    <label for="dashboard-company" class="form-label small mb-1">Company</label>
-                    <select name="company" id="dashboard-company" class="form-select form-select-sm">
-                        <option value="">Semua Perusahaan</option>
+                    <label for="dashboard-company" class="form-label small mb-1">Perusahaan</label>
+                    <select name="company" id="dashboard-company" class="form-select form-select-sm"
+                        data-select2-enabled="1">
+                        @if ($dashboardContext['company_options']->count() > 1)
+                            <option value="">Semua Perusahaan</option>
+                        @endif
                         @foreach ($dashboardContext['company_options'] as $company)
                             <option value="{{ $company->id }}" @selected($dashboardContext['selected_company_id'] === $company->id)>
                                 {{ $company->name }}
@@ -26,256 +164,26 @@
                     </select>
                 </div>
                 <div class="col-sm-auto">
-                    <label for="dashboard-month" class="form-label small mb-1">Current Month</label>
-                    <input type="month" name="month" id="dashboard-month" class="form-control form-control-sm"
+                    <label for="dashboard-month-picker" class="form-label small mb-1">Bulan Aktif</label>
+                    <input type="hidden" name="month" id="dashboard-month"
                         value="{{ $dashboardContext['selected_month'] }}">
-                </div>
-                <div class="col-sm-auto">
-                    <button type="submit" class="btn btn-sm btn-primary">
-                        <i class="icon-base bx bx-filter-alt me-1"></i> Filter
-                    </button>
+                    <input type="text" id="dashboard-month-picker" class="form-control form-control-sm"
+                        autocomplete="off" readonly value="{{ $dashboardContext['month'] }}">
                 </div>
             </form>
         </div>
 
-        <!-- KPI cards -->
-        <div class="row">
-            @foreach ($kpis as $kpi)
-                <div class="col-xl-3 col-md-6 col-6 mb-6">
-                    <a href="{{ $kpi['link'] }}" class="card h-100 text-body">
-                        <div class="card-body">
-                            <div class="d-flex align-items-start mb-3">
-                                <div class="avatar flex-shrink-0">
-                                    <span class="avatar-initial rounded bg-label-{{ $kpi['color'] }}"><i
-                                            class="icon-base bx {{ $kpi['icon'] }}"></i></span>
-                                </div>
-                            </div>
-                            <p class="mb-1">{{ $kpi['label'] }}</p>
-                            <h4 class="card-title mb-1">{{ $kpi['value'] }}</h4>
-                            <small class="text-body-secondary">{{ $kpi['sub'] }}</small>
-                        </div>
-                    </a>
-                </div>
-            @endforeach
-        </div>
-
-        <!-- Financial & utilization summary -->
-        <div class="row">
-            @if ($financials['visible'])
-                <!-- Tren Biaya -->
-                <div class="col-lg-8 mb-6">
-                    <div class="card h-100">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <div class="card-title mb-0">
-                                <h5 class="mb-1 me-2">Tren Biaya</h5>
-                                <p class="card-subtitle">Pemeliharaan vs BBM · 6 bulan terakhir</p>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <script type="application/json" id="spendTrendData">@json($financials['trend'])</script>
-                            <div id="spendTrendChart"></div>
-                        </div>
-                    </div>
-                </div>
-            @endif
-            <!-- Biaya & pemakaian -->
-            <div class="col-lg-4 mb-6">
-                <div class="row">
-                    @if ($financials['visible'])
-                        @foreach (['maintenance' => ['Biaya Pemeliharaan', 'warning', 'bx-wrench'], 'fuel' => ['Biaya BBM', 'info', 'bx-gas-pump']] as $key => $meta)
-                            @php $stat = $financials['summary'][$key]; @endphp
-                            <div class="col-md-6 col-lg-12 mb-6">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-start justify-content-between">
-                                            <div class="content-left">
-                                                <span class="fw-medium d-block mb-1">{{ $meta[0] }}</span>
-                                                <h4 class="mb-0">{{ $stat['formatted'] }}</h4>
-                                            </div>
-                                            <div class="avatar flex-shrink-0">
-                                                <span class="avatar-initial rounded bg-label-{{ $meta[1] }}"><i
-                                                        class="icon-base bx {{ $meta[2] }}"></i></span>
-                                            </div>
-                                        </div>
-                                        @if ($stat['delta'] === null)
-                                            <small class="text-body-secondary">{{ $financials['summary']['month_label'] }}</small>
-                                        @else
-                                            <small class="{{ $stat['delta'] > 0 ? 'text-danger' : 'text-success' }}">
-                                                <i class="icon-base bx {{ $stat['delta'] > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt' }}"></i>
-                                                {{ abs($stat['delta']) }}% vs bulan lalu
-                                            </small>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    @endif
-                    <!-- KM Ditempuh -->
-                    <div class="col-md-6 col-lg-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex align-items-start justify-content-between">
-                                    <div class="content-left">
-                                        <span class="fw-medium d-block mb-1">KM Ditempuh
-                                            <i class="icon-base bx bx-info-circle text-body-secondary"
-                                                style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip"
-                                                data-bs-placement="top"
-                                                title="Total jarak tempuh dari data perjalanan bulan ini"></i>
-                                        </span>
-                                        <h4 class="mb-0">{{ $utilization['km'] }}</h4>
-                                    </div>
-                                    <div class="avatar flex-shrink-0">
-                                        <span class="avatar-initial rounded bg-label-primary"><i
-                                                class="icon-base bx bx-tachometer"></i></span>
-                                    </div>
-                                </div>
-                                <small class="text-body-secondary">bulan ini</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Kondisi, komposisi & tren pemeliharaan -->
-        <div class="row">
-            <!-- Kondisi Kendaraan -->
-            <div class="col-md-6 col-lg-4 mb-6">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <h5 class="card-title mb-1">Kondisi Kendaraan</h5>
-                        <p class="card-subtitle mb-0">{{ $conditionSummary['active'] }} aktif · {{ $conditionSummary['total'] }} total</p>
-                    </div>
-                    <div class="card-body d-flex justify-content-center">
-                        <script type="application/json" id="vehicleConditionData">@json($conditionSummary)</script>
-                        <div id="vehicleConditionChart"></div>
-                    </div>
-                </div>
-            </div>
-            <!-- Komposisi Armada -->
-            <div class="col-md-6 col-lg-4 mb-6">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <h5 class="card-title mb-1">Komposisi Armada</h5>
-                        <p class="card-subtitle mb-0">Per tipe kendaraan</p>
-                    </div>
-                    <div class="card-body d-flex justify-content-center">
-                        <script type="application/json" id="fleetCompositionData">@json($fleetComposition)</script>
-                        <div id="fleetCompositionChart"></div>
-                    </div>
-                </div>
-            </div>
-            <!-- Volume Pemeliharaan -->
-            <div class="col-md-6 col-lg-4 mb-6">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <h5 class="card-title mb-1">Volume Pemeliharaan</h5>
-                        <p class="card-subtitle mb-0">Rutin vs non-rutin · 6 bulan</p>
-                    </div>
-                    <div class="card-body">
-                        <script type="application/json" id="maintenanceVolumeData">@json($maintenanceVolume)</script>
-                        <div id="maintenanceVolumeChart"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        @php
-            // Shared 3-column layout (Plat / Info / Status) for the reminder tables.
-            $reminderColumns = [
-                ['title' => 'Plat', 'field' => 'plate', 'formatter' => 'html', 'headerSort' => false],
-                ['title' => 'Info', 'field' => 'detail', 'headerSort' => false],
-                ['title' => 'Status', 'field' => 'status', 'formatter' => 'html', 'headerSort' => false, 'hozAlign' => 'right'],
-            ];
-            $plateLink = fn (array $i): string => '<a href="'.e($i['link']).'" class="fw-medium text-body">'.e($i['plate']).'</a>';
-        @endphp
-
-        <div class="row">
-            <!-- Pengingat Servis -->
-            @if ($serviceReminders['visible'])
-                @php
-                    $serviceRows = collect($serviceReminders['items'])->map(fn (array $i): array => [
-                        'plate' => $plateLink($i),
-                        'detail' => $i['current'].' / '.$i['threshold'].' km · terakhir '.$i['last_service'],
-                        'status' => '<span class="badge bg-label-danger">Lewat '.e($i['over']).' km</span>',
-                    ])->all();
-                @endphp
-                <div class="col-md-6 col-lg-6 order-1 mb-6">
-                    <x-dashboard.list-table id="dashServiceReminder" title="Pengingat Servis"
-                        subtitle="{{ $serviceReminders['count'] }} Tenggat waktu" :columns="$reminderColumns" :rows="$serviceRows"
-                        placeholder="Tidak ada kendaraan jatuh tempo servis." />
-                </div>
-            @endif
-            <!--/ Pengingat Servis -->
-
-            <!-- Foto Kendaraan -->
-            @if ($photoReminders['visible'])
-                @php
-                    $photoRows = collect($photoReminders['items'])->map(fn (array $i): array => [
-                        'plate' => $plateLink($i),
-                        'detail' => 'Foto '.$i['period_label'].' belum lengkap',
-                        'status' => '<span class="badge bg-label-warning">'.e($i['completed']).'/'.e($i['total']).'</span>',
-                    ])->all();
-                @endphp
-                <div class="col-md-6 col-lg-6 order-1 mb-6">
-                    <x-dashboard.list-table id="dashPhotoReminder" title="Foto Kendaraan"
-                        subtitle="{{ $photoReminders['count'] }} Belum lengkap" :columns="$reminderColumns"
-                        :rows="$photoRows" placeholder="Semua kendaraan sudah lengkap foto bulan ini." />
-                </div>
-            @endif
-            <!--/ Foto Kendaraan -->
-
-            <!-- Pengingat Asuransi -->
-            @if ($insuranceReminders['visible'])
-                @php
-                    $insuranceRows = collect($insuranceReminders['items'])->map(function (array $i): array {
-                        $overdue = ($i['state'] ?? null) === 'overdue';
-                        $status = $overdue
-                            ? '<span class="badge bg-label-danger">Lewat '.e($i['days_overdue']).'h</span>'
-                            : '<span class="badge bg-label-'.($i['threshold'] <= 7 ? 'danger' : 'warning').'">H-'.e($i['days_left']).'</span>';
-
-                        return [
-                            'plate' => '<a href="'.e($i['link']).'" class="fw-medium text-body">'.e($i['plate']).'</a>',
-                            'detail' => $i['insurer'].' · '.($overdue ? 'kedaluwarsa' : 'berakhir').' '.$i['end_date'],
-                            'status' => $status,
-                        ];
-                    })->all();
-                @endphp
-                <div class="col-md-6 col-lg-6 order-1 mb-6">
-                    <x-dashboard.list-table id="dashInsuranceReminder" title="Pengingat Asuransi"
-                        subtitle="{{ $insuranceReminders['count'] }} Perlu perhatian" :columns="$reminderColumns"
-                        :rows="$insuranceRows" placeholder="Tidak ada asuransi yang perlu perhatian.">
-                        <x-slot:action>
-                            <a href="{{ route('vehicle-insurances.index') }}"
-                                class="btn btn-sm btn-outline-primary">Lihat</a>
-                        </x-slot:action>
-                    </x-dashboard.list-table>
-                </div>
-            @endif
-            <!--/ Pengingat Asuransi -->
-
-            <!-- Pemeliharaan Terbaru -->
-            @php
-                $recentRows = collect($recentMaintenance)->map(fn (array $i): array => [
-                    'plate' => $plateLink($i),
-                    'detail' => $i['meta'],
-                    'status' => '<span class="badge bg-label-'.$i['color'].'">'.e($i['badge']).'</span>',
-                ])->all();
-            @endphp
-            <div class="col-md-6 col-lg-6 order-2 mb-6">
-                <x-dashboard.list-table id="dashRecentMaintenance" title="Pemeliharaan Terbaru" :columns="$reminderColumns"
-                    :rows="$recentRows" placeholder="Belum ada data pemeliharaan terbaru.">
-                    <x-slot:action>
-                        <a href="{{ route('maintenances.index') }}" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
-                    </x-slot:action>
-                </x-dashboard.list-table>
-            </div>
-            <!--/ Pemeliharaan Terbaru -->
+        <div id="dashboard-content">
+            @include('home.partials.content')
         </div>
     </div>
 @endsection
 
 @push('scripts')
     <script src="{{ asset('sneat/assets/vendor/libs/apex-charts/apexcharts.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.10.0/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.10.0/dist/locales/bootstrap-datepicker.id.min.js"></script>
+    @vite('resources/js/modules/select2.js')
     @vite('resources/js/modules/dashboard.js')
 @endpush

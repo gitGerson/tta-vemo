@@ -39,6 +39,24 @@ class HomeController extends Controller
      */
     public function index(Request $request, ServiceReminderService $serviceReminders, VehiclePhotoMonitorService $photoMonitor, VehicleInsuranceMonitorService $insuranceMonitor, DashboardMetricsService $metrics)
     {
+        $data = $this->buildDashboardData($request, $serviceReminders, $photoMonitor, $insuranceMonitor, $metrics);
+
+        // The filter form posts via AJAX (X-Requested-With) to refresh in place;
+        // return only the content partial so the page is not fully reloaded.
+        if ($request->ajax()) {
+            return view('home.partials.content', $data);
+        }
+
+        return view('home', $data);
+    }
+
+    /**
+     * Build the full dashboard view-data array for the given filter request.
+     *
+     * @return array<string, mixed>
+     */
+    private function buildDashboardData(Request $request, ServiceReminderService $serviceReminders, VehiclePhotoMonitorService $photoMonitor, VehicleInsuranceMonitorService $insuranceMonitor, DashboardMetricsService $metrics): array
+    {
         $user = auth()->user();
         $filters = $this->resolveDashboardFilters($request);
         $selectedCompanyId = $filters['company_id'];
@@ -189,7 +207,7 @@ class HomeController extends Controller
         // granted the dedicated permission; utilization/composition stay ungated.
         $canViewFinancials = $user?->hasPermission('dashboard.financials.view') === true;
 
-        return view('home', [
+        return [
             'dashboardContext' => [
                 'company' => $this->dashboardCompanyLabel($filters['company_options'], $selectedCompanyId),
                 'company_options' => $filters['company_options'],
@@ -212,7 +230,7 @@ class HomeController extends Controller
             'utilization' => $metrics->utilizationSummary($selectedMonth, $selectedCompanyId),
             'fleetComposition' => $metrics->fleetComposition($selectedCompanyId),
             'maintenanceVolume' => $metrics->maintenanceVolumeTrend(month: $selectedMonth, companyId: $selectedCompanyId),
-        ]);
+        ];
     }
 
     /**
@@ -253,6 +271,10 @@ class HomeController extends Controller
 
         $requestedCompanyId = (int) $request->query('company', 0);
         $selectedCompanyId = $companyOptions->contains('id', $requestedCompanyId) ? $requestedCompanyId : null;
+
+        if ($selectedCompanyId === null && $companyOptions->count() === 1) {
+            $selectedCompanyId = (int) $companyOptions->first()->id;
+        }
 
         $month = $this->parseDashboardMonth($request->query('month'));
 
