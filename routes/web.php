@@ -325,9 +325,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/maintenances/{maintenances}/edit', [MaintenancesController::class, 'edit'])->name('maintenances.edit');
         Route::put('/maintenances/{maintenances}', [MaintenancesController::class, 'update'])->name('maintenances.update');
         Route::patch('/maintenances/{maintenances}', [MaintenancesController::class, 'update']);
+        Route::post('/maintenances/{maintenances}/status', [MaintenancesController::class, 'status'])->name('maintenances.status');
     });
     Route::middleware(['permission:maintenances.approve'])->group(function () {
-        Route::post('/maintenances/{maintenances}/status', [MaintenancesController::class, 'status'])->name('maintenances.status');
         Route::post('/maintenances/{maintenances}/confirm', [MaintenancesController::class, 'confirm'])->name('maintenances.confirm');
     });
     Route::middleware(['permission:maintenances.delete'])->group(function () {
