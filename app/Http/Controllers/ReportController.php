@@ -515,6 +515,7 @@ class ReportController extends Controller
             ->where('maintenances.no_pol', $plate)
             ->when($companyId, fn ($query) => $query->where('maintenances.company_id', $companyId))
             ->where('maintenances.status', Maintenance::STATUS_COMPLETED)
+            ->where('maintenances.is_confirmed', true)
             ->whereBetween(DB::raw('COALESCE(maintenances.date_out, maintenances.date_in)'), [$startDate, $endDate])
             ->orderByRaw('COALESCE(maintenances.date_out, maintenances.date_in) ASC')
             ->orderBy('maintenances.code_mt')
@@ -525,6 +526,8 @@ class ReportController extends Controller
     private function fetchYearlyMaintenance(int $year, ?int $companyId = null): array
     {
         $mtc = Maintenance::query()
+            ->where('status', Maintenance::STATUS_COMPLETED)
+            ->where('is_confirmed', true)
             ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
             ->selectRaw('no_pol, MONTH(COALESCE(date_out, date_in)) as month, SUM(total_amount) as total_amount')
             ->whereYear(DB::raw('COALESCE(date_out, date_in)'), $year)
@@ -608,6 +611,7 @@ class ReportController extends Controller
 
         $maintenances = Maintenance::query()
             ->where('status', Maintenance::STATUS_COMPLETED)
+            ->where('is_confirmed', true)
             ->when($unit, fn ($query) => $query->where('no_pol', $unit))
             ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
             ->whereBetween(DB::raw('COALESCE(date_out, date_in)'), [$startDate, $endDate])
