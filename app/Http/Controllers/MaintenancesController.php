@@ -286,6 +286,7 @@ class MaintenancesController extends Controller
             'description' => $request->desc,
             'total_amount' => $request->total_amount,
             'isServiceRoutine' => $request->isServiceRoutine,
+            'status' => $request->has('save_as_draft') ? 'DRAFT' : 'COMPLETED',
             'get_request' => auth()->user()->id,
             'requested_by_name' => auth()->user()->name,
         ]);
