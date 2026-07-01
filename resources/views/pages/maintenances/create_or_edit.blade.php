@@ -48,7 +48,7 @@
                 <a href="{{ route('maintenances.index') }}" class="btn btn-outline-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali
                 </a>
-                @if (isset($maintenances) && in_array($maintenances->status, ['DRAFT', 'COMPLETED'], true) && ! $maintenances->is_confirmed)
+                @if (isset($maintenances) && in_array($maintenances->status, ['DRAFT', 'COMPLETED'], true))
                     <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
                         data-bs-target="#confirmCancelModal" data-id="{{ $maintenances->id }}">
                         <i class="bx bx-x me-1"></i> Batalkan
