@@ -103,11 +103,11 @@
     <h6 class="fw-semibold mb-3"><i class="bx bx-money me-1 text-primary"></i> Keuangan</h6>
     <div class="row g-3">
         <div class="col-md-3">
-            <x-form.number name="purchase_price" label="Harga Beli" :value="$vehicle?->purchase_price" min="0" step="0.01" inputClass="form-control-sm" />
+            <x-form.money name="purchase_price" label="Harga Beli" :value="$vehicle?->purchase_price" />
         </div>
 
         <div class="col-md-3">
-            <x-form.number name="selling_price" label="Harga Jual" :value="$vehicle?->selling_price" min="0" step="0.01" inputClass="form-control-sm" />
+            <x-form.money name="selling_price" label="Harga Jual" :value="$vehicle?->selling_price" />
         </div>
 
         <div class="col-md-3">

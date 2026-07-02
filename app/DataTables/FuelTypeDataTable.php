@@ -23,12 +23,40 @@ class FuelTypeDataTable extends DataTable
         return [
             Column::index(),
             Column::make('name', 'Nama'),
-            Column::make('type', 'Tipe'),
+            Column::computed('type', 'Tipe', fn (FuelType $fuelType): string => $this->typeBadge($fuelType->type))
+                ->raw(),
             Column::computed('price_label', 'Harga', fn (FuelType $fuelType): string => 'Rp '.number_format((float) $fuelType->price, 0, ',', '.'))
                 ->searchable(false),
-            Column::make('merk', 'Merk'),
+            Column::computed('merk', 'Merk', fn (FuelType $fuelType): string => $this->merkBadge($fuelType->merk))
+                ->raw(),
             Column::action(),
         ];
+    }
+
+    private function typeBadge(?string $type): string
+    {
+        $variant = match ($type) {
+            'bensin' => 'success',
+            'solar' => 'warning',
+            default => 'secondary',
+        };
+
+        $label = FuelType::TYPES[$type] ?? ($type ?? '-');
+
+        return '<span class="badge bg-label-'.$variant.'">'.e($label).'</span>';
+    }
+
+    private function merkBadge(?string $merk): string
+    {
+        $variant = match ($merk) {
+            'Pertamina' => 'danger',
+            'Vivo' => 'info',
+            'BP' => 'success',
+            'Shell' => 'warning',
+            default => 'secondary',
+        };
+
+        return '<span class="badge bg-label-'.$variant.'">'.e($merk ?? '-').'</span>';
     }
 
     public function id(): string

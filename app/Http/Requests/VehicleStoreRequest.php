@@ -54,8 +54,8 @@ class VehicleStoreRequest extends FormRequest
             'desc' => $this->normalizeText($this->input('desc')),
             'machine_number' => $this->normalizeText($this->input('machine_number')),
             'vin_number' => $this->normalizeText($this->input('vin_number')),
-            'purchase_price' => $this->nullIfBlank($this->input('purchase_price')),
-            'selling_price' => $this->nullIfBlank($this->input('selling_price')),
+            'purchase_price' => $this->normalizePrice($this->input('purchase_price')),
+            'selling_price' => $this->normalizePrice($this->input('selling_price')),
             'purchase_date' => $this->normalizeDate($this->nullIfBlank($this->input('purchase_date'))),
             'sale_date' => $this->normalizeDate($this->nullIfBlank($this->input('sale_date'))),
             'bpkb_due_date' => $this->normalizeDate($this->nullIfBlank($this->input('bpkb_due_date'))),
@@ -77,6 +77,15 @@ class VehicleStoreRequest extends FormRequest
     protected function nullIfBlank(mixed $value): mixed
     {
         return blank($value) ? null : $value;
+    }
+
+    protected function normalizePrice(mixed $value): mixed
+    {
+        if (is_string($value)) {
+            $value = str_replace(['Rp', 'rp', ' ', ','], '', $value);
+        }
+
+        return $this->nullIfBlank($value);
     }
 
     protected function normalizeDate(mixed $value): mixed

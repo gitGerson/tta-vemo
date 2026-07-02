@@ -20,6 +20,7 @@ export default defineConfig({
                 'resources/js/modules/date-range-picker.js',
                 'resources/js/modules/filepond.js',
                 'resources/js/modules/rich-editor.js',
+                'resources/js/modules/rupiah-input.js',
                 'resources/js/modules/select2.js',
                 'resources/js/modules/tabulator.js',
             ],
