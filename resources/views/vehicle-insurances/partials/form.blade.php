@@ -28,7 +28,7 @@
         </div>
 
         <div class="col-md-6">
-            <x-form.select name="insurance_type" label="Jenis Asuransi" :options="\App\Models\VehicleInsurance::INSURANCE_TYPES" :value="$insurance?->insurance_type" placeholder="Pilih jenis asuransi..." mode="select2" inputClass="form-select-sm" required :disabled="! $canField('insurance_type')" />
+            <x-form.select name="insurance_type" label="Jenis Asuransi" :options="\App\Models\VehicleInsurance::INSURANCE_TYPES" :value="$insurance?->insurance_type" placeholder="Pilih jenis asuransi..." inputClass="form-select-sm" required :disabled="! $canField('insurance_type')" />
         </div>
     </div>
 
