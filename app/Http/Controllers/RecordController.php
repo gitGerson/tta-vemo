@@ -171,7 +171,7 @@ class RecordController extends Controller
      */
     private function resolveFilters(Request $request): array
     {
-        $startDate = $request->query('start_date') ?: Carbon::now()->startOfMonth()->toDateString();
+        $startDate = $request->query('start_date') ?: Carbon::now()->startOfYear()->toDateString();
         $endDate = $request->query('end_date') ?: Carbon::now()->endOfMonth()->toDateString();
         $companyId = $request->query('company') ? (int) $request->query('company') : null;
 
