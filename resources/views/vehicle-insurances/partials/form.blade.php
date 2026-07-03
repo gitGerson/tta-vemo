@@ -45,11 +45,11 @@
         </div>
 
         <div class="col-md-3">
-            <x-form.number name="coverage_value" label="Nilai Pertanggungan" :value="$insurance?->coverage_value" min="0" step="0.01" inputClass="form-control-sm" :readonly="! $canField('coverage_value')" />
+            <x-form.money name="coverage_value" label="Nilai Pertanggungan" :value="$insurance?->coverage_value" :readonly="! $canField('coverage_value')" />
         </div>
 
         <div class="col-md-3">
-            <x-form.number name="premium" label="Premi" :value="$insurance?->premium" min="0" step="0.01" inputClass="form-control-sm" :readonly="! $canField('premium')" />
+            <x-form.money name="premium" label="Premi" :value="$insurance?->premium" :readonly="! $canField('premium')" />
         </div>
     </div>
 
