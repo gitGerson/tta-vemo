@@ -14,6 +14,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust the reverse proxy / load balancer in front of the app so
+        // Laravel honors X-Forwarded-Proto and generates https:// URLs. Without
+        // this, form actions built with url() point at http:// on production,
+        // the proxy redirects http->https, and the browser downgrades the POST
+        // to a GET (405 Method Not Allowed).
+        $middleware->trustProxies(at: '*');
+
         $middleware->append([
             PreventSearchIndexing::class,
         ]);

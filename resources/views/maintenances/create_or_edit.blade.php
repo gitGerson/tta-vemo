@@ -56,7 +56,7 @@
                 </a>
                 @if ($maintenance && in_array($maintenance->status, ['DRAFT', 'COMPLETED'], true) && ! $maintenance->is_confirmed && $canApprove)
                     <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
-                        data-bs-target="#confirmCancelModal" data-id="{{ $maintenance->id }}">
+                        data-bs-target="#confirmCancelModal" data-id="{{ $maintenance->getRouteKey() }}">
                         <i class="bx bx-x me-1"></i> Batalkan
                     </button>
                 @endif

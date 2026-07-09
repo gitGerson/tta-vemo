@@ -50,11 +50,11 @@
         <x-table :table="$table" engine="tabulator" layout="fitDataStretch" title="Daftar Perbaikan Kendaraan">
             <x-slot:actions>
                 <div class="d-flex gap-2">
-                    @if(auth()->user()->hasPermission('operational.maintenances.delete'))
+                    <!-- @if(auth()->user()->hasPermission('operational.maintenances.delete'))
                         <a href="{{ route('maintenances.trash') }}" class="btn btn-sm btn-outline-secondary">
                             <i class="bx bx-trash me-1"></i> Sampah
                         </a>
-                    @endif
+                    @endif -->
 
                     @if(auth()->user()->hasPermission('operational.maintenances.create'))
                         <a href="{{ route('maintenances.create') }}" class="btn btn-sm btn-outline-primary">
