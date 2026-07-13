@@ -119,8 +119,12 @@ class VehiclePhotoController extends Controller
      */
     private function redirectAfterWrite(int $vehicleId, string $message): RedirectResponse
     {
-        $target = auth()->user()?->hasPermission('master.vehicles.view') === true
-            ? redirect()->route('vehicles.show', $vehicleId)
+        $vehicle = auth()->user()?->hasPermission('master.vehicles.view') === true
+            ? Vehicle::query()->find($vehicleId)
+            : null;
+
+        $target = $vehicle !== null
+            ? redirect()->route('vehicles.show', $vehicle)
             : redirect()->route('vehicle-photos.create');
 
         return $target->with('success', $message);
