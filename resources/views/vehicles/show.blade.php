@@ -236,7 +236,7 @@
 
         @if(auth()->user()->hasPermission('operational.vehicle_photos.view'))
             <div class="mb-4">
-                <x-table :table="$photoTable" engine="tabulator" layout="fitDataStretch" title="Foto Kendaraan">
+                <x-table :table="$photoTable" engine="tabulator" layout="fitData" title="Foto Kendaraan">
                     <x-slot:actions>
                         @if(auth()->user()->hasPermission('operational.vehicle_photos.create'))
                             <a href="{{ route('vehicle-photos.create', ['vehicle_id' => $vehicle->id]) }}" class="btn btn-sm btn-outline-primary">
@@ -248,6 +248,6 @@
             </div>
         @endif
 
-        <x-table :table="$snapshotTable" engine="tabulator" layout="fitDataStretch" title="Riwayat Perubahan" />
+        <x-table :table="$snapshotTable" engine="tabulator" layout="fitData" title="Riwayat Perubahan" />
     </div>
 @endsection
