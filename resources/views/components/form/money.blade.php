@@ -35,13 +35,14 @@
         <input
             type="text"
             id="{{ $fieldId }}"
-            name="{{ $name }}"
             value="{{ $displayValue }}"
             inputmode="decimal"
             @if ($required) required @endif
             data-rupiah-input
+            data-rupiah-target="{{ $fieldId }}_raw"
             {{ $attributes->except('class')->class(['form-control', $inputClass, 'is-invalid' => $isInvalid]) }}
         >
+        <input type="hidden" name="{{ $name }}" id="{{ $fieldId }}_raw" value="{{ $normalizedValue }}">
         @if ($isInvalid)
             <div class="invalid-feedback">{{ $errorBag->first($name) }}</div>
         @endif
