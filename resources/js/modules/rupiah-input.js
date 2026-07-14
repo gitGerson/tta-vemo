@@ -11,6 +11,20 @@ function formatRupiah(value) {
     return decimal !== undefined ? `${formattedWhole}.${decimal.slice(0, 2)}` : formattedWhole;
 }
 
+function syncRawValue(input) {
+    const targetId = input.dataset.rupiahTarget;
+
+    if (!targetId) {
+        return;
+    }
+
+    const target = document.getElementById(targetId);
+
+    if (target) {
+        target.value = String(input.value).replace(/[^\d.]/g, '');
+    }
+}
+
 function enhanceRupiahInput(input) {
     if (input.dataset.rupiahEnhanced === '1') {
         return;
@@ -18,6 +32,7 @@ function enhanceRupiahInput(input) {
 
     input.dataset.rupiahEnhanced = '1';
     input.value = formatRupiah(input.value);
+    syncRawValue(input);
 
     input.addEventListener('input', function () {
         const cursorAtEnd = input.selectionStart === input.value.length;
@@ -26,6 +41,8 @@ function enhanceRupiahInput(input) {
         if (cursorAtEnd) {
             input.setSelectionRange(input.value.length, input.value.length);
         }
+
+        syncRawValue(input);
     });
 }
 
