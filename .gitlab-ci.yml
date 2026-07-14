@@ -24,7 +24,7 @@ deploy-staging:
     - chmod 700 ~/.ssh
     - ssh-keyscan -H 19.38.40.46 >> ~/.ssh/known_hosts
   script:
-    - ssh root@19.38.40.46 "bash /root/deploy-stg-tta-vemo-v2.sh"
+    - ssh root@19.38.40.46 "bash /root/deploy-tta-vemo-v2.sh"
 
 deploy-production:
   stage: deploy
