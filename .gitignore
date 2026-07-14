@@ -19,10 +19,13 @@
 /storage/*.key
 /storage/pail
 /vendor
-/reference
 Homestead.json
 Homestead.yaml
 Thumbs.db
+.agents
+.claude
+.codex
 AGENTS.md
+CLAUDE.md
+.mcp.json
 boost.json
-note.md

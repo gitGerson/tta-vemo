@@ -1,11 +1,25 @@
 @extends('layouts.sneat')
 
 @section('title')
-    Edit User - {{ $user->name }}
+    Ubah Pengguna - {{ $user->name }}
 @endsection
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         <div class="row">
             <!-- User Basic Info -->
             <div class="col-md-4">
@@ -47,6 +61,34 @@
                                 </button>
                             </form>
                         </div>
+
+                        <form action="{{ route('users.update', $user) }}" method="POST" class="mt-4">
+                            @csrf
+                            @method('PUT')
+
+                            <div class="mb-3">
+                                <x-form.select
+                                    name="company_ids"
+                                    id="company_ids"
+                                    label="Perusahaan"
+                                    mode="select2"
+                                    multiple
+                                    placeholder="Pilih perusahaan..."
+                                    :inputClass="$errors->has('company_ids.*') ? 'is-invalid' : null"
+                                >
+                                    @foreach($companies as $company)
+                                        <option value="{{ $company->id }}" @selected(in_array($company->id, old('company_ids', $user->companies->pluck('id')->all())))>
+                                            {{ $company->name }} ({{ $company->code }})
+                                        </option>
+                                    @endforeach
+                                </x-form.select>
+                                <x-form.error name="company_ids.*" />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bx bx-save me-1"></i> Update Perusahaan
+                            </button>
+                        </form>
                     </div>
                 </div>
 
@@ -62,7 +104,7 @@
                                 <select name="role_template" class="form-select" required>
                                     <option value="">Select Template</option>
                                     @foreach($roleTemplates as $role)
-                                        <option value="{{ $role->id }}">{{ $role->display_name }}</option>
+                                        <option value="{{ $role->id }}" data-permissions-url="{{ route('roles.permissions', $role) }}">{{ $role->display_name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -142,7 +184,7 @@
 
                             <div class="d-flex justify-content-end">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="bx bx-save me-1"></i> Save Permissions
+                                    <i class="bx bx-save me-1"></i> Simpan Izin
                                 </button>
                             </div>
                         </form>
@@ -216,13 +258,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (roleTemplateSelect) {
         roleTemplateSelect.addEventListener('change', function() {
             const roleId = this.value;
+            const permissionsUrl = this.selectedOptions[0]?.dataset.permissionsUrl;
 
-            if (!roleId) {
+            if (!roleId || !permissionsUrl) {
                 return;
             }
 
             // Fetch permissions for the selected template
-            fetch(`/roles/${roleId}/permissions`)
+            fetch(permissionsUrl)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {

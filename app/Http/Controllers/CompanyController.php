@@ -2,150 +2,110 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTables\CompanyDataTable;
+use App\DataTables\CompanyDriverDataTable;
+use App\DataTables\CompanyTrashDataTable;
+use App\DataTables\CompanyUserDataTable;
+use App\DataTables\CompanyVehicleDataTable;
+use App\Http\Requests\CompanyStoreRequest;
+use App\Http\Requests\CompanyUpdateRequest;
 use App\Models\Company;
+use App\Services\FilePondUploadService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class CompanyController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct(
+        protected FilePondUploadService $filePond,
+    ) {}
+
     public function index()
     {
-        return view("pages.company.index");
+        return view('companies.index', ['table' => new CompanyDataTable]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(CompanyStoreRequest $request)
     {
-        //
+        $data = $request->validated();
+        $data['image'] = $this->filePond->storeFromRequestField($request, 'image', 'company_images', 's3');
+
+        Company::create($data);
+
+        return redirect()->route('companies.index')->with('success', 'Perusahaan berhasil ditambahkan.');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function show(Company $company): View
     {
-        $request->validate([
-            'code' => ['required', 'string', Rule::unique('company', 'code')],
-            'name' => ['required', 'string'],
-            'desc' => ['nullable', 'string'],
+        $company->loadCount(['drivers', 'users', 'vehicles']);
+
+        return view('companies.show', [
+            'company' => $company,
+            'driverTable' => new CompanyDriverDataTable($company),
+            'userTable' => new CompanyUserDataTable($company),
+            'vehicleTable' => new CompanyVehicleDataTable($company),
         ]);
-
-        $created = Company::create([
-            'code' => $request->input('code'),
-            'name' => $request->input('name'),
-            'desc' => $request->input('desc'),
-        ]);
-
-        if (!$created) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat menambahkan perusahaan');
-        }
-
-        return redirect()->route('company.index')->with('success', 'Perusahaan Berhasil Ditambahkan');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(Company $company, CompanyUpdateRequest $request)
     {
-        //
+        $data = $request->validated();
+        $data['image'] = $this->filePond->storeFromRequestField($request, 'image', 'company_images', 's3') ?? $company->image;
+
+        $company->update($data);
+
+        return redirect()->route('companies.index')->with('success', 'Perusahaan berhasil diperbarui.');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function destroy(Company $company)
     {
-        //
+        $company->delete();
+
+        return redirect()->route('companies.index')->with('success', 'Perusahaan berhasil dihapus.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function trash()
     {
-        $company = Company::findOrFail($id);
-
-        $request->validate([
-            'code' => ['required', 'string', Rule::unique('company', 'code')->ignore($company->id)],
-            'name' => ['required', 'string'],
-            'desc' => ['nullable', 'string'],
-        ]);
-
-        $updated = $company->update([
-            'code' => $request->input('code'),
-            'name' => $request->input('name'),
-            'desc' => $request->input('desc'),
-        ]);
-
-        if (!$updated) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat memperbarui perusahaan');
-        }
-
-        return redirect()->route('company.index')->with('success', 'Perusahaan Berhasil Diperbarui');
+        return view('companies.trash', ['table' => new CompanyTrashDataTable]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function restore(Company $company)
     {
-        $company = Company::findOrFail($id);
+        $company->restore();
 
-        if (!$company->delete()) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat menghapus perusahaan');
-        }
+        return redirect()->route('companies.trash')->with('success', 'Perusahaan berhasil dipulihkan.');
+    }
 
-        return redirect()->route('company.index')->with('success', 'Perusahaan Berhasil Dihapus');
+    public function forceDelete(Company $company)
+    {
+        $company->forceDelete();
+
+        return redirect()->route('companies.trash')->with('success', 'Perusahaan berhasil dihapus permanen.');
     }
 
     public function getData(Request $request)
     {
-        $companies = Company::select(['id', 'name', 'code', 'desc']);
+        return (new CompanyDataTable)->responseFor($request);
+    }
 
-        return datatables()->of($companies)
-            ->addIndexColumn()
-            ->addColumn('action', function ($company) {
-                $canEdit = auth()->user()->hasPermission('master.companies.edit');
-                $canDelete = auth()->user()->hasPermission('master.companies.delete');
+    public function getTrashData(Request $request): JsonResponse
+    {
+        return (new CompanyTrashDataTable)->responseFor($request);
+    }
 
-                $name = e($company->name);
-                $code = e($company->code);
-                $desc = e($company->desc ?? '');
+    public function getDriverData(Request $request, Company $company): JsonResponse
+    {
+        return (new CompanyDriverDataTable($company))->responseFor($request);
+    }
 
-                $actions = '<div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                        <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">';
-                if ($canEdit) {
-                    $actions .= '<a class="dropdown-item btn-edit-company"
-                            href="#"
-                            data-update-url="' . route('company.update', $company->id) . '"
-                            data-code="' . $code . '"
-                            data-name="' . $name . '"
-                            data-desc="' . $desc . '">
-                            <i class="bx bx-edit-alt me-1"></i> Edit
-                        </a>';
-                }
-                if ($canDelete) {
-                    $actions .= '<form action="' . route('company.destroy', $company->id) . '" method="POST" style="display: inline;">
-                            ' . csrf_field() . '
-                            ' . method_field('DELETE') . '
-                            <button type="submit" class="dropdown-item text-danger" onclick="return confirm(\'Yakin ingin menghapus perusahaan ini?\')">
-                                <i class="bx bx-trash me-1"></i> Hapus
-                            </button>
-                        </form>';
-                }
-                $actions .= '</div></div>';
-                return $actions;
-            })
-            ->rawColumns(['action'])
-            ->make(true);
+    public function getUserData(Request $request, Company $company): JsonResponse
+    {
+        return (new CompanyUserDataTable($company))->responseFor($request);
+    }
+
+    public function getVehicleData(Request $request, Company $company): JsonResponse
+    {
+        return (new CompanyVehicleDataTable($company))->responseFor($request);
     }
 }

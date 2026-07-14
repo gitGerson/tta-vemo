@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Http\Requests;
+
+use App\Models\TypeMaintenances;
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
+
+class TypeMaintenanceStoreRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return $this->user()?->hasPermission('master.type_maintenances.create') ?? false;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return TypeMaintenances::validationRules();
+    }
+
+    public function messages(): array
+    {
+        return TypeMaintenances::validationMessages();
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'name' => is_string($this->input('name')) ? Str::upper(trim($this->input('name'))) : $this->input('name'),
+            'jenis' => is_string($this->input('jenis')) ? Str::lower(trim($this->input('jenis'))) : $this->input('jenis'),
+        ]);
+    }
+}
