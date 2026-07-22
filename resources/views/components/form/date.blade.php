@@ -56,18 +56,115 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
         <style>
             .daterangepicker {
+                color: var(--bs-body-color);
+                background-color: var(--bs-paper-bg, var(--bs-body-bg));
                 border: 1px solid var(--bs-border-color, #d9dee3);
                 box-shadow: 0 0.25rem 1rem rgba(161, 172, 184, 0.45);
                 z-index: 1080;
             }
 
-            .daterangepicker .ranges li.active {
-                background-color: var(--bs-primary, #696cff);
+            .daterangepicker::before {
+                border-bottom-color: var(--bs-border-color);
+            }
+
+            .daterangepicker::after {
+                border-bottom-color: var(--bs-paper-bg, var(--bs-body-bg));
+            }
+
+            .daterangepicker.drop-up::before {
+                border-top-color: var(--bs-border-color);
+                border-bottom-color: transparent;
+            }
+
+            .daterangepicker.drop-up::after {
+                border-top-color: var(--bs-paper-bg, var(--bs-body-bg));
+                border-bottom-color: transparent;
+            }
+
+            .daterangepicker .calendar-table {
+                color: var(--bs-body-color);
+                background-color: var(--bs-paper-bg, var(--bs-body-bg));
+                border-color: var(--bs-paper-bg, var(--bs-body-bg));
+            }
+
+            .daterangepicker th,
+            .daterangepicker td {
+                color: var(--bs-body-color);
+            }
+
+            .daterangepicker td.off,
+            .daterangepicker td.off.in-range,
+            .daterangepicker td.off.start-date,
+            .daterangepicker td.off.end-date {
+                color: var(--bs-secondary-color);
+                background-color: var(--bs-paper-bg, var(--bs-body-bg));
+            }
+
+            .daterangepicker td.available:hover,
+            .daterangepicker th.available:hover,
+            .daterangepicker .ranges li:hover {
+                color: var(--bs-body-color);
+                background-color: var(--bs-secondary-bg);
+            }
+
+            .daterangepicker td.in-range {
+                color: var(--bs-body-color);
+                background-color: rgba(var(--bs-primary-rgb), 0.16);
             }
 
             .daterangepicker td.active,
             .daterangepicker td.active:hover {
                 background-color: var(--bs-primary, #696cff);
+                color: #fff;
+            }
+
+            .daterangepicker .ranges li.active {
+                color: #fff;
+                background-color: var(--bs-primary, #696cff);
+            }
+
+            .daterangepicker .calendar-table .next span,
+            .daterangepicker .calendar-table .prev span {
+                border-color: var(--bs-body-color);
+            }
+
+            .daterangepicker select.monthselect,
+            .daterangepicker select.yearselect {
+                color: var(--bs-body-color);
+                background-color: var(--bs-paper-bg, var(--bs-body-bg));
+                border: 1px solid var(--bs-border-color);
+            }
+
+            .daterangepicker .drp-buttons,
+            .daterangepicker.show-ranges.ltr .drp-calendar.left {
+                border-color: var(--bs-border-color);
+            }
+
+            .daterangepicker .drp-selected {
+                color: var(--bs-secondary-color);
+            }
+
+            .daterangepicker .cancelBtn {
+                color: var(--bs-body-color);
+                background-color: var(--bs-secondary-bg);
+                border-color: var(--bs-border-color);
+            }
+
+            .daterangepicker .applyBtn {
+                color: #fff;
+                background-color: var(--bs-primary);
+                border-color: var(--bs-primary);
+            }
+
+            html[data-bs-theme='dark'] .daterangepicker,
+            html[data-bs-theme='dark'] .daterangepicker .calendar-table,
+            html[data-bs-theme='dark'] .daterangepicker td.off,
+            html[data-bs-theme='dark'] .daterangepicker td.off.in-range,
+            html[data-bs-theme='dark'] .daterangepicker td.off.start-date,
+            html[data-bs-theme='dark'] .daterangepicker td.off.end-date {
+                color: var(--bs-body-color);
+                background-color: var(--bs-paper-bg, var(--bs-body-bg));
+                border-color: var(--bs-border-color);
             }
         </style>
     @endpush

@@ -1,5 +1,7 @@
 @extends('layouts.sneat')
 
+<x-form.select2-assets />
+
 @section('title')
     Laporan Harian BBM
 @endsection
@@ -31,7 +33,7 @@
                 </div>
                 <div class="col-sm-6 col-md-3">
                     <label for="company" class="form-label small mb-1">Perusahaan</label>
-                    <select class="form-select form-select-sm select2" id="company" name="company">
+                    <select class="form-select form-select-sm" id="company" name="company" data-select2-enabled="1">
                         <option value="" {{ $QueryCompany === null ? 'selected' : '' }}>Semua perusahaan</option>
                         @foreach ($company as $row)
                             <option value="{{ $row->id }}" {{ $QueryCompany === $row->id ? 'selected' : '' }}>
@@ -55,35 +57,9 @@
 </div>
 @endsection
 
-@push('styles')
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <style>
-        /* Match select2 to Bootstrap's form-select-sm sizing. */
-        .select2-container--default .select2-selection--single {
-            height: calc(1.5em + 0.5rem + 2px);
-            padding: 0.15rem 0.5rem;
-            font-size: 0.8125rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 1.5;
-            padding-left: 0;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 100%;
-        }
-    </style>
-@endpush
-
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function () {
-        $('.select2').select2();
-
         $('#dates, #company, #category').on('change', function () {
             document.getElementById('filtersForm').submit();
         });

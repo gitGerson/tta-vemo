@@ -28,7 +28,11 @@ class QrScanModuleTest extends TestCase
 
         $this->get(route('qr-scan.index'))
             ->assertOk()
-            ->assertSee('Scan QR Kendaraan');
+            ->assertSee('Scan QR Kendaraan')
+            ->assertSee('camera-placeholder-icon')
+            ->assertSee("html[data-bs-theme='dark'] .camera-placeholder", false)
+            ->assertSee('var(--bs-secondary-bg)', false)
+            ->assertDontSee('background: #f4f5fb', false);
     }
 
     public function test_user_without_permission_cannot_access_scan_page(): void

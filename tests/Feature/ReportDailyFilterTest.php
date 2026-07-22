@@ -37,6 +37,9 @@ class ReportDailyFilterTest extends TestCase
                 return $destinations->contains('Default Destination')
                     && $destinations->contains('Other Destination');
             })
+            ->assertSee('data-select2-enabled="1"', false)
+            ->assertSee('select2@4.0.13', false)
+            ->assertDontSee('select2@4.1.0-rc.0', false)
             ->assertSee('value="" selected', false);
     }
 

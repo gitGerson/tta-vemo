@@ -79,28 +79,6 @@
     </div>
 </form>
 
-@push('styles')
-    <style>
-        /* Render the select2 widgets at the small (form-select-sm) size. */
-        .form-select-sm+.select2-container--bootstrap-5 .select2-selection {
-            min-height: calc(1.5em + 0.5rem + 2px);
-            height: calc(1.5em + 0.5rem + 2px);
-            padding-top: 0.18rem;
-            padding-bottom: 0.18rem;
-            font-size: 0.8125rem;
-        }
-
-        .form-select-sm+.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
-            line-height: 1.3;
-            padding-left: 0.5rem;
-        }
-
-        .form-select-sm+.select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
-            height: calc(1.5em + 0.5rem);
-        }
-    </style>
-@endpush
-
 @if ($vehicle === null)
     {{-- Standalone page: vehicle is chosen client-side, so refresh the month statuses on change. --}}
     <script type="application/json" id="periods-by-vehicle">{!! json_encode($periodsByVehicle ?? [], JSON_UNESCAPED_UNICODE) !!}</script>

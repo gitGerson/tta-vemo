@@ -55,6 +55,21 @@ class MaintenanceTenantScopeTest extends TestCase
         $this->assertSame(2, Maintenance::query()->count());
     }
 
+    public function test_create_page_includes_dark_mode_maintenance_styles(): void
+    {
+        $this->actingAs($this->userWith([
+            'operational.maintenances.create',
+            'management.tenant.bypass',
+        ], []));
+
+        $this->get(route('maintenances.create'))
+            ->assertOk()
+            ->assertSee("html[data-bs-theme='dark'] .card-header-compact", false)
+            ->assertSee("html[data-bs-theme='dark'] .filepond--panel-root", false)
+            ->assertSee('var(--bs-secondary-bg)', false)
+            ->assertDontSee('background-color: #fff', false);
+    }
+
     public function test_non_bypass_user_cannot_confirm_other_company_maintenance(): void
     {
         $companyA = Company::factory()->create();

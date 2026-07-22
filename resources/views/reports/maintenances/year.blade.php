@@ -1,5 +1,7 @@
 @extends('layouts.sneat')
 
+<x-form.select2-assets />
+
 @section('title')
     Laporan Pemeliharaan Tahunan
 @endsection
@@ -19,7 +21,7 @@
     <form class="row g-2 align-items-end mb-1" action="{{ route('report.maintenances.year') }}" method="GET" id="dateForm">
         <div class="col-sm-6 col-md-3">
             <label for="year" class="form-label small mb-1">Tahun</label>
-            <select name="year" class="form-select form-select-sm select2" id="year">
+            <select name="year" class="form-select form-select-sm" id="year" data-select2-enabled="1">
                 <option value="">Pilih tahun</option>
                 @php
                     $currentYear = date('Y');
@@ -34,7 +36,7 @@
 
         <div class="col-sm-6 col-md-3">
             <label for="company" class="form-label small mb-1">Perusahaan</label>
-            <select name="company" class="form-select form-select-sm select2" id="company">
+            <select name="company" class="form-select form-select-sm" id="company" data-select2-enabled="1">
                 <option value="" {{ $companyId === null ? 'selected' : '' }}>Semua perusahaan</option>
                 @foreach ($companies as $row)
                     <option value="{{ $row->id }}" {{ (int) $companyId === (int) $row->id ? 'selected' : '' }}>{{ $row->name ?: $row->code }}</option>
@@ -68,34 +70,10 @@
 
 @endsection
 
-@push('styles')
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <style>
-        /* Match select2 to Bootstrap's form-select-sm sizing. */
-        .select2-container--default .select2-selection--single {
-            height: calc(1.5em + 0.5rem + 2px);
-            padding: 0.15rem 0.5rem;
-            font-size: 0.8125rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 1.5;
-            padding-left: 0;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 100%;
-        }
-    </style>
-@endpush
-
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('.select2').select2().on('change', function() {
+            $('#year, #company').on('change', function() {
                 $('#dateForm').submit();
             });
         });

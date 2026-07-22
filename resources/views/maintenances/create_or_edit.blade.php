@@ -1,5 +1,7 @@
 @extends('layouts.sneat')
 
+<x-form.select2-assets />
+
 @section('title')
     {{ isset($maintenance) ? 'Detail Pemeliharaan' : 'Input Data Pemeliharaan' }}
 @endsection
@@ -117,7 +119,8 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="no_pol" class="form-label info-kendaraan-label">Plat Nomor <small class="text-danger">*</small></label>
-                                    <select class="form-select form-select-sm select2" name="no_pol" id="no_pol" required {{ $isReadOnly ? 'disabled' : '' }}>
+                                    <select class="form-select form-select-sm" name="no_pol" id="no_pol" required
+                                        data-select2-enabled="1" {{ $isReadOnly ? 'disabled' : '' }}>
                                         <option value="" disabled selected>- Pilih Kendaraan -</option>
                                         @foreach ($vehicles as $row)
                                             <option {{ old('no_pol', $maintenance?->no_pol ?? request()->query('vehicle')) == $row->plat_new ? 'selected' : '' }}
@@ -217,7 +220,7 @@
                                             $ext = strtolower(pathinfo($note->image, PATHINFO_EXTENSION));
                                             $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'svg']);
                                         @endphp
-                                        <div class="d-flex align-items-center justify-content-between p-2 bg-light rounded mb-2">
+                                        <div class="d-flex align-items-center justify-content-between p-2 bg-body-tertiary rounded mb-2">
                                             @if ($isImage)
                                                 <a href="javascript:void(0)" class="text-decoration-none text-truncate preview-existing-image" data-url="{{ $note->imageUrl() }}" style="max-width: 200px; cursor: pointer;">
                                                     <i class="bx bx-image me-1"></i> {{ basename($note->image) }}
@@ -336,14 +339,12 @@
 @endsection
 
 @push('styles')
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet" />
     <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet" />
     @include('maintenances._styles')
 @endpush
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
     <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
