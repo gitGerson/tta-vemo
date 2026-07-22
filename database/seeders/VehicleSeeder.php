@@ -49,7 +49,6 @@ class VehicleSeeder extends Seeder
                     'fuel_type' => $fuelType->name,
                     'mtc' => $index % 3 === 0 ? 'YES' : 'NO',
                     'desc' => 'Seeded vehicle '.$index.' for demo data.',
-                    'isprivate' => $index % 4 === 0,
                     'machine_number' => sprintf('SEED-MCH-%04d', $index),
                     'vin_number' => sprintf('SEED-VIN-%012d', $index),
                     'bpkb_image' => [sprintf('vehicle_documents/seed-%04d-bpkb.jpg', $index)],

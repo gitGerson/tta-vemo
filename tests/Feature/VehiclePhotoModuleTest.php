@@ -43,6 +43,23 @@ class VehiclePhotoModuleTest extends TestCase
         ]);
     }
 
+    public function test_authorized_user_can_create_photo_without_notes(): void
+    {
+        $this->actingAs($this->userWithPhotoPermissions());
+
+        $vehicle = Vehicle::factory()->create();
+
+        $this->post(route('vehicle-photos.store'), [
+            'vehicle_id' => $vehicle->id,
+            'period' => now()->format('Y-m'),
+        ])->assertRedirect(route('vehicles.show', $vehicle));
+
+        $this->assertDatabaseHas('vehicle_photos', [
+            'vehicle_id' => $vehicle->id,
+            'notes' => null,
+        ]);
+    }
+
     public function test_second_photo_for_same_vehicle_and_month_is_rejected(): void
     {
         $this->actingAs($this->userWithPhotoPermissions());
@@ -74,6 +91,25 @@ class VehiclePhotoModuleTest extends TestCase
         $this->assertDatabaseHas('vehicle_photos', [
             'id' => $photo->id,
             'notes' => 'Diperbarui',
+        ]);
+    }
+
+    public function test_authorized_user_can_clear_photo_notes(): void
+    {
+        $this->actingAs($this->userWithPhotoPermissions());
+
+        $photo = VehiclePhoto::factory()->currentMonth()->create([
+            'notes' => 'Kondisi baik',
+        ]);
+
+        $this->put(route('vehicle-photos.update', $photo), [
+            'vehicle_id' => $photo->vehicle_id,
+            'period' => $photo->period->format('Y-m'),
+        ])->assertRedirect(route('vehicles.show', $photo->vehicle));
+
+        $this->assertDatabaseHas('vehicle_photos', [
+            'id' => $photo->id,
+            'notes' => null,
         ]);
     }
 

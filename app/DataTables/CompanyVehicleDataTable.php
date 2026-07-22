@@ -28,7 +28,6 @@ class CompanyVehicleDataTable extends DataTable
                 'status',
                 'fuel_type',
                 'mtc',
-                'isprivate',
                 'machine_number',
                 'vin_number',
             ]);
@@ -63,10 +62,6 @@ class CompanyVehicleDataTable extends DataTable
                 if ($vehicle->mtc === 'YES') {
                     $badges[] = '<span class="badge bg-label-warning text-warning">Dalam Pemeliharaan</span>';
                 }
-
-                $badges[] = $vehicle->isprivate
-                    ? '<span class="badge bg-label-info text-info">Kendaraan Pribadi</span>'
-                    : '<span class="badge bg-label-secondary text-secondary">Kendaraan Umum</span>';
 
                 return '<div class="d-flex flex-wrap gap-1">'.implode('', $badges).'</div>';
             })

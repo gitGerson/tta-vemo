@@ -165,7 +165,6 @@ class LegacyVemoImportService
             'fuel_type' => (string) ($a['fuel_type'] ?? 'BBM'),
             'mtc' => (string) ($a['mtc'] ?? 'NO'),
             'desc' => $this->string($a['desc']),
-            'isprivate' => (int) ($a['isprivate'] ?? 0),
             'created_at' => $a['created_at'] ?? null,
             'updated_at' => $a['updated_at'] ?? null,
             'deleted_at' => $a['deleted_at'] ?? null,

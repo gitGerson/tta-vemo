@@ -15,6 +15,7 @@ use App\Services\PermissionSyncService;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -47,19 +48,37 @@ class VehicleModuleTest extends TestCase
         $this->get(route('vehicles.edit', $vehicle))->assertOk()->assertSee('Ubah Kendaraan');
     }
 
+    public function test_vehicle_form_marks_type_and_brand_as_required(): void
+    {
+        $this->actingAs($this->userWithVehiclePermissions());
+
+        $content = (string) $this->get(route('vehicles.create'))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertMatchesRegularExpression('/<select(?=[^>]*name="vehicle_type_id")(?=[^>]*\brequired\b)[^>]*>/', $content);
+        $this->assertMatchesRegularExpression('/<select(?=[^>]*name="vehicle_brand_id")(?=[^>]*\brequired\b)[^>]*>/', $content);
+        $this->assertStringNotContainsString('name="isprivate"', $content);
+    }
+
+    public function test_isprivate_columns_are_removed(): void
+    {
+        $this->assertFalse(Schema::hasColumn('vehicles', 'isprivate'));
+        $this->assertFalse(Schema::hasColumn('vehicle_snapshots', 'isprivate'));
+    }
+
     public function test_authorized_user_can_create_vehicle(): void
     {
         $this->actingAs($this->userWithVehiclePermissions());
         $company = Company::factory()->create();
 
-        $payload = Vehicle::factory()->make([
+        $payload = $this->validVehiclePayload([
             'company_id' => $company->id,
             'type' => 'Box',
             'entry_year' => '2026',
             'plat_new' => 'H 1234 TT',
             'fuel_type' => 'BBM',
-            'isprivate' => false,
-        ])->toArray();
+        ]);
 
         $this->post(route('vehicles.store'), $payload)
             ->assertRedirect(route('vehicles.index'));
@@ -69,8 +88,18 @@ class VehicleModuleTest extends TestCase
             'type' => 'Box',
             'plat_new' => 'H 1234 TT',
             'fuel_type' => 'BBM',
-            'isprivate' => false,
         ]);
+    }
+
+    public function test_vehicle_type_and_brand_are_required_when_creating_vehicle(): void
+    {
+        $this->actingAs($this->userWithVehiclePermissions());
+
+        $payload = $this->validVehiclePayload();
+        unset($payload['vehicle_type_id'], $payload['vehicle_brand_id']);
+
+        $this->post(route('vehicles.store'), $payload)
+            ->assertInvalid(['vehicle_type_id', 'vehicle_brand_id']);
     }
 
     public function test_authorized_user_can_create_vehicle_with_fuel_type_relation(): void
@@ -82,11 +111,11 @@ class VehicleModuleTest extends TestCase
             'merk' => 'Pertamina',
         ]);
 
-        $payload = Vehicle::factory()->make([
+        $payload = $this->validVehiclePayload([
             'fuel_type_id' => $fuelType->id,
             'fuel_type' => 'Legacy Value',
             'plat_new' => 'H 7777 FT',
-        ])->toArray();
+        ]);
 
         $this->post(route('vehicles.store'), $payload)
             ->assertRedirect(route('vehicles.index'));
@@ -110,11 +139,11 @@ class VehicleModuleTest extends TestCase
             'name' => 'BOX TRUCK',
         ]);
 
-        $payload = Vehicle::factory()->make([
+        $payload = $this->validVehiclePayload([
             'vehicle_type_id' => $vehicleType->id,
             'type' => 'Legacy Type',
             'plat_new' => 'H 8888 VT',
-        ])->toArray();
+        ]);
 
         $this->post(route('vehicles.store'), $payload)
             ->assertRedirect(route('vehicles.index'));
@@ -138,10 +167,10 @@ class VehicleModuleTest extends TestCase
             'name' => 'TOYOTA',
         ]);
 
-        $payload = Vehicle::factory()->make([
+        $payload = $this->validVehiclePayload([
             'vehicle_brand_id' => $vehicleBrand->id,
             'plat_new' => 'H 8888 VB',
-        ])->toArray();
+        ]);
 
         $this->post(route('vehicles.store'), $payload)
             ->assertRedirect(route('vehicles.index'));
@@ -162,12 +191,12 @@ class VehicleModuleTest extends TestCase
         $vehicle = Vehicle::factory()->create();
         $company = Company::factory()->create();
 
-        $payload = Vehicle::factory()->make([
+        $payload = $this->validVehiclePayload([
             'company_id' => $company->id,
             'type' => 'Updated Truck',
             'plat_new' => $vehicle->plat_new,
             'fuel_type' => 'Solar',
-        ])->toArray();
+        ]);
 
         $this->put(route('vehicles.update', $vehicle), $payload)
             ->assertRedirect(route('vehicles.index'));
@@ -178,6 +207,20 @@ class VehicleModuleTest extends TestCase
             'type' => 'Updated Truck',
             'fuel_type' => 'Solar',
         ]);
+    }
+
+    public function test_vehicle_type_and_brand_are_required_when_updating_vehicle(): void
+    {
+        $this->actingAs($this->userWithVehiclePermissions());
+
+        $vehicle = Vehicle::factory()->create();
+        $payload = $this->validVehiclePayload([
+            'plat_new' => $vehicle->plat_new,
+        ]);
+        unset($payload['vehicle_type_id'], $payload['vehicle_brand_id']);
+
+        $this->put(route('vehicles.update', $vehicle), $payload)
+            ->assertInvalid(['vehicle_type_id', 'vehicle_brand_id']);
     }
 
     public function test_authorized_user_can_view_vehicle_detail_fragment(): void
@@ -284,7 +327,7 @@ class VehicleModuleTest extends TestCase
         Storage::disk('local')->put('tmp/filepond/a.jpg', $this->fakeImageContents());
         Storage::disk('local')->put('tmp/filepond/b.jpg', $this->fakeImageContents());
 
-        $payload = array_merge(Vehicle::factory()->make()->toArray(), [
+        $payload = array_merge($this->validVehiclePayload(), [
             'machine_number' => 'MCH-001',
             'vin_number' => 'VIN-001',
             'purchase_price' => '150000000',
@@ -325,7 +368,7 @@ class VehicleModuleTest extends TestCase
 
         Storage::disk('local')->put('tmp/filepond/new.jpg', $this->fakeImageContents());
 
-        $payload = array_merge(Vehicle::factory()->make()->toArray(), [
+        $payload = array_merge($this->validVehiclePayload(), [
             'plat_new' => $vehicle->plat_new,
             'bpkb_image' => [$vehicle->bpkbImageUrls()[0], 'tmp/filepond/new.jpg'],
             'bpkb_due_date' => '2027-01-15',
@@ -345,9 +388,9 @@ class VehicleModuleTest extends TestCase
         Storage::fake('s3');
         $this->actingAs($this->userWithVehiclePermissions());
 
-        $datesOnlyPayload = array_merge(Vehicle::factory()->make([
+        $datesOnlyPayload = array_merge($this->validVehiclePayload([
             'plat_new' => 'H 1001 DATE',
-        ])->toArray(), [
+        ]), [
             'bpkb_due_date' => '2027-01-15',
             'stnk_due_date' => '2027-02-15',
             'kir_due_date' => '2027-03-15',
@@ -367,9 +410,9 @@ class VehicleModuleTest extends TestCase
             Storage::disk('local')->put($path, $this->fakeImageContents());
         }
 
-        $imagesOnlyPayload = Vehicle::factory()->make([
+        $imagesOnlyPayload = $this->validVehiclePayload([
             'plat_new' => 'H 1002 IMAGE',
-        ])->toArray();
+        ]);
 
         foreach ($temporaryImages as $field => $path) {
             $imagesOnlyPayload[$field] = [$path];
@@ -405,9 +448,9 @@ class VehicleModuleTest extends TestCase
         $datesOnlyVehicle = Vehicle::factory()->create([
             'plat_new' => 'H 2001 DATE',
         ]);
-        $datesOnlyPayload = array_merge(Vehicle::factory()->make([
+        $datesOnlyPayload = array_merge($this->validVehiclePayload([
             'plat_new' => $datesOnlyVehicle->plat_new,
-        ])->toArray(), [
+        ]), [
             'bpkb_due_date' => '2028-01-15',
             'stnk_due_date' => '2028-02-15',
             'kir_due_date' => '2028-03-15',
@@ -430,9 +473,9 @@ class VehicleModuleTest extends TestCase
             Storage::disk('local')->put($path, $this->fakeImageContents());
         }
 
-        $imagesOnlyPayload = Vehicle::factory()->make([
+        $imagesOnlyPayload = $this->validVehiclePayload([
             'plat_new' => $imagesOnlyVehicle->plat_new,
-        ])->toArray();
+        ]);
 
         foreach ($temporaryImages as $field => $path) {
             $imagesOnlyPayload[$field] = [$path];
@@ -457,6 +500,27 @@ class VehicleModuleTest extends TestCase
         $this->assertCount(1, $imagesOnlyVehicle->bpkb_image);
         $this->assertCount(1, $imagesOnlyVehicle->stnk_image);
         $this->assertCount(1, $imagesOnlyVehicle->kir_image);
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, mixed>
+     */
+    private function validVehiclePayload(array $attributes = []): array
+    {
+        if (! array_key_exists('vehicle_type_id', $attributes)) {
+            $vehicleTypeAttributes = is_string($attributes['type'] ?? null)
+                ? ['name' => $attributes['type']]
+                : [];
+
+            $attributes['vehicle_type_id'] = VehicleType::factory()->create($vehicleTypeAttributes)->getKey();
+        }
+
+        if (! array_key_exists('vehicle_brand_id', $attributes)) {
+            $attributes['vehicle_brand_id'] = VehicleBrand::factory()->create()->getKey();
+        }
+
+        return Vehicle::factory()->make($attributes)->toArray();
     }
 
     private function fakeImageContents(): string

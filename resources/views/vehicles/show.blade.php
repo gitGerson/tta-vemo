@@ -58,9 +58,6 @@
                             @if($vehicle->mtc === 'YES')
                                 <span class="badge bg-label-warning">Dalam Pemeliharaan</span>
                             @endif
-                            <span class="badge {{ $vehicle->isprivate ? 'bg-label-info' : 'bg-label-secondary' }}">
-                                {{ $vehicle->isprivate ? 'Kendaraan Pribadi' : 'Kendaraan Umum' }}
-                            </span>
                             @php $photoComplete = $photoThisMonth?->isComplete() ?? false; $photoSides = $photoThisMonth?->completedCount() ?? 0; @endphp
                             <span class="badge {{ $photoComplete ? 'bg-label-success' : 'bg-label-warning' }}">
                                 <i class="bx bx-camera me-1"></i>{{ $photoComplete ? 'Foto bulan ini lengkap' : 'Foto bulan ini belum lengkap (' . $photoSides . '/4)' }}

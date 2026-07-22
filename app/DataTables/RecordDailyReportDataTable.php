@@ -15,7 +15,6 @@ class RecordDailyReportDataTable extends StaticReportDataTable
     public function __construct(
         private Collection $records,
         private Collection $vehicles,
-        private string $category = 'KESELURUHAN',
     ) {}
 
     public function id(): string
@@ -52,19 +51,7 @@ class RecordDailyReportDataTable extends StaticReportDataTable
             ->filter(fn ($vehicle) => filled($vehicle->plat_new))
             ->keyBy('plat_new');
 
-        $allowedPlates = collect();
-        if ($this->category === 'UMUM' || $this->category === 'PRIBADI') {
-            $allowedPlates = $this->vehicles
-                ->filter(fn ($vehicle) => $this->category === 'PRIBADI'
-                    ? (int) $vehicle->isprivate === 1
-                    : (int) $vehicle->isprivate === 0)
-                ->pluck('plat_new')
-                ->filter()
-                ->values();
-        }
-
         return $this->records
-            ->filter(fn ($record) => $this->category === 'KESELURUHAN' || $allowedPlates->contains($record->no_pol))
             ->map(function ($record) use ($vehiclesByPlate): array {
                 $vehicle = $vehiclesByPlate->get($record->no_pol);
 

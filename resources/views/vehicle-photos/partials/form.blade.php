@@ -69,7 +69,7 @@
     <h6 class="fw-semibold mb-3"><i class="bx bx-note me-1 text-primary"></i> Keterangan</h6>
     <div class="row g-3">
         <div class="col-12">
-            <x-form.textarea name="notes" label="Keterangan" :value="$photo?->notes" rows="3" inputClass="form-control-sm" required placeholder="foto kendaraan lengkap" />
+            <x-form.textarea name="notes" label="Keterangan" :value="$photo?->notes" rows="3" inputClass="form-control-sm" placeholder="foto kendaraan lengkap" />
         </div>
     </div>
 

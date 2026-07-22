@@ -37,7 +37,6 @@ class Vehicle extends Model
         'fuel_type',
         'mtc',
         'desc',
-        'isprivate',
         'machine_number',
         'vin_number',
         'bpkb_image',
@@ -55,7 +54,6 @@ class Vehicle extends Model
     protected function casts(): array
     {
         return [
-            'isprivate' => 'boolean',
             'bpkb_image' => 'array',
             'stnk_image' => 'array',
             'kir_image' => 'array',
@@ -76,8 +74,8 @@ class Vehicle extends Model
 
         return [
             'type' => ['required', 'string', 'max:50'],
-            'vehicle_type_id' => ['nullable', 'integer', Rule::exists(VehicleType::class, 'id')],
-            'vehicle_brand_id' => ['nullable', 'integer', Rule::exists(VehicleBrand::class, 'id')],
+            'vehicle_type_id' => ['required', 'integer', Rule::exists(VehicleType::class, 'id')],
+            'vehicle_brand_id' => ['required', 'integer', Rule::exists(VehicleBrand::class, 'id')],
             'entry_year' => ['required', 'string', 'max:5'],
             'mileage' => ['nullable', 'string', 'max:255'],
             'plat_new' => ['required', 'string', 'max:20', Rule::unique('vehicles', 'plat_new')->ignore($ignoreId)],
@@ -86,7 +84,6 @@ class Vehicle extends Model
             'fuel_type_id' => ['nullable', 'integer', Rule::exists(FuelType::class, 'id')],
             'mtc' => ['required', Rule::in(['YES', 'NO'])],
             'desc' => ['nullable', 'string'],
-            'isprivate' => ['required', 'boolean'],
             'company_id' => ['nullable', 'integer', Rule::exists(Company::class, 'id')],
             'machine_number' => ['nullable', 'string', 'max:100'],
             'vin_number' => ['nullable', 'string', 'max:100'],

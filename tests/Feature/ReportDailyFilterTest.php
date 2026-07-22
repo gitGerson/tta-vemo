@@ -25,7 +25,6 @@ class ReportDailyFilterTest extends TestCase
         ]));
 
         $this->get(route('report.daily', [
-            'category' => 'KESELURUHAN',
             'date' => $records['date'],
             'company' => '',
         ]))
@@ -40,6 +39,7 @@ class ReportDailyFilterTest extends TestCase
             ->assertSee('data-select2-enabled="1"', false)
             ->assertSee('select2@4.0.13', false)
             ->assertDontSee('select2@4.1.0-rc.0', false)
+            ->assertDontSee('name="category"', false)
             ->assertSee('value="" selected', false);
     }
 
@@ -53,7 +53,6 @@ class ReportDailyFilterTest extends TestCase
         ));
 
         $this->get(route('report.daily', [
-            'category' => 'KESELURUHAN',
             'date' => $records['date'],
             'company' => '',
         ]))
@@ -77,7 +76,6 @@ class ReportDailyFilterTest extends TestCase
         ]));
 
         $this->get(route('report.daily', [
-            'category' => 'KESELURUHAN',
             'date' => $records['date'],
             'company' => $records['otherCompany']->id,
         ]))
@@ -101,7 +99,6 @@ class ReportDailyFilterTest extends TestCase
         ]));
 
         $this->get(route('report.daily', [
-            'category' => 'KESELURUHAN',
             'date' => $records['date'],
             'company' => '',
         ]))
@@ -119,7 +116,6 @@ class ReportDailyFilterTest extends TestCase
 
         $this->from(route('report.daily'))
             ->get(route('report.daily.pdf', [
-                'category' => 'KESELURUHAN',
                 'date' => '2026-06-23',
                 'company' => '',
             ]))
@@ -137,7 +133,6 @@ class ReportDailyFilterTest extends TestCase
         ]));
 
         $this->get(route('report.daily.pdf', [
-            'category' => 'KESELURUHAN',
             'date' => $records['date'],
             'company' => $records['defaultCompany']->id,
         ]))
@@ -184,12 +179,10 @@ class ReportDailyFilterTest extends TestCase
         $defaultVehicle = Vehicle::factory()->create([
             'company_id' => $defaultCompany->id,
             'plat_new' => 'B 1000 TTI',
-            'isprivate' => 0,
         ]);
         $otherVehicle = Vehicle::factory()->create([
             'company_id' => $otherCompany->id,
             'plat_new' => 'B 2000 ALT',
-            'isprivate' => 0,
         ]);
 
         Record::factory()->create([
