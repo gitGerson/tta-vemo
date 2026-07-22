@@ -11,6 +11,7 @@ use App\Models\Record;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Models\VehicleType;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -104,7 +105,11 @@ class RecordModuleTest extends TestCase
 
         $this->createProvince();
         $company = Company::factory()->create();
-        $vehicle = Vehicle::factory()->create(['plat_new' => 'B 4321 XYZ']);
+        $vehicleType = VehicleType::factory()->create(['name' => 'BOX TRUCK']);
+        $vehicle = Vehicle::factory()->create([
+            'vehicle_type_id' => $vehicleType->id,
+            'plat_new' => 'B 4321 XYZ',
+        ]);
         $driver = Driver::factory()->create(['name' => 'Slamet']);
         $fuelType = FuelType::factory()->create();
 
@@ -120,6 +125,7 @@ class RecordModuleTest extends TestCase
 
         $this->getJson(route('records.data', ['engine' => 'tabulator']))
             ->assertOk()
+            ->assertJsonPath('data.0.vehicle_type_label', 'BOX TRUCK')
             ->assertJsonPath('data.0.action', fn (string $action): bool => str_contains($action, 'btn-edit-record')
                 && str_contains($action, 'data-update-url=')
                 && str_contains($action, 'data-driver1="'.$driver->id.'"'));

@@ -16,7 +16,7 @@ class RecordDataTable extends DataTable
     public function query(): Builder
     {
         return Record::query()
-            ->with(['company', 'driver1', 'driver2'])
+            ->with(['company', 'driver1', 'driver2', 'vehicle.vehicleType'])
             ->when($this->startDate && $this->endDate, fn (Builder $q) => $q->whereBetween('date', [$this->startDate, $this->endDate]))
             ->when($this->companyId, fn (Builder $q) => $q->where('company_id', $this->companyId))
             ->latest();
@@ -28,9 +28,12 @@ class RecordDataTable extends DataTable
             Column::index(),
             Column::computed('date_label', 'Tanggal', fn (Record $record): string => $record->date?->translatedFormat('d M Y') ?? '-')
                 ->searchable(false),
-            Column::make('driver_1', 'Supir 1'),
-            Column::make('driver_2', 'Supir 2'),
+            Column::make('driver_1', 'Driver Utama'),
+            Column::make('driver_2', 'Driver Pendamping'),
             Column::make('no_pol', 'No Polisi'),
+            Column::computed('vehicle_type_label', 'Tipe Kendaraan', fn (Record $record): string => $record->vehicle?->vehicleType?->name ?? $record->vehicle?->type ?? '-')
+                ->orderable(false)
+                ->searchable(false),
             Column::make('destination', 'Tujuan'),
             Column::make('start_km', 'KM Awal'),
             Column::make('finish_km', 'KM Akhir'),
