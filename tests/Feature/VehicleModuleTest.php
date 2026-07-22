@@ -339,6 +339,126 @@ class VehicleModuleTest extends TestCase
         $this->assertContains('vehicle_documents/existing.jpg', $vehicle->bpkb_image);
     }
 
+    public function test_document_images_and_due_dates_are_independently_optional_when_creating_vehicle(): void
+    {
+        Storage::fake('local');
+        Storage::fake('s3');
+        $this->actingAs($this->userWithVehiclePermissions());
+
+        $datesOnlyPayload = array_merge(Vehicle::factory()->make([
+            'plat_new' => 'H 1001 DATE',
+        ])->toArray(), [
+            'bpkb_due_date' => '2027-01-15',
+            'stnk_due_date' => '2027-02-15',
+            'kir_due_date' => '2027-03-15',
+        ]);
+
+        $this->post(route('vehicles.store'), $datesOnlyPayload)
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('vehicles.index'));
+
+        $temporaryImages = [
+            'bpkb_image' => 'tmp/filepond/bpkb-only.jpg',
+            'stnk_image' => 'tmp/filepond/stnk-only.jpg',
+            'kir_image' => 'tmp/filepond/kir-only.jpg',
+        ];
+
+        foreach ($temporaryImages as $path) {
+            Storage::disk('local')->put($path, $this->fakeImageContents());
+        }
+
+        $imagesOnlyPayload = Vehicle::factory()->make([
+            'plat_new' => 'H 1002 IMAGE',
+        ])->toArray();
+
+        foreach ($temporaryImages as $field => $path) {
+            $imagesOnlyPayload[$field] = [$path];
+        }
+
+        $this->post(route('vehicles.store'), $imagesOnlyPayload)
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('vehicles.index'));
+
+        $datesOnlyVehicle = Vehicle::query()->where('plat_new', 'H 1001 DATE')->firstOrFail();
+        $this->assertSame('2027-01-15', $datesOnlyVehicle->bpkb_due_date?->toDateString());
+        $this->assertSame('2027-02-15', $datesOnlyVehicle->stnk_due_date?->toDateString());
+        $this->assertSame('2027-03-15', $datesOnlyVehicle->kir_due_date?->toDateString());
+        $this->assertSame([], $datesOnlyVehicle->bpkb_image);
+        $this->assertSame([], $datesOnlyVehicle->stnk_image);
+        $this->assertSame([], $datesOnlyVehicle->kir_image);
+
+        $imagesOnlyVehicle = Vehicle::query()->where('plat_new', 'H 1002 IMAGE')->firstOrFail();
+        $this->assertNull($imagesOnlyVehicle->bpkb_due_date);
+        $this->assertNull($imagesOnlyVehicle->stnk_due_date);
+        $this->assertNull($imagesOnlyVehicle->kir_due_date);
+        $this->assertCount(1, $imagesOnlyVehicle->bpkb_image);
+        $this->assertCount(1, $imagesOnlyVehicle->stnk_image);
+        $this->assertCount(1, $imagesOnlyVehicle->kir_image);
+    }
+
+    public function test_document_images_and_due_dates_are_independently_optional_when_updating_vehicle(): void
+    {
+        Storage::fake('local');
+        Storage::fake('s3');
+        $this->actingAs($this->userWithVehiclePermissions());
+
+        $datesOnlyVehicle = Vehicle::factory()->create([
+            'plat_new' => 'H 2001 DATE',
+        ]);
+        $datesOnlyPayload = array_merge(Vehicle::factory()->make([
+            'plat_new' => $datesOnlyVehicle->plat_new,
+        ])->toArray(), [
+            'bpkb_due_date' => '2028-01-15',
+            'stnk_due_date' => '2028-02-15',
+            'kir_due_date' => '2028-03-15',
+        ]);
+
+        $this->put(route('vehicles.update', $datesOnlyVehicle), $datesOnlyPayload)
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('vehicles.index'));
+
+        $imagesOnlyVehicle = Vehicle::factory()->create([
+            'plat_new' => 'H 2002 IMAGE',
+        ]);
+        $temporaryImages = [
+            'bpkb_image' => 'tmp/filepond/update-bpkb-only.jpg',
+            'stnk_image' => 'tmp/filepond/update-stnk-only.jpg',
+            'kir_image' => 'tmp/filepond/update-kir-only.jpg',
+        ];
+
+        foreach ($temporaryImages as $path) {
+            Storage::disk('local')->put($path, $this->fakeImageContents());
+        }
+
+        $imagesOnlyPayload = Vehicle::factory()->make([
+            'plat_new' => $imagesOnlyVehicle->plat_new,
+        ])->toArray();
+
+        foreach ($temporaryImages as $field => $path) {
+            $imagesOnlyPayload[$field] = [$path];
+        }
+
+        $this->put(route('vehicles.update', $imagesOnlyVehicle), $imagesOnlyPayload)
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('vehicles.index'));
+
+        $datesOnlyVehicle->refresh();
+        $this->assertSame('2028-01-15', $datesOnlyVehicle->bpkb_due_date?->toDateString());
+        $this->assertSame('2028-02-15', $datesOnlyVehicle->stnk_due_date?->toDateString());
+        $this->assertSame('2028-03-15', $datesOnlyVehicle->kir_due_date?->toDateString());
+        $this->assertSame([], $datesOnlyVehicle->bpkb_image);
+        $this->assertSame([], $datesOnlyVehicle->stnk_image);
+        $this->assertSame([], $datesOnlyVehicle->kir_image);
+
+        $imagesOnlyVehicle->refresh();
+        $this->assertNull($imagesOnlyVehicle->bpkb_due_date);
+        $this->assertNull($imagesOnlyVehicle->stnk_due_date);
+        $this->assertNull($imagesOnlyVehicle->kir_due_date);
+        $this->assertCount(1, $imagesOnlyVehicle->bpkb_image);
+        $this->assertCount(1, $imagesOnlyVehicle->stnk_image);
+        $this->assertCount(1, $imagesOnlyVehicle->kir_image);
+    }
+
     private function fakeImageContents(): string
     {
         $file = UploadedFile::fake()->image('doc.jpg', 20, 20);
