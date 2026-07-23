@@ -31,12 +31,27 @@ class RecordModuleTest extends TestCase
     public function test_index_renders_for_authorized_user(): void
     {
         $this->actingAs($this->userWithRecordPermissions());
+        FuelType::factory()->create([
+            'name' => 'RON 95',
+            'type' => 'bensin',
+            'price' => 15000.25,
+            'merk' => 'BP',
+        ]);
 
         $this->get(route('records.index'))
             ->assertOk()
             ->assertSee('Data Perjalanan')
             ->assertSee('record-modal')
-            ->assertSee('Tambah Catatan Perjalanan');
+            ->assertSee('Tambah Catatan Perjalanan')
+            ->assertSee('Jumlah BBM (Liter)')
+            ->assertSee('Harga per Liter')
+            ->assertSee('Total Harga')
+            ->assertSee('RON 95 (BP - Bensin)')
+            ->assertSee('15000.25')
+            ->assertSee('name="fuel_unit_price"', false)
+            ->assertSee('step="0.01"', false)
+            ->assertSee('max="'.FuelType::MAX_PRICE.'"', false)
+            ->assertSee('data-record-fuel-pricing-form', false);
     }
 
     public function test_create_and_edit_pages_redirect_to_index_because_forms_are_modal_based(): void
@@ -56,7 +71,7 @@ class RecordModuleTest extends TestCase
         $this->get(route('records.index'))->assertRedirect();
     }
 
-    public function test_store_computes_totals_scale_and_bumps_vehicle_mileage(): void
+    public function test_store_uses_submitted_unit_price_and_ignores_submitted_total(): void
     {
         $this->actingAs($this->userWithRecordPermissions());
 
@@ -64,7 +79,7 @@ class RecordModuleTest extends TestCase
         $company = Company::factory()->create();
         $vehicle = Vehicle::factory()->create(['plat_new' => 'B 1234 XYZ', 'mileage' => '100']);
         $driver = Driver::factory()->create(['name' => 'Budi Santoso']);
-        $fuelType = FuelType::factory()->create(['price' => 15000]);
+        $fuelType = FuelType::factory()->create(['price' => 15000.25]);
         $destination = Destination::factory()->create(['name' => 'Surabaya']);
 
         $payload = [
@@ -77,7 +92,9 @@ class RecordModuleTest extends TestCase
             'destination' => $destination->name,
             'start_km' => '100',
             'finish_km' => '250',
-            'bbm' => '30',
+            'bbm' => '30.5',
+            'fuel_unit_price' => '14750.55',
+            'idr' => '1',
         ];
 
         $this->post(route('records.store'), $payload)
@@ -93,10 +110,73 @@ class RecordModuleTest extends TestCase
             'finish_km' => '250',
             'totals' => '150',
             'scale' => '5',
-            'idr' => '15000.00',
+            'fuel_unit_price' => '14750.55',
+            'idr' => '449891.78',
         ]);
 
         $this->assertSame('250', $vehicle->fresh()->mileage);
+    }
+
+    public function test_store_rejects_invalid_fuel_inputs(): void
+    {
+        $this->actingAs($this->userWithRecordPermissions());
+
+        $this->createProvince();
+        $company = Company::factory()->create();
+        $vehicle = Vehicle::factory()->create();
+        $driver = Driver::factory()->create();
+        $fuelType = FuelType::factory()->create(['price' => '15000.25']);
+        $deletedFuelType = FuelType::factory()->create();
+        $destination = Destination::factory()->create();
+        $deletedFuelType->delete();
+
+        $payload = [
+            'company_id' => $company->id,
+            'fuel_type_id' => $fuelType->id,
+            'date' => '01-06-2026',
+            'driver_1' => $driver->id,
+            'no_pol' => $vehicle->plat_new,
+            'destination' => $destination->name,
+            'finish_km' => '250',
+            'bbm' => '10',
+            'fuel_unit_price' => '10000',
+        ];
+
+        $this->post(route('records.store'), [
+            ...$payload,
+            'fuel_type_id' => $deletedFuelType->id,
+        ])->assertSessionHasErrors(['fuel_type_id']);
+
+        $missingUnitPrice = $payload;
+        unset($missingUnitPrice['fuel_unit_price']);
+
+        $this->post(route('records.store'), $missingUnitPrice)
+            ->assertSessionHasErrors(['fuel_unit_price']);
+
+        $negativePriceResponse = $this->post(route('records.store'), [
+            ...$payload,
+            'fuel_unit_price' => '-1',
+        ]);
+        $negativePriceResponse
+            ->assertSessionHasErrors(['fuel_unit_price'])
+            ->assertSessionHasInput('fuel_unit_price', '-1');
+
+        $this->post(route('records.store'), [
+            ...$payload,
+            'fuel_unit_price' => 'not-a-number',
+        ])->assertSessionHasErrors(['fuel_unit_price']);
+
+        $this->post(route('records.store'), [
+            ...$payload,
+            'fuel_unit_price' => '10000.001',
+        ])->assertSessionHasErrors(['fuel_unit_price']);
+
+        $this->post(route('records.store'), [
+            ...$payload,
+            'fuel_unit_price' => '10000000000000',
+        ])->assertSessionHasErrors(['fuel_unit_price']);
+
+        $this->assertDatabaseEmpty('records');
     }
 
     public function test_data_endpoint_renders_record_edit_modal_action(): void
@@ -111,7 +191,7 @@ class RecordModuleTest extends TestCase
             'plat_new' => 'B 4321 XYZ',
         ]);
         $driver = Driver::factory()->create(['name' => 'Slamet']);
-        $fuelType = FuelType::factory()->create();
+        $fuelType = FuelType::factory()->create(['price' => '15000.25']);
 
         Record::factory()->create([
             'company_id' => $company->id,
@@ -121,6 +201,7 @@ class RecordModuleTest extends TestCase
             'no_pol' => $vehicle->plat_new,
             'destination' => 'Jakarta Barat',
             'date' => '2026-06-04',
+            'fuel_unit_price' => '12345.67',
         ]);
 
         $this->getJson(route('records.data', ['engine' => 'tabulator']))
@@ -128,7 +209,8 @@ class RecordModuleTest extends TestCase
             ->assertJsonPath('data.0.vehicle_type_label', 'BOX TRUCK')
             ->assertJsonPath('data.0.action', fn (string $action): bool => str_contains($action, 'btn-edit-record')
                 && str_contains($action, 'data-update-url=')
-                && str_contains($action, 'data-driver1="'.$driver->id.'"'));
+                && str_contains($action, 'data-driver1="'.$driver->id.'"')
+                && str_contains($action, 'data-fuel-unit-price="12345.67"'));
     }
 
     public function test_store_defaults_start_km_from_last_record_finish_km(): void
@@ -158,6 +240,7 @@ class RecordModuleTest extends TestCase
             'destination' => $destination->name,
             'finish_km' => '650',
             'bbm' => '15',
+            'fuel_unit_price' => '9750.50',
         ])->assertRedirect(route('records.index'));
 
         // start_km falls back to the previous record's finish_km (500); totals 150.
@@ -169,7 +252,7 @@ class RecordModuleTest extends TestCase
         ]);
     }
 
-    public function test_update_recomputes_totals(): void
+    public function test_update_preserves_custom_unit_price_and_recomputes_total(): void
     {
         $this->actingAs($this->userWithRecordPermissions());
 
@@ -196,12 +279,16 @@ class RecordModuleTest extends TestCase
             'start_km' => '200',
             'finish_km' => '500',
             'bbm' => '30',
+            'fuel_unit_price' => '12345.67',
+            'idr' => '1',
         ])->assertRedirect(route('records.index'));
 
         $this->assertDatabaseHas('records', [
             'id' => $record->id,
             'totals' => '300',
             'scale' => '10',
+            'fuel_unit_price' => '12345.67',
+            'idr' => '370370.10',
         ]);
         $this->assertSame('500', $vehicle->fresh()->mileage);
     }

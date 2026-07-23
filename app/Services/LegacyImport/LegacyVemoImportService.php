@@ -187,6 +187,7 @@ class LegacyVemoImportService
             'finish_km' => (string) ($a['finish_km'] ?? ''),
             'totals' => (string) ($a['totals'] ?? ''),
             'bbm' => (string) ($a['bbm'] ?? ''),
+            'fuel_unit_price' => null,
             'idr' => (string) ($a['idr'] ?? ''),
             'scale' => (string) ($a['scale'] ?? ''),
             'date' => $a['date'] ?? null,

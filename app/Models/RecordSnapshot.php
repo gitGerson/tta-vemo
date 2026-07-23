@@ -24,6 +24,7 @@ class RecordSnapshot extends Model
         'finish_km',
         'totals',
         'bbm',
+        'fuel_unit_price',
         'idr',
         'scale',
         'date',
@@ -34,6 +35,7 @@ class RecordSnapshot extends Model
     {
         return [
             'date' => 'date',
+            'fuel_unit_price' => 'decimal:2',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
@@ -65,6 +67,7 @@ class RecordSnapshot extends Model
             'finish_km' => $record->finish_km,
             'totals' => $record->totals,
             'bbm' => $record->bbm,
+            'fuel_unit_price' => $record->fuel_unit_price,
             'idr' => $record->idr,
             'scale' => $record->scale,
             'date' => $record->date,

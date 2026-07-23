@@ -8,8 +8,9 @@
     $vehicleOptions = ($vehicles ?? collect())->pluck('plat_new', 'plat_new')->all();
     $destinationOptions = ($destinations ?? collect())->pluck('name', 'name')->all();
     $fuelTypeOptions = ($fuelTypes ?? collect())->mapWithKeys(fn($fuelType) => [
-        $fuelType->id => "{$fuelType->name} - Rp " . number_format((float) $fuelType->price, 0, ',', '.'),
+        $fuelType->id => "{$fuelType->name} ({$fuelType->merk} - " . ucfirst($fuelType->type) . ')',
     ])->all();
+    $fuelTypePrices = ($fuelTypes ?? collect())->pluck('price', 'id')->all();
 
     // Records store the driver NAME, so resolve back to the id for the dropdown.
     $selectedDriver1 = $record ? optional(($drivers ?? collect())->firstWhere('name', $record->driver_1))->id : null;
@@ -19,7 +20,8 @@
     $vehicleMileage = ($vehicles ?? collect())->pluck('mileage', 'plat_new')->all();
 @endphp
 
-<form method="POST" action="{{ $action }}">
+<form method="POST" action="{{ $action }}" data-record-fuel-pricing-form
+    data-fuel-type-prices="{{ json_encode($fuelTypePrices) }}">
     @csrf
     <input type="hidden" name="_method" id="record-form-method" value="{{ $method !== 'POST' ? $method : '' }}">
     <input type="hidden" name="_form_action" id="record-form-action" value="{{ $action }}">
@@ -44,12 +46,12 @@
                 required />
         </div>
         <div class="col-md-4">
-            <x-form.select name="driver_1" label="Supir 1" :options="$driverOptions" :value="$selectedDriver1"
-                placeholder="Pilih supir 1..." mode="select2" inputClass="form-select-sm" required />
+            <x-form.select name="driver_1" label="Driver Utama" :options="$driverOptions" :value="$selectedDriver1"
+                placeholder="Pilih driver utama..." mode="select2" inputClass="form-select-sm" required />
         </div>
         <div class="col-md-4">
-            <x-form.select name="driver_2" label="Supir 2" :options="$driverOptions" :value="$selectedDriver2"
-                placeholder="Pilih supir 2..." mode="select2" inputClass="form-select-sm" />
+            <x-form.select name="driver_2" label="Driver Pendamping" :options="$driverOptions" :value="$selectedDriver2"
+                placeholder="Pilih driver pendamping..." mode="select2" inputClass="form-select-sm" />
         </div>
     </div>
 
@@ -66,13 +68,35 @@
                 inputClass="form-control-sm" required />
         </div>
         <div class="col-md-4">
-            <x-form.number name="bbm" label="BBM / Liter" :value="$record?->bbm" min="0" step="0.01"
+            <x-form.number name="bbm" label="Jumlah BBM (Liter)" :value="$record?->bbm" min="0" step="0.01"
                 inputClass="form-control-sm" required />
         </div>
-        <div class="col-md-12">
+        <div class="col-md-4">
             <x-form.select name="fuel_type_id" label="Jenis BBM" :options="$fuelTypeOptions"
                 :value="$record?->fuel_type_id" placeholder="Pilih jenis BBM..." mode="select2"
                 inputClass="form-select-sm" required />
+        </div>
+        <div class="col-md-4">
+            <label for="fuel_unit_price" class="form-label">
+                Harga per Liter <span class="text-danger">*</span>
+            </label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text">Rp</span>
+                <input type="number" id="fuel_unit_price" name="fuel_unit_price"
+                    value="{{ old('fuel_unit_price', $record?->fuel_unit_price) }}"
+                    min="0" max="{{ \App\Models\FuelType::MAX_PRICE }}" step="0.01" placeholder="0" required
+                    data-fuel-unit-price
+                    @class(['form-control', 'is-invalid' => $errors->has('fuel_unit_price')])>
+            </div>
+            <x-form.error name="fuel_unit_price" />
+        </div>
+        <div class="col-md-4">
+            <label for="fuel_total_price" class="form-label">Total Harga</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text">Rp</span>
+                <input type="text" id="fuel_total_price" class="form-control" placeholder="0" readonly
+                    data-fuel-total-price>
+            </div>
         </div>
     </div>
 
@@ -111,7 +135,7 @@
             }).get();
 
             // Every field except Perusahaan is gated until a company is chosen.
-            const $gated = $('#date, #driver_1, #driver_2, #no_pol, #destination, #start_km, #finish_km, #bbm, #fuel_type_id');
+            const $gated = $('#date, #driver_1, #driver_2, #no_pol, #destination, #start_km, #finish_km, #bbm, #fuel_type_id, #fuel_unit_price, #fuel_total_price');
 
             function toggleGate() {
                 const enabled = $company.val() !== null && $company.val() !== '';

@@ -38,8 +38,8 @@ class RecordDataTable extends DataTable
             Column::make('start_km', 'KM Awal'),
             Column::make('finish_km', 'KM Akhir'),
             Column::make('totals', 'Total'),
-            Column::make('bbm', 'BBM'),
-            Column::computed('idr_label', 'IDR', fn (Record $record): string => 'Rp '.number_format((float) $record->idr, 0, ',', '.'))
+            Column::make('bbm', 'Jumlah BBM (Liter)'),
+            Column::computed('idr_label', 'Total Harga', fn (Record $record): string => 'Rp '.number_format((float) $record->idr, 0, ',', '.'))
                 ->searchable(false),
             Column::make('scale', 'Skala'),
             Column::action(),
@@ -91,6 +91,7 @@ class RecordDataTable extends DataTable
                     'finish-km' => $row->finish_km,
                     'bbm' => $row->bbm,
                     'fuel-type-id' => $row->fuel_type_id,
+                    'fuel-unit-price' => $row->fuel_unit_price,
                 ],
             ],
             [

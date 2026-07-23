@@ -162,6 +162,7 @@
         setField('finish_km', d.finishKm, { silent: true });
         setField('bbm', d.bbm, { silent: true });
         setField('fuel_type_id', d.fuelTypeId, { silent: true });
+        setField('fuel_unit_price', d.fuelUnitPrice, { silent: true });
     }
 
     modalEl.addEventListener('shown.bs.modal', function () {
@@ -191,6 +192,7 @@
             finishKm: btn.dataset.finishKm,
             bbm: btn.dataset.bbm,
             fuelTypeId: btn.dataset.fuelTypeId,
+            fuelUnitPrice: btn.dataset.fuelUnitPrice,
         };
 
         bootstrap.Modal.getOrCreateInstance(modalEl).show();

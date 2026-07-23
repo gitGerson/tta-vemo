@@ -6,6 +6,7 @@ use App\Models\Destination;
 use App\Models\Driver;
 use App\Models\Record;
 use App\Models\Vehicle;
+use App\Services\RecordFuelCostCalculator;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,7 @@ class RecordSeeder extends Seeder
     /**
      * Run the database seeds.
      */
-    public function run(): void
+    public function run(RecordFuelCostCalculator $fuelCostCalculator): void
     {
         $vehicles = Vehicle::query()
             ->with('fuelType')
@@ -41,6 +42,7 @@ class RecordSeeder extends Seeder
             $totals = 120 + ($index * 15);
             $finishKm = $startKm + $totals;
             $bbm = 15 + $index;
+            $fuelUnitPrice = (string) ($vehicle->fuelType?->price ?? 0);
 
             $record = Record::withTrashed()->updateOrCreate(
                 [
@@ -58,7 +60,8 @@ class RecordSeeder extends Seeder
                     'finish_km' => (string) $finishKm,
                     'totals' => (string) $totals,
                     'bbm' => (string) $bbm,
-                    'idr' => (string) ($vehicle->fuelType?->price ?? 0),
+                    'fuel_unit_price' => $fuelUnitPrice,
+                    'idr' => $fuelCostCalculator->calculate($fuelUnitPrice, (string) $bbm),
                     'scale' => number_format($totals / $bbm, 2, '.', ''),
                 ],
             );

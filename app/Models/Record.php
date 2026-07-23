@@ -37,6 +37,7 @@ class Record extends Model
         'finish_km',
         'totals',
         'bbm',
+        'fuel_unit_price',
         'idr',
         'scale',
         'date',
@@ -46,6 +47,7 @@ class Record extends Model
     {
         return [
             'date' => 'date',
+            'fuel_unit_price' => 'decimal:2',
             'deleted_at' => 'datetime',
         ];
     }
@@ -54,7 +56,7 @@ class Record extends Model
     {
         return [
             'company_id' => ['required', 'integer', Rule::exists('companies', 'id')],
-            'fuel_type_id' => ['required', 'integer', Rule::exists('fuel_types', 'id')],
+            'fuel_type_id' => ['required', 'integer', Rule::exists(FuelType::class, 'id')->withoutTrashed()],
             'date' => ['required', 'date'],
             'driver_1' => ['required', 'integer', Rule::exists('drivers', 'id')],
             'driver_2' => ['nullable', 'integer', Rule::exists('drivers', 'id')],
@@ -62,8 +64,8 @@ class Record extends Model
             'destination' => ['required', 'string', Rule::exists('indonesia_cities', 'name')],
             'start_km' => ['nullable', 'string'],
             'finish_km' => ['required', 'string'],
-            'bbm' => ['required', 'string'],
-            'idr' => ['nullable', 'numeric'],
+            'bbm' => ['required', 'numeric', 'min:0'],
+            'fuel_unit_price' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:'.FuelType::MAX_PRICE],
         ];
     }
 
@@ -74,6 +76,13 @@ class Record extends Model
             'destination.exists' => 'Tujuan tidak ditemukan.',
             'driver_1.exists' => 'Supir 1 tidak ditemukan.',
             'driver_2.exists' => 'Supir 2 tidak ditemukan.',
+            'fuel_type_id.exists' => 'Jenis BBM tidak ditemukan.',
+            'bbm.numeric' => 'Jumlah BBM harus berupa angka.',
+            'fuel_unit_price.required' => 'Harga per Liter wajib diisi.',
+            'fuel_unit_price.numeric' => 'Harga per Liter harus berupa angka.',
+            'fuel_unit_price.decimal' => 'Harga per Liter maksimal memiliki 2 angka desimal.',
+            'fuel_unit_price.min' => 'Harga per Liter tidak boleh negatif.',
+            'fuel_unit_price.max' => 'Harga per Liter melebihi batas yang diizinkan.',
         ];
     }
 

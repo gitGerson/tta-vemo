@@ -231,6 +231,7 @@ SQL;
 
         // record keeps id and points at the preserved vehicle/company ids.
         $this->assertDatabaseHas('records', ['id' => 500, 'vehicle_id' => 100, 'company_id' => 1]);
+        $this->assertNull(DB::table('records')->find(500)->fuel_unit_price);
 
         // maintenance: get_request -> created_by, company_id backfilled via plate.
         $maintenance = DB::table('maintenances')->find(700);

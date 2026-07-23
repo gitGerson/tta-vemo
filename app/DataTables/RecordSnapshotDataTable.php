@@ -35,8 +35,15 @@ class RecordSnapshotDataTable extends DataTable
             Column::make('start_km', 'KM Awal'),
             Column::make('finish_km', 'KM Akhir'),
             Column::make('totals', 'Total'),
-            Column::make('bbm', 'BBM'),
-            Column::computed('idr_label', 'IDR', fn (RecordSnapshot $snapshot): string => 'Rp '.number_format((float) $snapshot->idr, 0, ',', '.'))
+            Column::make('bbm', 'Jumlah BBM (Liter)'),
+            Column::computed(
+                'fuel_unit_price_label',
+                'Harga per Liter',
+                fn (RecordSnapshot $snapshot): string => $snapshot->fuel_unit_price === null
+                    ? '-'
+                    : 'Rp '.number_format((float) $snapshot->fuel_unit_price, 2, ',', '.'),
+            )->searchable(false),
+            Column::computed('idr_label', 'Total Harga', fn (RecordSnapshot $snapshot): string => 'Rp '.number_format((float) $snapshot->idr, 0, ',', '.'))
                 ->searchable(false),
             Column::make('scale', 'Skala'),
             Column::computed('changed_by_name', 'Oleh', fn (RecordSnapshot $snapshot): string => $snapshot->changedBy?->name ?? '-')
