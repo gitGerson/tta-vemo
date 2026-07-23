@@ -21,6 +21,7 @@ class RecordFactory extends Factory
         $finishKm = $startKm + fake()->numberBetween(10, 800);
         $totals = $finishKm - $startKm;
         $bbm = fake()->numberBetween(5, 80);
+        $unitPrice = fake()->numberBetween(10000, 20000);
 
         return [
             'driver_1' => fake()->name(),
@@ -34,7 +35,8 @@ class RecordFactory extends Factory
             'finish_km' => (string) $finishKm,
             'totals' => (string) $totals,
             'bbm' => (string) $bbm,
-            'idr' => (string) fake()->numberBetween(10000, 20000),
+            'fuel_unit_price' => (string) $unitPrice,
+            'idr' => number_format($unitPrice * $bbm, 2, '.', ''),
             'scale' => (string) (int) ($totals / max($bbm, 1)),
             'date' => fake()->dateTimeBetween('-1 month', 'now')->format('Y-m-d'),
         ];

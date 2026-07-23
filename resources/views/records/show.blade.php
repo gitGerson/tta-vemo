@@ -6,6 +6,9 @@
 
 @php
     $idrLabel = 'Rp ' . number_format((float) $record->idr, 0, ',', '.');
+    $fuelUnitPriceLabel = $record->fuel_unit_price === null
+        ? '-'
+        : 'Rp ' . number_format((float) $record->fuel_unit_price, 2, ',', '.');
 @endphp
 
 @section('content')
@@ -47,9 +50,10 @@
                     <div class="col-md-3"><small class="text-muted text-uppercase d-block">KM Akhir</small><span class="fw-medium">{{ $record->finish_km }}</span></div>
                     <div class="col-md-3"><small class="text-muted text-uppercase d-block">Total</small><span class="fw-medium">{{ $record->totals }}</span></div>
                     <div class="col-md-3"><small class="text-muted text-uppercase d-block">Skala (KM/L)</small><span class="fw-medium">{{ $record->scale }}</span></div>
-                    <div class="col-md-3"><small class="text-muted text-uppercase d-block">BBM / Liter</small><span class="fw-medium">{{ $record->bbm }}</span></div>
+                    <div class="col-md-3"><small class="text-muted text-uppercase d-block">Jumlah BBM (Liter)</small><span class="fw-medium">{{ $record->bbm }}</span></div>
                     <div class="col-md-3"><small class="text-muted text-uppercase d-block">Jenis BBM</small><span class="fw-medium">{{ $record->fuelType?->name ?? '-' }}</span></div>
-                    <div class="col-md-3"><small class="text-muted text-uppercase d-block">IDR</small><span class="fw-medium">{{ $idrLabel }}</span></div>
+                    <div class="col-md-3"><small class="text-muted text-uppercase d-block">Harga per Liter</small><span class="fw-medium">{{ $fuelUnitPriceLabel }}</span></div>
+                    <div class="col-md-3"><small class="text-muted text-uppercase d-block">Total Harga</small><span class="fw-medium">{{ $idrLabel }}</span></div>
                 </div>
             </div>
         </div>

@@ -34,9 +34,6 @@
         infoBannerClose?.addEventListener('click', hideInfoBanner);
         infoBannerToggle?.addEventListener('click', showInfoBanner);
 
-        // Select2
-        $('.select2').select2({ width: '100%' });
-
         // FilePond
         if (typeof FilePond !== 'undefined') {
             FilePond.registerPlugin(
@@ -234,7 +231,7 @@
         }
 
         $(document).on('input change', '#mainForm input, #mainForm select, #mainForm textarea', updateSubmitState);
-        $(document).on('change', '.select2', updateSubmitState);
+        $(document).on('change', 'select[data-select2-enabled="1"]', updateSubmitState);
 
         updateSubmitState();
     });

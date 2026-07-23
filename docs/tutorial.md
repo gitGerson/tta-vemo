@@ -82,20 +82,20 @@ Ringkasan yang ditampilkan:
 - total kendaraan dan jumlah kendaraan aktif
 - kendaraan yang mendekati jadwal servis
 - peringatan asuransi yang jatuh tempo atau hampir jatuh tempo
-- foto bulanan yang belum lengkap
+- kendaraan dengan STNK atau KIR yang segera kedaluwarsa
 - kendaraan yang sedang dalam pemeliharaan dan yang menunggu konfirmasi
 
 Daftar pengingat:
 
-- **Pengingat servis** kendaraan
-- **Pengingat foto bulanan** yang belum lengkap
+- **Service Reminder** kendaraan, dilengkapi tombol **Lihat Semua** untuk membuka seluruh data pemeliharaan
 - **Pengingat asuransi** menjelang jatuh tempo (H-30, H-14, H-7, dan H-3)
-- **Pengingat dokumen kendaraan** (STNK menjelang H-30, KIR menjelang H-7)
+- **STNK Segera Kedaluwarsa** untuk STNK yang mendekati jatuh tempo dalam 30 hari
+- **KIR Segera Kedaluwarsa** untuk KIR yang mendekati jatuh tempo dalam 7 hari
 
 Ringkasan biaya (untuk pengguna yang diberi hak akses):
 
 - tren biaya 6 bulan (pemeliharaan dibanding BBM)
-- kartu biaya pemeliharaan dan biaya BBM beserta perbandingan tahun sebelumnya
+- kartu biaya pemeliharaan dan biaya BBM beserta perbandingan bulan sebelumnya
 
 Selain itu tersedia grafik kondisi kendaraan, komposisi armada, volume pemeliharaan, tombol aksi cepat (catat servis, scan QR, tambah kendaraan, lihat semua kendaraan), dan daftar pemeliharaan terbaru pada periode terpilih.
 
@@ -105,8 +105,9 @@ Selain itu tersedia grafik kondisi kendaraan, komposisi armada, volume pemelihar
 
 1. Buka dashboard setelah login.
 2. Pilih perusahaan dan bulan yang ingin ditinjau.
-3. Periksa kartu pengingat; jika ada kendaraan yang perlu servis atau asuransi hampir habis, klik untuk menindaklanjuti.
-4. Gunakan tombol aksi cepat untuk langsung mencatat servis atau menambah kendaraan.
+3. Periksa Service Reminder, asuransi, STNK, dan KIR yang perlu ditindaklanjuti.
+4. Klik **Lihat Semua** pada Service Reminder untuk membuka seluruh data pemeliharaan jika diperlukan.
+5. Gunakan tombol aksi cepat untuk langsung mencatat servis atau menambah kendaraan.
 
 ## Data Induk
 
@@ -171,20 +172,20 @@ Hak akses: melihat, menambah, mengubah, menghapus, memulihkan, dan menghapus per
 
 Fungsi modul:
 
-- data armada: plat nomor (tidak boleh sama), perusahaan, merek, tipe kendaraan, jenis BBM, tahun masuk, kilometer, nomor mesin, nomor rangka, harga beli/jual, status, penanda kendaraan pribadi, dan penanda pemeliharaan
+- data armada: plat nomor (tidak boleh sama), perusahaan, merek, tipe kendaraan, jenis BBM, tahun masuk, kilometer, nomor mesin, nomor rangka, harga beli/jual, status, dan penanda pemeliharaan
 - dokumen BPKB, STNK, dan KIR bisa memuat beberapa gambar, masing-masing dengan tanggal jatuh tempo
 
 Cara pakai:
 
 - berbeda dari data induk lain, tambah dan ubah kendaraan memakai halaman formulir tersendiri karena isiannya banyak
-- gambar dokumen dan tanggal jatuh tempo harus diisi berpasangan
+- gambar dokumen dan tanggal jatuh tempo dapat diisi secara terpisah sesuai data yang tersedia
 - setiap perubahan disimpan sebagai riwayat kendaraan
 - tersedia label QR yang bisa dicetak; label ini dipakai untuk scan cepat di lapangan
 - halaman detail menampilkan riwayat, asuransi, dan foto kendaraan
 
 Catatan penting:
 
-- tanggal jatuh tempo STNK dan KIR dipakai untuk pengingat dokumen di dashboard
+- tanggal jatuh tempo STNK dipakai untuk pengingat H-30, sedangkan tanggal jatuh tempo KIR dipakai untuk pengingat H-7 di dashboard
 
 [PLACEHOLDER GAMBAR - Daftar Kendaraan]
 
@@ -192,7 +193,7 @@ Catatan penting:
 
 1. Buka menu **Kendaraan** lalu klik **Tambah**.
 2. Di halaman formulir, isi plat nomor, perusahaan, merek, tipe, dan jenis BBM.
-3. Unggah gambar STNK/KIR dan isi tanggal jatuh temponya.
+3. Unggah gambar STNK/KIR dan/atau isi tanggal jatuh temponya sesuai data yang tersedia.
 4. Klik **Simpan**.
 5. Buka detail kendaraan, lalu cetak **label QR** untuk ditempel pada kendaraan.
 
@@ -291,11 +292,11 @@ Hak akses: melihat, menambah, mengubah, dan menghapus jenis BBM.
 
 Fungsi modul:
 
-- daftar bahan bakar: nama, tipe (bensin atau solar), harga, dan merek (Pertamina, Vivo, BP, atau Shell)
+- daftar bahan bakar: nama, tipe (bensin atau solar), harga, dan merek (Pertamina, Vivo, BP, atau Shell); harga master menjadi saran awal saat membuat catatan BBM
 
 Cara pakai:
 
-- tambah dan ubah lewat jendela pop-up; harga diisi dalam format Rupiah
+- tambah dan ubah lewat jendela pop-up; harga diisi dalam format Rupiah dan tidak mengubah harga pada transaksi BBM yang sudah tersimpan
 - nama harus unik untuk tiap merek
 - tersedia tampilan detail dan halaman sampah untuk pemulihan
 
@@ -315,16 +316,25 @@ Hak akses: melihat, menambah, mengubah, menghapus, memulihkan, dan menghapus per
 
 Fungsi modul:
 
-- mencatat perjalanan dan pemakaian BBM: kendaraan/plat, supir 1 dan supir 2, tujuan, perusahaan, jenis BBM, KM awal, KM akhir, liter BBM, harga, dan tanggal
+- mencatat perjalanan dan pemakaian BBM: kendaraan/plat, supir 1 dan supir 2, tujuan, perusahaan, jenis BBM, KM awal, KM akhir, **Jumlah BBM (Liter)**, **Harga per Liter**, **Total Harga**, dan tanggal
 
 Cara pakai:
 
 - tambah dan ubah lewat jendela pop-up di halaman daftar
+- saat **Jenis BBM** dipilih, **Harga per Liter** otomatis terisi dari harga master saat ini
+- **Harga per Liter** dapat diubah untuk transaksi tersebut; perubahan ini tidak mengubah harga master
+- perubahan **Jumlah BBM (Liter)** atau **Harga per Liter** langsung memperbarui **Total Harga**
+- **Total Harga** hanya dapat dibaca dan dihitung oleh sistem dari Harga per Liter × Jumlah BBM (Liter)
+- saat catatan diubah, harga transaksi yang tersimpan tetap ditampilkan; jika Jenis BBM diganti, harga diisi ulang dengan harga master jenis BBM yang baru
 - KM awal otomatis mengambil KM akhir dari catatan sebelumnya jika dikosongkan
 - sistem menghitung total jarak tempuh dan efisiensi (km per liter) secara otomatis
 - kilometer kendaraan ikut diperbarui setelah disimpan
-- tersedia ekspor Excel dengan filter rentang tanggal dan perusahaan
-- setiap perubahan disimpan sebagai riwayat; sampah dan pemulihan tersedia
+- tersedia ekspor Excel dengan filter rentang tanggal dan perusahaan; kolom **Harga per Liter** berada setelah kolom jumlah BBM
+- setiap perubahan, termasuk Harga per Liter, disimpan sebagai riwayat; sampah dan pemulihan tersedia
+
+Catatan:
+
+- catatan lama yang belum memiliki Harga per Liter menampilkan tanda **-** pada detail dan riwayat, serta sel kosong pada ekspor Excel
 
 [PLACEHOLDER GAMBAR - Modul Pelacakan BBM]
 
@@ -332,9 +342,11 @@ Cara pakai:
 
 1. Buka menu **Pelacakan BBM** lalu klik **Tambah**.
 2. Pilih kendaraan; KM awal terisi otomatis dari perjalanan sebelumnya.
-3. Isi KM akhir, jumlah liter BBM, supir, dan tujuan.
-4. Klik **Simpan**; efisiensi dihitung otomatis.
-5. Untuk laporan, klik **Ekspor** untuk mengunduh data dalam bentuk Excel.
+3. Pilih **Jenis BBM** agar **Harga per Liter** terisi dari harga master.
+4. Isi KM akhir, **Jumlah BBM (Liter)**, supir, dan tujuan.
+5. Periksa atau ubah **Harga per Liter**, lalu pastikan **Total Harga** sudah sesuai.
+6. Klik **Simpan**; total harga dan efisiensi dihitung otomatis.
+7. Untuk laporan, klik **Ekspor** untuk mengunduh data dalam bentuk Excel.
 
 ### Pemeliharaan
 
@@ -425,7 +437,7 @@ Cara pakai:
 
 Catatan penting:
 
-- foto bulanan yang belum lengkap muncul sebagai pengingat di dashboard
+- kelengkapan foto bulanan dipantau melalui modul **Foto Kendaraan**
 
 [PLACEHOLDER GAMBAR - Modul Foto Kendaraan]
 
@@ -434,7 +446,7 @@ Catatan penting:
 1. Buka menu **Foto Kendaraan** lalu klik **Tambah**.
 2. Pilih kendaraan dan bulan dokumentasi.
 3. Unggah foto keempat sisi kendaraan dan tulis catatan kondisi.
-4. Klik **Simpan**; bulan tersebut tidak lagi muncul sebagai pengingat.
+4. Klik **Simpan**, lalu buka detail untuk meninjau foto dan catatan kondisi.
 
 ### Scan QR Kendaraan
 
@@ -465,7 +477,7 @@ Setiap laporan bisa dilihat maupun diekspor sesuai hak akses. Ekspor (PDF/Excel/
 
 | Laporan | Filter | Format Ekspor |
 | --- | --- | --- |
-| Laporan Harian BBM | tanggal, kategori, perusahaan | PDF |
+| Laporan Harian BBM | tanggal, perusahaan | PDF |
 | Laporan Bulanan BBM | bulan, perusahaan, unit (plat) | PDF |
 | Laporan Analisa Bulanan BBM | bulan, perusahaan, unit | PDF + Excel |
 | Laporan Pemeliharaan (Harian/Unit) | rentang tanggal, unit, perusahaan | PDF |
@@ -581,10 +593,10 @@ Modul ini belum menjadi fokus penggunaan umum sampai menunya diaktifkan kembali.
 
 1. Gunakan menu di samping dan pencarian cepat untuk berpindah antar modul.
 2. Pastikan pengguna punya hak akses yang sesuai dan ditugaskan ke perusahaan yang benar agar datanya muncul.
-3. Untuk kendaraan, isi tanggal jatuh tempo STNK dan KIR agar pengingat dokumen berjalan.
+3. Untuk kendaraan, isi tanggal jatuh tempo STNK dan KIR agar pengingat H-30 dan H-7 berjalan.
 4. Untuk pemeliharaan, selesaikan alur Draf → Selesai → Konfirmasi agar datanya masuk laporan.
 5. Untuk asuransi, tampilan kolom formulir menyesuaikan hak akses masing-masing pengguna.
-6. Untuk foto kendaraan, lengkapi keempat sisi setiap bulan agar tidak muncul di pengingat.
+6. Untuk foto kendaraan, lengkapi keempat sisi setiap bulan agar dokumentasi kondisi tetap utuh.
 7. Gunakan scan QR di lapangan untuk mempercepat input pemeliharaan dan foto.
 8. Pantau dashboard secara berkala dan gunakan pilihan perusahaan/bulan untuk membandingkan kondisi.
 
@@ -631,7 +643,7 @@ Periksa:
 Kondisi fitur saat ini:
 
 - akses dilindungi oleh login akun korporat, hak akses per pengguna, dan pemisahan data per perusahaan
-- dashboard menjadi pusat monitoring: ringkasan armada, pengingat servis/asuransi/dokumen/foto, dan ringkasan biaya
+- dashboard menjadi pusat monitoring: ringkasan armada, Service Reminder, pengingat asuransi, STNK H-30, KIR H-7, dan ringkasan biaya
 - data induk armada lengkap: supir, perusahaan, kendaraan (dengan dokumen dan label QR), tipe/merek kendaraan, tujuan, tipe pemeliharaan, dan jenis BBM
 - operasional mencakup pelacakan BBM, pemeliharaan dengan alur persetujuan, asuransi, foto kendaraan bulanan, dan scan QR
 - laporan tersedia untuk BBM dan pemeliharaan dalam bentuk harian, bulanan, analisa, dan tahunan dengan ekspor PDF/Excel/CSV

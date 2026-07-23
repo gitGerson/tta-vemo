@@ -74,7 +74,7 @@ class VehiclePhoto extends Model
                 self::uniqueMonthPerVehicleRule($photo),
             ],
             'photos' => ['nullable', 'array'],
-            'notes' => ['required', 'string'],
+            'notes' => ['nullable', 'string'],
         ];
     }
 

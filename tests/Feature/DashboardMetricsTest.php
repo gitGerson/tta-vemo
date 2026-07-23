@@ -112,6 +112,9 @@ class DashboardMetricsTest extends TestCase
         $this->get(route('home'))
             ->assertOk()
             ->assertSeeText('Perusahaan')
+            ->assertSee('data-select2-enabled="1"', false)
+            ->assertSee('select2@4.0.13', false)
+            ->assertDontSee('select2@4.1.0-rc.0', false)
             ->assertSeeText('Tong Tji Unit Test')
             ->assertDontSeeText('Semua Perusahaan')
             ->assertSee('value="'.$company->id.'" selected', false)
@@ -181,6 +184,60 @@ class DashboardMetricsTest extends TestCase
             ->assertSeeText('Rp 222.000')
             ->assertDontSeeText('Rp 999.000')
             ->assertDontSeeText('Rp 333.000');
+    }
+
+    public function test_dashboard_replaces_vehicle_photo_reminder_with_stnk_and_kir_tables(): void
+    {
+        $company = Company::factory()->create();
+        $otherCompany = Company::factory()->create();
+        $stnkVehicle = Vehicle::factory()->create([
+            'company_id' => $company->id,
+            'stnk_due_date' => now()->addDays(10)->toDateString(),
+        ]);
+        $kirVehicle = Vehicle::factory()->create([
+            'company_id' => $company->id,
+            'kir_due_date' => now()->addDays(5)->toDateString(),
+        ]);
+        $outsideWindow = Vehicle::factory()->create([
+            'company_id' => $company->id,
+            'stnk_due_date' => now()->addDays(31)->toDateString(),
+        ]);
+        $otherCompanyVehicle = Vehicle::factory()->create([
+            'company_id' => $otherCompany->id,
+            'kir_due_date' => now()->addDays(3)->toDateString(),
+        ]);
+
+        $this->actingAs($this->userWith(['master.vehicles.reminders'], [$company]));
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSeeText('STNK Segera Kedaluwarsa')
+            ->assertSeeText('KIR Segera Kedaluwarsa')
+            ->assertSee($stnkVehicle->plat_new)
+            ->assertSee($kirVehicle->plat_new)
+            ->assertSee('H-10')
+            ->assertSee('H-5')
+            ->assertDontSee($outsideWindow->plat_new)
+            ->assertDontSee($otherCompanyVehicle->plat_new)
+            ->assertDontSeeText('Foto Kendaraan')
+            ->assertDontSeeText('Foto Belum Lengkap');
+    }
+
+    public function test_dashboard_hides_document_expiry_tables_without_reminder_permission(): void
+    {
+        $company = Company::factory()->create();
+        Vehicle::factory()->create([
+            'company_id' => $company->id,
+            'stnk_due_date' => now()->addDays(10)->toDateString(),
+            'kir_due_date' => now()->addDays(5)->toDateString(),
+        ]);
+
+        $this->actingAs($this->userWith([], [$company]));
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertDontSeeText('STNK Segera Kedaluwarsa')
+            ->assertDontSeeText('KIR Segera Kedaluwarsa');
     }
 
     /**

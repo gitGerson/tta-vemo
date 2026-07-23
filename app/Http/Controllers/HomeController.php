@@ -7,8 +7,8 @@ use App\Models\Maintenance;
 use App\Models\Vehicle;
 use App\Services\DashboardMetricsService;
 use App\Services\ServiceReminderService;
+use App\Services\VehicleDocumentMonitorService;
 use App\Services\VehicleInsuranceMonitorService;
-use App\Services\VehiclePhotoMonitorService;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -37,9 +37,9 @@ class HomeController extends Controller
      *
      * @return Renderable
      */
-    public function index(Request $request, ServiceReminderService $serviceReminders, VehiclePhotoMonitorService $photoMonitor, VehicleInsuranceMonitorService $insuranceMonitor, DashboardMetricsService $metrics)
+    public function index(Request $request, ServiceReminderService $serviceReminders, VehicleDocumentMonitorService $documentMonitor, VehicleInsuranceMonitorService $insuranceMonitor, DashboardMetricsService $metrics)
     {
-        $data = $this->buildDashboardData($request, $serviceReminders, $photoMonitor, $insuranceMonitor, $metrics);
+        $data = $this->buildDashboardData($request, $serviceReminders, $documentMonitor, $insuranceMonitor, $metrics);
 
         // The filter form posts via AJAX (X-Requested-With) to refresh in place;
         // return only the content partial so the page is not fully reloaded.
@@ -55,7 +55,7 @@ class HomeController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function buildDashboardData(Request $request, ServiceReminderService $serviceReminders, VehiclePhotoMonitorService $photoMonitor, VehicleInsuranceMonitorService $insuranceMonitor, DashboardMetricsService $metrics): array
+    private function buildDashboardData(Request $request, ServiceReminderService $serviceReminders, VehicleDocumentMonitorService $documentMonitor, VehicleInsuranceMonitorService $insuranceMonitor, DashboardMetricsService $metrics): array
     {
         $user = auth()->user();
         $filters = $this->resolveDashboardFilters($request);
@@ -168,10 +168,12 @@ class HomeController extends Controller
         $canRemind = $user?->hasPermission('operational.maintenances.reminders') === true;
         $due = $canRemind ? $serviceReminders->dueVehicles($selectedCompanyId) : collect();
 
-        // Monthly photo reminders, gated by a dedicated permission and company-scoped via
-        // the Vehicle CompanyTenantScope (bypassed by management.tenant.bypass).
-        $canPhotoRemind = $user?->hasPermission('operational.vehicle_photos.reminders') === true;
-        $missingPhotos = $canPhotoRemind ? $photoMonitor->incompleteVehicles($selectedMonth, $selectedCompanyId) : collect();
+        // STNK (H-30) and KIR (H-7) expiry reminders share the existing vehicle
+        // reminder permission and remain company-scoped.
+        $canDocumentRemind = $user?->hasPermission('master.vehicles.reminders') === true;
+        $dueDocuments = $canDocumentRemind ? $documentMonitor->dueDocuments($selectedCompanyId) : collect();
+        $stnkDocuments = $dueDocuments->where('type', 'vehicle.stnk-due')->values();
+        $kirDocuments = $dueDocuments->where('type', 'vehicle.kir-due')->values();
 
         // Insurance expiry reminders (H-30/14/7/3), gated by a dedicated permission and
         // company-scoped via the VehicleInsurance CompanyTenantScope.
@@ -187,7 +189,6 @@ class HomeController extends Controller
         $kpis = collect([
             ['visible' => $canRemind, 'label' => 'Tenggat Waktu Servis', 'value' => $due->count(), 'sub' => 'melewati batas servis', 'icon' => 'bx-wrench', 'color' => 'warning', 'link' => route('maintenances.index')],
             ['visible' => $canInsuranceRemind, 'label' => 'Perhatian Asuransi', 'value' => $insurance->count(), 'sub' => 'akan berakhir atau terlambat', 'icon' => 'bx-shield-quarter', 'color' => 'danger', 'link' => route('vehicle-insurances.index')],
-            ['visible' => $canPhotoRemind, 'label' => 'Foto Belum Lengkap', 'value' => $missingPhotos->count(), 'sub' => 'belum lengkap bulan ini', 'icon' => 'bx-camera', 'color' => 'info', 'link' => route('vehicles.index')],
             ['visible' => true, 'label' => 'Total Kendaraan', 'value' => $conditionSummary['total'], 'sub' => $conditionSummary['active'].' aktif', 'icon' => 'bx-car', 'color' => 'primary', 'link' => route('vehicles.index')],
             ['visible' => true, 'label' => 'Dalam Pemeliharaan', 'value' => $underMaintenance, 'sub' => 'servis sedang berjalan', 'icon' => 'bx-cog', 'color' => 'warning', 'link' => route('maintenances.index')],
             ['visible' => true, 'label' => 'Menunggu Konfirmasi', 'value' => $awaiting, 'sub' => 'selesai, perlu ditinjau', 'icon' => 'bx-time-five', 'color' => 'info', 'link' => route('maintenances.index')],
@@ -220,7 +221,8 @@ class HomeController extends Controller
             'kpis' => $kpis,
             'quickActions' => $quickActions,
             'serviceReminders' => ['visible' => $canRemind, 'count' => $due->count(), 'items' => $due->take(self::MAX_LIST_ITEMS)->all()],
-            'photoReminders' => ['visible' => $canPhotoRemind, 'count' => $missingPhotos->count(), 'items' => $missingPhotos->take(self::MAX_LIST_ITEMS)->all()],
+            'stnkReminders' => ['visible' => $canDocumentRemind, 'count' => $stnkDocuments->count(), 'items' => $stnkDocuments->take(self::MAX_LIST_ITEMS)->all()],
+            'kirReminders' => ['visible' => $canDocumentRemind, 'count' => $kirDocuments->count(), 'items' => $kirDocuments->take(self::MAX_LIST_ITEMS)->all()],
             'insuranceReminders' => ['visible' => $canInsuranceRemind, 'count' => $insurance->count(), 'items' => $insurance->take(self::MAX_LIST_ITEMS)->all()],
             'financials' => [
                 'visible' => $canViewFinancials,

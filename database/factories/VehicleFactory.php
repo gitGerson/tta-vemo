@@ -26,7 +26,6 @@ class VehicleFactory extends Factory
             'fuel_type' => 'BBM',
             'mtc' => fake()->randomElement(['YES', 'NO']),
             'desc' => fake()->optional()->sentence(),
-            'isprivate' => fake()->boolean(),
         ];
     }
 }

@@ -29,6 +29,10 @@
         : [];
 @endphp
 
+@if ($useSelect2)
+    <x-form.select2-assets />
+@endif
+
 <x-form.group :name="$name" :label="$label" :required="$required" :help="$help" :for="$fieldId" :class="$groupClass">
     <select
         id="{{ $fieldId }}"
@@ -72,34 +76,3 @@
         @endif
     </select>
 </x-form.group>
-
-@once
-    @push('styles')
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
-        <style>
-            .select2-container .select2-selection--single {
-                height: calc(1.5em + 0.875rem + 2px);
-                display: flex;
-                align-items: center;
-            }
-
-            .select2-container--bootstrap-5 .select2-selection {
-                border-color: var(--bs-border-color, #d9dee3);
-            }
-
-            .is-invalid + .select2-container--bootstrap-5 .select2-selection {
-                border-color: var(--bs-danger, #dc3545);
-            }
-
-            .select2-container--bootstrap-5 .select2-dropdown {
-                z-index: 1080;
-            }
-        </style>
-    @endpush
-
-    @push('scripts')
-        <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
-        @vite(['resources/js/modules/select2.js'])
-    @endpush
-@endonce

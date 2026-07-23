@@ -30,6 +30,22 @@ class ServiceReminderPermissionTest extends TestCase
         $this->assertNotContains($dueB->plat_new, $plates);
     }
 
+    public function test_dashboard_service_reminder_has_view_all_action(): void
+    {
+        $company = Company::factory()->create();
+
+        $this->actingAs($this->userWith(['operational.maintenances.reminders'], [$company]));
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSeeInOrder([
+                'Pengingat Servis',
+                'href="'.route('maintenances.index').'"',
+                'Lihat Semua',
+                'dashServiceReminder',
+            ], false);
+    }
+
     public function test_user_without_reminders_permission_sees_no_service_due(): void
     {
         $company = Company::factory()->create();

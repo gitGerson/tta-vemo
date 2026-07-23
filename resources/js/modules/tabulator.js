@@ -1,5 +1,6 @@
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_bootstrap5.min.css';
+import { select2Options } from './select2';
 
 /**
  * Trigger a native Tabulator download. CSV / JSON / HTML are built in; XLSX and
@@ -91,7 +92,10 @@ function makeSelect2Editor(editorParams = {}) {
 
         onRendered(() => {
             const $editor = $(editor);
-            $editor.select2({ width: '100%', dropdownParent: $('body'), placeholder });
+            $editor.select2(select2Options(editor, {
+                dropdownParent: $('body'),
+                placeholder,
+            }));
             $editor.on('select2:close', commit);
             $editor.select2('open');
         });

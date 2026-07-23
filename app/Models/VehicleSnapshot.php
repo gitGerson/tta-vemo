@@ -22,7 +22,6 @@ class VehicleSnapshot extends Model
         'status',
         'fuel_type',
         'mtc',
-        'isprivate',
         'desc',
         'machine_number',
         'vin_number',
@@ -42,7 +41,6 @@ class VehicleSnapshot extends Model
     protected function casts(): array
     {
         return [
-            'isprivate' => 'boolean',
             'bpkb_image' => 'array',
             'stnk_image' => 'array',
             'kir_image' => 'array',
@@ -81,7 +79,6 @@ class VehicleSnapshot extends Model
             'status' => $vehicle->status,
             'fuel_type' => $vehicle->fuel_type,
             'mtc' => $vehicle->mtc,
-            'isprivate' => $vehicle->isprivate,
             'desc' => $vehicle->desc,
             'machine_number' => $vehicle->machine_number,
             'vin_number' => $vehicle->vin_number,

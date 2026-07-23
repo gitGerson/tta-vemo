@@ -5,18 +5,35 @@
 @push('styles')
 <style>
     /* ── Scanner widget ──────────────────────────────────── */
-    #qr-reader { width: 100%; border: none !important; }
+    #qr-reader {
+        width: 100%;
+        border: none !important;
+        color: var(--bs-body-color);
+        background-color: transparent;
+    }
     #qr-reader video { border-radius: .5rem; width: 100% !important; }
-    #qr-reader__scan_region { border-radius: .5rem; overflow: hidden; }
+    #qr-reader__scan_region {
+        border-radius: .5rem;
+        overflow: hidden;
+        background-color: var(--bs-tertiary-bg) !important;
+    }
     #qr-reader__status_span,
     #qr-reader img[alt="Info icon"] { display: none !important; }
-    #qr-reader__dashboard_section_fsr span { font-size: .82rem; color: #697a8d; }
+    #qr-reader__dashboard_section_fsr span {
+        font-size: .82rem;
+        color: var(--bs-secondary-color);
+    }
     #qr-reader select,
     #qr-reader button {
         font-size: .82rem; padding: .3rem .65rem;
-        border-radius: .375rem; border: 1px solid #d9dee3; cursor: pointer;
+        border-radius: .375rem;
+        border: 1px solid var(--bs-border-color);
+        color: var(--bs-body-color);
+        background-color: var(--bs-paper-bg, var(--bs-body-bg));
+        cursor: pointer;
     }
-    #qr-reader button { border: none; }
+    #qr-reader button { background-color: var(--bs-secondary-bg); }
+    #qr-reader a { color: var(--bs-primary); }
 
     /* ── Camera placeholder ──────────────────────────────── */
     .camera-placeholder {
@@ -24,14 +41,19 @@
         max-height: 280px;
         display: flex; flex-direction: column;
         align-items: center; justify-content: center;
-        background: #f4f5fb; border-radius: .75rem;
-        border: 2px dashed #c5cbe4; color: #a1acb8; gap: 10px;
+        background: var(--bs-tertiary-bg); border-radius: .75rem;
+        border: 2px dashed var(--bs-border-color); color: var(--bs-secondary-color); gap: 10px;
         transition: border-color .2s;
     }
-    .camera-placeholder:hover { border-color: #696cff; }
+    .camera-placeholder:hover { border-color: var(--bs-primary); }
+    .camera-placeholder-icon { background-color: var(--bs-paper-bg, var(--bs-body-bg)); }
+    .camera-placeholder-title { color: var(--bs-body-color); }
 
     /* ── Badge ───────────────────────────────────────────── */
-    .badge-type-vehicle { background: #e8e8ff; color: #696cff; }
+    .badge-type-vehicle {
+        background: rgba(var(--bs-primary-rgb), .16);
+        color: var(--bs-primary);
+    }
 
     /* ── Animations ─────────────────────────────────────── */
     .result-appear { animation: slideUp .25s ease; }
@@ -43,10 +65,10 @@
     /* ── Scan divider ────────────────────────────────────── */
     .scan-divider {
         display: flex; align-items: center; gap: .75rem;
-        color: #a1acb8; font-size: .75rem;
+        color: var(--bs-secondary-color); font-size: .75rem;
     }
     .scan-divider::before, .scan-divider::after {
-        content: ''; flex: 1; height: 1px; background: #e7e7e7;
+        content: ''; flex: 1; height: 1px; background: var(--bs-border-color);
     }
 
     /* ── Scan button group ───────────────────────────────── */
@@ -58,11 +80,11 @@
     .result-field-label {
         font-size: .62rem; font-weight: 700;
         text-transform: uppercase; letter-spacing: .06em;
-        color: #a1acb8; margin-bottom: .2rem;
+        color: var(--bs-secondary-color); margin-bottom: .2rem;
     }
     .result-field-value {
         font-size: .82rem; font-weight: 600;
-        color: #566a7f; white-space: nowrap;
+        color: var(--bs-body-color); white-space: nowrap;
         overflow: hidden; text-overflow: ellipsis;
     }
 
@@ -70,12 +92,29 @@
     .result-item-img {
         width: 72px; height: 72px;
         border-radius: .5rem; object-fit: contain;
-        border: 1px solid #e7e7e7; background: #fff; padding: 4px;
+        border: 1px solid var(--bs-border-color);
+        background: var(--bs-secondary-bg); padding: 4px;
     }
     .result-item-avatar {
         width: 72px; height: 72px; border-radius: .5rem;
         display: flex; align-items: center; justify-content: center;
         font-size: 2rem; flex-shrink: 0;
+    }
+
+    html[data-bs-theme='dark'] #qr-reader,
+    html[data-bs-theme='dark'] #qr-reader__dashboard {
+        color: var(--bs-body-color) !important;
+        background-color: transparent !important;
+    }
+    html[data-bs-theme='dark'] #qr-reader__scan_region,
+    html[data-bs-theme='dark'] .camera-placeholder {
+        background-color: var(--bs-secondary-bg) !important;
+    }
+    html[data-bs-theme='dark'] #qr-reader select,
+    html[data-bs-theme='dark'] #qr-reader button {
+        color: var(--bs-body-color) !important;
+        border-color: var(--bs-border-color) !important;
+        background-color: var(--bs-paper-bg, var(--bs-body-bg)) !important;
     }
 </style>
 @endpush
@@ -109,12 +148,12 @@
                                 <div id="qr-reader" class="w-100" style="border-radius:.75rem;overflow:hidden;"></div>
                                 <div class="camera-placeholder w-100" id="camera-placeholder">
                                     <div class="d-flex flex-column align-items-center gap-2">
-                                        <div class="rounded-circle bg-white d-flex align-items-center justify-content-center shadow-sm"
+                                        <div class="camera-placeholder-icon rounded-circle d-flex align-items-center justify-content-center shadow-sm"
                                              style="width:64px;height:64px;">
                                             <i class="bx bx-qr-scan text-primary" style="font-size:2rem;"></i>
                                         </div>
                                         <div class="text-center">
-                                            <div class="fw-semibold" style="font-size:.82rem;color:#566a7f;">Kamera belum aktif</div>
+                                            <div class="camera-placeholder-title fw-semibold" style="font-size:.82rem;">Kamera belum aktif</div>
                                             <div class="text-muted" style="font-size:.72rem;">Tekan tombol di bawah untuk mulai scan</div>
                                         </div>
                                     </div>
@@ -364,6 +403,8 @@
             { label: 'Tahun Masuk', value: item.entry_year },
             { label: 'Kilometer',   value: item.mileage },
             { label: 'Bahan Bakar', value: item.fuel },
+            { label: 'Tenggat Waktu STNK', value: item.stnk_due_date ?? '-' },
+            { label: 'Tenggat Waktu KIR',  value: item.kir_due_date ?? '-' },
         ].filter(f => f.value);
 
         const infoGrid = document.getElementById('result-info-grid');
