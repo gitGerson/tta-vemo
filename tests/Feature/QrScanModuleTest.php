@@ -32,6 +32,8 @@ class QrScanModuleTest extends TestCase
             ->assertSee('camera-placeholder-icon')
             ->assertSee("html[data-bs-theme='dark'] .camera-placeholder", false)
             ->assertSee('var(--bs-secondary-bg)', false)
+            ->assertSee('Tenggat Waktu STNK')
+            ->assertSee('Tenggat Waktu KIR')
             ->assertDontSee('background: #f4f5fb', false);
     }
 
@@ -54,11 +56,17 @@ class QrScanModuleTest extends TestCase
             'management.tenant.bypass',
         ], []));
 
-        $vehicle = Vehicle::factory()->create(['plat_new' => 'H 8888 QR']);
+        $vehicle = Vehicle::factory()->create([
+            'plat_new' => 'H 8888 QR',
+            'stnk_due_date' => '2027-02-15',
+            'kir_due_date' => '2027-03-15',
+        ]);
 
         $this->postJson(route('qr-scan.resolve'), ['barcode' => 'H 8888 QR'])
             ->assertOk()
             ->assertJsonPath('item.identifier', 'H 8888 QR')
+            ->assertJsonPath('item.stnk_due_date', '15 Feb 2027')
+            ->assertJsonPath('item.kir_due_date', '15 Mar 2027')
             ->assertJsonPath('actions.maintenance.allowed', true)
             ->assertJsonPath('actions.photo.allowed', true)
             ->assertJsonPath('actions.view.url', route('vehicles.show', $vehicle))

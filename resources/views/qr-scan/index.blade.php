@@ -403,6 +403,8 @@
             { label: 'Tahun Masuk', value: item.entry_year },
             { label: 'Kilometer',   value: item.mileage },
             { label: 'Bahan Bakar', value: item.fuel },
+            { label: 'Tenggat Waktu STNK', value: item.stnk_due_date ?? '-' },
+            { label: 'Tenggat Waktu KIR',  value: item.kir_due_date ?? '-' },
         ].filter(f => f.value);
 
         const infoGrid = document.getElementById('result-info-grid');
