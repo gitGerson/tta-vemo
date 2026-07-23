@@ -28,12 +28,12 @@ class VehicleDocumentMonitorService
      *
      * @return Collection<int, array<string, mixed>>
      */
-    public function dueDocuments(): Collection
+    public function dueDocuments(?int $companyId = null): Collection
     {
         $today = Carbon::today();
 
         return collect(self::DOCUMENTS)
-            ->flatMap(fn (array $document): Collection => $this->dueForDocument($document, $today))
+            ->flatMap(fn (array $document): Collection => $this->dueForDocument($document, $today, $companyId))
             ->sortBy('days_left')
             ->values();
     }
@@ -42,13 +42,14 @@ class VehicleDocumentMonitorService
      * @param  array{column: string, threshold: int, label: string, type: string}  $document
      * @return Collection<int, array<string, mixed>>
      */
-    private function dueForDocument(array $document, Carbon $today): Collection
+    private function dueForDocument(array $document, Carbon $today, ?int $companyId): Collection
     {
         return Vehicle::query()
             ->whereNotNull($document['column'])
+            ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
             ->whereDate($document['column'], '>=', $today->toDateString())
             ->whereDate($document['column'], '<=', $today->copy()->addDays($document['threshold'])->toDateString())
-            ->get()
+            ->get(['id', 'plat_new', $document['column']])
             ->map(function (Vehicle $vehicle) use ($document, $today): array {
                 $dueDate = $vehicle->{$document['column']}->copy()->startOfDay();
 

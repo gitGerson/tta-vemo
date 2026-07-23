@@ -7,6 +7,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Services\VehicleDocumentMonitorService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -85,6 +86,24 @@ class VehicleDocumentReminderTest extends TestCase
 
         $this->assertContains($within->plat_new, $plates);
         $this->assertNotContains($beyond->plat_new, $plates);
+    }
+
+    public function test_due_documents_can_be_filtered_by_dashboard_company(): void
+    {
+        $companyA = Company::factory()->create();
+        $companyB = Company::factory()->create();
+        $vehicleA = $this->makeVehicle($companyA, ['stnk_due_date' => $this->inDays(10)]);
+        $vehicleB = $this->makeVehicle($companyB, ['stnk_due_date' => $this->inDays(10)]);
+
+        $this->actingAs($this->userWith(['master.vehicles.reminders', 'management.tenant.bypass'], []));
+
+        $plates = app(VehicleDocumentMonitorService::class)
+            ->dueDocuments($companyA->id)
+            ->pluck('plate')
+            ->all();
+
+        $this->assertContains($vehicleA->plat_new, $plates);
+        $this->assertNotContains($vehicleB->plat_new, $plates);
     }
 
     private function inDays(int $days): string

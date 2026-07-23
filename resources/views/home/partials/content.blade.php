@@ -163,27 +163,46 @@
         <div class="col-md-6 col-lg-6 order-1 mb-6">
             <x-dashboard.list-table id="dashServiceReminder" title="Pengingat Servis"
                 subtitle="{{ $serviceReminders['count'] }} Tenggat waktu" :columns="$reminderColumns" :rows="$serviceRows"
-                placeholder="Tidak ada kendaraan jatuh tempo servis." />
+                placeholder="Tidak ada kendaraan jatuh tempo servis.">
+                <x-slot:action>
+                    <a href="{{ route('maintenances.index') }}" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                </x-slot:action>
+            </x-dashboard.list-table>
         </div>
     @endif
     <!--/ Pengingat Servis -->
 
-    <!-- Foto Kendaraan -->
-    @if ($photoReminders['visible'])
-        @php
-            $photoRows = collect($photoReminders['items'])->map(fn (array $i): array => [
-                'plate' => $plateLink($i),
-                'detail' => 'Foto '.$i['period_label'].' belum lengkap',
-                'status' => '<span class="badge bg-label-warning">'.e($i['completed']).'/'.e($i['total']).'</span>',
-            ])->all();
-        @endphp
-        <div class="col-md-6 col-lg-6 order-1 mb-6">
-            <x-dashboard.list-table id="dashPhotoReminder" title="Foto Kendaraan"
-                subtitle="{{ $photoReminders['count'] }} Belum lengkap" :columns="$reminderColumns"
-                :rows="$photoRows" placeholder="Semua kendaraan sudah lengkap foto bulan ini." />
-        </div>
-    @endif
-    <!--/ Foto Kendaraan -->
+    <!-- STNK & KIR segera kedaluwarsa -->
+    @foreach ([
+        ['data' => $stnkReminders, 'id' => 'dashStnkReminder', 'title' => 'STNK Segera Kedaluwarsa', 'empty' => 'Tidak ada STNK yang segera kedaluwarsa.'],
+        ['data' => $kirReminders, 'id' => 'dashKirReminder', 'title' => 'KIR Segera Kedaluwarsa', 'empty' => 'Tidak ada KIR yang segera kedaluwarsa.'],
+    ] as $documentTable)
+        @if ($documentTable['data']['visible'])
+            @php
+                $documentRows = collect($documentTable['data']['items'])->map(function (array $i) use ($plateLink): array {
+                    $daysLeft = (int) $i['days_left'];
+                    $status = $daysLeft === 0 ? 'Hari ini' : 'H-'.$daysLeft;
+                    $color = $daysLeft <= 3 ? 'danger' : 'warning';
+
+                    return [
+                        'plate' => $plateLink($i),
+                        'detail' => 'Berlaku sampai '.$i['due_date'],
+                        'status' => '<span class="badge bg-label-'.$color.'">'.e($status).'</span>',
+                    ];
+                })->all();
+            @endphp
+            <div class="col-md-6 col-lg-6 order-1 mb-6">
+                <x-dashboard.list-table :id="$documentTable['id']" :title="$documentTable['title']"
+                    subtitle="{{ $documentTable['data']['count'] }} Akan kedaluwarsa"
+                    :columns="$reminderColumns" :rows="$documentRows" :placeholder="$documentTable['empty']">
+                    <x-slot:action>
+                        <a href="{{ route('vehicles.index') }}" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                    </x-slot:action>
+                </x-dashboard.list-table>
+            </div>
+        @endif
+    @endforeach
+    <!--/ STNK & KIR segera kedaluwarsa -->
 
     <!-- Pengingat Asuransi -->
     @if ($insuranceReminders['visible'])
