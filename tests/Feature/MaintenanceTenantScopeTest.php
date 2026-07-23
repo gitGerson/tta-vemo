@@ -55,6 +55,30 @@ class MaintenanceTenantScopeTest extends TestCase
         $this->assertSame(2, Maintenance::query()->count());
     }
 
+    public function test_maintenance_table_displays_routine_and_non_routine_badges(): void
+    {
+        $company = Company::factory()->create();
+        $routine = $this->makeMaintenance($company);
+        $nonRoutine = $this->makeMaintenance($company);
+
+        $routine->update(['isServiceRoutine' => true]);
+        $nonRoutine->update(['isServiceRoutine' => false]);
+
+        $this->actingAs($this->userWith([
+            'operational.maintenances.view',
+            'management.tenant.bypass',
+        ], []));
+
+        $this->getJson(route('maintenances.data', ['engine' => 'tabulator']))
+            ->assertOk()
+            ->assertJsonFragment([
+                'status_label' => '<span class="badge bg-secondary">DRAFT</span> <span class="badge bg-label-info">Servis Rutin</span>',
+            ])
+            ->assertJsonFragment([
+                'status_label' => '<span class="badge bg-secondary">DRAFT</span> <span class="badge bg-label-info">Non-Servis Rutin</span>',
+            ]);
+    }
+
     public function test_create_page_includes_dark_mode_maintenance_styles(): void
     {
         $this->actingAs($this->userWith([
