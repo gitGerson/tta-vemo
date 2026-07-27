@@ -28,7 +28,6 @@ class ReportController extends Controller
 {
     public function daily(Request $request)
     {
-        $category = strtoupper($request->query('category', 'KESELURUHAN'));
         $date = Carbon::parse($request->query('date', Carbon::now()->toDateString()))->toDateString();
         $companyId = $this->resolveCompanyId($request);
 
@@ -39,8 +38,7 @@ class ReportController extends Controller
             ->get();
 
         return view('reports.record.daily', [
-            'category' => $category,
-            'table' => new RecordDailyReportDataTable($records, Vehicle::all(), $category),
+            'table' => new RecordDailyReportDataTable($records, Vehicle::all()),
             'company' => $this->selectableCompanies(),
             'QueryCompany' => $companyId,
         ]);
@@ -266,7 +264,6 @@ class ReportController extends Controller
 
     public function dailyPdf(Request $request)
     {
-        $category = strtoupper($request->query('category', 'KESELURUHAN'));
         $date = Carbon::parse($request->query('date', Carbon::now()->toDateString()))->toDateString();
         $companyId = $this->resolvePrintableCompanyId($request);
 
@@ -284,7 +281,6 @@ class ReportController extends Controller
 
         $pdf = Pdf::loadView('reports.pdf.daily', [
             'records' => $records,
-            'category' => $category,
             'date' => $date,
             'vehicles' => $vehicles,
             'company' => Company::find($companyId),

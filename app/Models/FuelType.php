@@ -28,6 +28,8 @@ class FuelType extends Model
         'solar' => 'Solar',
     ];
 
+    public const MAX_PRICE = '9999999999999.99';
+
     protected $fillable = [
         'name',
         'type',
@@ -56,7 +58,7 @@ class FuelType extends Model
                     ->withoutTrashed(),
             ],
             'type' => ['required', Rule::in(array_keys(self::TYPES))],
-            'price' => ['required', 'numeric', 'min:0', 'max:9999999999999.99'],
+            'price' => ['required', 'numeric', 'min:0', 'max:'.self::MAX_PRICE],
             'merk' => ['required', Rule::in(self::MERKS)],
         ];
     }

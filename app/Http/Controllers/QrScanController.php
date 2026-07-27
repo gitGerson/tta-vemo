@@ -55,6 +55,8 @@ class QrScanController extends Controller
             'entry_year' => $vehicle->entry_year,
             'mileage' => $vehicle->mileage,
             'fuel' => $vehicle->fuelType?->name ?? $vehicle->fuel_type,
+            'stnk_due_date' => $vehicle->stnk_due_date?->format('d M Y'),
+            'kir_due_date' => $vehicle->kir_due_date?->format('d M Y'),
             'status' => [
                 'name' => $vehicle->status,
                 'color' => $vehicle->status === 'ACTIVE' ? '#71dd37' : '#8592a3',

@@ -34,7 +34,10 @@ class RecordStoreRequest extends FormRequest
             'date' => $this->normalizeDate($this->input('date')),
             'start_km' => $this->stripSign($this->input('start_km')),
             'finish_km' => $this->stripSign($this->input('finish_km')),
-            'bbm' => $this->stripSign($this->input('bbm')),
+            'bbm' => is_string($this->input('bbm')) ? trim($this->input('bbm')) : $this->input('bbm'),
+            'fuel_unit_price' => is_string($this->input('fuel_unit_price'))
+                ? trim($this->input('fuel_unit_price'))
+                : $this->input('fuel_unit_price'),
         ]);
     }
 

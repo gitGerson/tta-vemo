@@ -1,63 +1,44 @@
 <style>
-    /* Render the CDN select2 widgets at the small (form-select-sm) size. */
-    .select2-container--default .select2-selection--single {
-        height: calc(1.5em + 0.5rem + 2px);
-        min-height: calc(1.5em + 0.5rem + 2px);
-        display: flex;
-        align-items: center;
-        font-size: 0.8125rem;
-        border-color: #dee2e6;
-    }
-
-    .select2-container--default .select2-selection--single .select2-selection__rendered {
-        line-height: 1.3;
-        padding-left: 0.5rem;
-    }
-
-    .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: calc(1.5em + 0.5rem);
-    }
-
-    .select2-container--default .select2-results__option {
-        font-size: 0.8125rem;
-    }
-
     .btn-icon {
         padding: 0.4rem;
         line-height: 1;
     }
 
     .detail-perbaikan-table {
-        border: 1px solid #e9ecef;
+        border: 1px solid var(--bs-border-color);
         border-radius: 0.6rem;
         overflow: hidden;
     }
 
     .detail-perbaikan-header {
-        background: #f3f5f7;
+        background: var(--bs-secondary-bg);
         padding: 0.6rem 0.9rem;
         font-size: 0.7rem;
         font-weight: 700;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: #6c757d;
+        color: var(--bs-secondary-color);
     }
 
     .detail-perbaikan-item {
         padding: 0.55rem 0.9rem;
-        border-top: 1px solid #f1f3f5;
+        border-top: 1px solid var(--bs-border-color);
     }
 
     .detail-perbaikan-item .form-select,
     .detail-perbaikan-item .form-control {
-        background-color: #fff;
+        color: var(--bs-body-color);
+        background-color: var(--bs-paper-bg, var(--bs-body-bg));
+        border-color: var(--bs-border-color);
         border-radius: 0.35rem;
         min-height: calc(1.5em + 0.5rem + 2px);
         font-size: 0.875rem;
     }
 
     .detail-perbaikan-item .input-group-text {
-        background: #f8f9fa;
+        color: var(--bs-body-color);
+        background: var(--bs-secondary-bg);
+        border-color: var(--bs-border-color);
         font-size: 0.8rem;
     }
 
@@ -80,8 +61,8 @@
     }
 
     .detail-servis-panel {
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
+        background: var(--bs-secondary-bg);
+        border: 1px solid var(--bs-border-color);
         border-radius: 0.6rem;
         padding: 0.85rem 1rem;
     }
@@ -91,7 +72,7 @@
         font-weight: 700;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: #6c757d;
+        color: var(--bs-secondary-color);
     }
 
     .detail-servis-textarea {
@@ -99,8 +80,9 @@
     }
 
     .card-header-compact {
-        background: #f8f9fa;
-        border-bottom: 1px solid #eef1f4;
+        color: var(--bs-body-color);
+        background: var(--bs-secondary-bg);
+        border-bottom: 1px solid var(--bs-border-color);
         padding: 0.9rem 0.9rem;
         margin-bottom: 1rem;
     }
@@ -117,7 +99,7 @@
         font-weight: 700;
         letter-spacing: 0.06em;
         text-transform: uppercase;
-        color: #6c757d;
+        color: var(--bs-secondary-color);
         margin-bottom: 0.25rem;
     }
 
@@ -144,21 +126,26 @@
     }
 
     .filepond--panel-root {
-        background-color: #f8f9fa;
-        border: 1px dashed #dee2e6;
+        background-color: var(--bs-secondary-bg);
+        border: 1px dashed var(--bs-border-color);
+    }
+
+    .filepond--drop-label,
+    .filepond--drop-label label {
+        color: var(--bs-secondary-color);
     }
 
     .filepond--label-action {
         text-decoration: underline;
-        color: #696cff;
+        color: var(--bs-primary);
     }
 
     .filepond--item-panel {
-        background-color: #696cff;
+        background-color: var(--bs-primary);
     }
 
     .filepond--drip-blob {
-        background-color: #696cff;
+        background-color: var(--bs-primary);
     }
 
     .filepond--image-preview-wrapper {
@@ -174,5 +161,30 @@
 
     .swal2-container {
         z-index: 9999 !important;
+    }
+
+    html[data-bs-theme='dark'] #maintenanceInfoBanner {
+        --bs-alert-color: var(--bs-body-color);
+        --bs-alert-bg: var(--bs-secondary-bg);
+        --bs-alert-border-color: var(--bs-border-color);
+    }
+
+    html[data-bs-theme='dark'] .card-header-compact,
+    html[data-bs-theme='dark'] .detail-servis-panel,
+    html[data-bs-theme='dark'] .detail-perbaikan-header,
+    html[data-bs-theme='dark'] .filepond--panel-root {
+        color: var(--bs-body-color);
+        background-color: var(--bs-secondary-bg) !important;
+        border-color: var(--bs-border-color);
+    }
+
+    html[data-bs-theme='dark'] .filepond--drop-label,
+    html[data-bs-theme='dark'] .filepond--drop-label label {
+        color: var(--bs-secondary-color);
+    }
+
+    html[data-bs-theme='dark'] .form-switch .form-check-input:not(:checked) {
+        background-color: var(--bs-secondary-bg);
+        border-color: var(--bs-border-color);
     }
 </style>

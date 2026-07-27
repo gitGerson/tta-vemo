@@ -1,31 +1,38 @@
-function initSelect2() {
-    if (typeof window.jQuery === 'undefined' || typeof window.jQuery.fn.select2 === 'undefined') {
+export function select2Options(element, overrides = {}) {
+    const $ = window.jQuery || window.$;
+    const options = {
+        theme: 'bootstrap-5',
+        width: '100%',
+        allowClear: element?.dataset.select2AllowClear === '1',
+    };
+
+    if (element?.dataset.select2Placeholder) {
+        options.placeholder = element.dataset.select2Placeholder;
+    }
+
+    const $modal = element && $ ? $(element).closest('.modal') : null;
+    if ($modal?.length) {
+        options.dropdownParent = $modal;
+    }
+
+    return { ...options, ...overrides };
+}
+
+export function initSelect2() {
+    const $ = window.jQuery || window.$;
+
+    if (!$ || typeof $.fn?.select2 === 'undefined') {
         return;
     }
 
-    window.jQuery('select[data-select2-enabled="1"]').each(function () {
-        const $el = window.jQuery(this);
+    $('select[data-select2-enabled="1"]').each(function () {
+        const $el = $(this);
 
         if ($el.hasClass('select2-hidden-accessible')) {
             return;
         }
 
-        const options = {
-            theme: 'bootstrap-5',
-            width: '100%',
-            allowClear: this.dataset.select2AllowClear === '1',
-        };
-
-        if (this.dataset.select2Placeholder) {
-            options.placeholder = this.dataset.select2Placeholder;
-        }
-
-        const $modal = $el.closest('.modal');
-        if ($modal.length) {
-            options.dropdownParent = $modal;
-        }
-
-        $el.select2(options);
+        $el.select2(select2Options(this));
     });
 }
 

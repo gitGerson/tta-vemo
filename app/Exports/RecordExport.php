@@ -34,6 +34,7 @@ class RecordExport implements FromCollection, ShouldAutoSize, WithEvents
                 $item->finish_km,
                 $item->totals,
                 $item->bbm,
+                $item->fuel_unit_price,
                 $item->idr,
                 $item->scale,
                 $item->company->name ?? '-',
@@ -55,7 +56,7 @@ class RecordExport implements FromCollection, ShouldAutoSize, WithEvents
             BeforeSheet::class => function (BeforeSheet $event): void {
                 $sheet = $event->sheet->getDelegate();
 
-                $sheet->mergeCells('A1:L1');
+                $sheet->mergeCells('A1:M1');
                 $sheet->setCellValue('A1', 'Laporan Perjalanan Kendaraan Operasional');
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
                 $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
@@ -79,8 +80,9 @@ class RecordExport implements FromCollection, ShouldAutoSize, WithEvents
                         'Start KM',
                         'Finish KM',
                         'Total KM',
-                        'BBM',
-                        'IDR',
+                        'Jumlah BBM (Liter)',
+                        'Harga per Liter',
+                        'Total Harga',
                         'Skala (KM/L)',
                         'Perusahaan',
                     ],

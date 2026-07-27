@@ -55,6 +55,45 @@ class MaintenanceTenantScopeTest extends TestCase
         $this->assertSame(2, Maintenance::query()->count());
     }
 
+    public function test_maintenance_table_displays_routine_and_non_routine_badges(): void
+    {
+        $company = Company::factory()->create();
+        $routine = $this->makeMaintenance($company);
+        $nonRoutine = $this->makeMaintenance($company);
+
+        $routine->update(['isServiceRoutine' => true]);
+        $nonRoutine->update(['isServiceRoutine' => false]);
+
+        $this->actingAs($this->userWith([
+            'operational.maintenances.view',
+            'management.tenant.bypass',
+        ], []));
+
+        $this->getJson(route('maintenances.data', ['engine' => 'tabulator']))
+            ->assertOk()
+            ->assertJsonFragment([
+                'status_label' => '<span class="badge bg-secondary">DRAFT</span> <span class="badge bg-label-info">Servis Rutin</span>',
+            ])
+            ->assertJsonFragment([
+                'status_label' => '<span class="badge bg-secondary">DRAFT</span> <span class="badge bg-label-info">Non-Servis Rutin</span>',
+            ]);
+    }
+
+    public function test_create_page_includes_dark_mode_maintenance_styles(): void
+    {
+        $this->actingAs($this->userWith([
+            'operational.maintenances.create',
+            'management.tenant.bypass',
+        ], []));
+
+        $this->get(route('maintenances.create'))
+            ->assertOk()
+            ->assertSee("html[data-bs-theme='dark'] .card-header-compact", false)
+            ->assertSee("html[data-bs-theme='dark'] .filepond--panel-root", false)
+            ->assertSee('var(--bs-secondary-bg)', false)
+            ->assertDontSee('background-color: #fff', false);
+    }
+
     public function test_non_bypass_user_cannot_confirm_other_company_maintenance(): void
     {
         $companyA = Company::factory()->create();

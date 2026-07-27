@@ -1,9 +1,9 @@
 @extends('layouts.sneat')
 
+<x-form.select2-assets />
+
 @push('styles')
     <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/libs/apex-charts/apex-charts.css') }}" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.10.0/dist/css/bootstrap-datepicker3.min.css">
     <style>
         .datepicker {
@@ -51,60 +51,20 @@
             min-width: 220px;
         }
 
-        /* Match select2 (bootstrap-5 theme) to Bootstrap's form-select-sm sizing
-           so it lines up with the month input beside it. */
-        .dashboard-filter .select2-container--bootstrap-5 .select2-selection--single {
-            height: calc(1.5em + 0.5rem + 2px);
-            padding: 0.25rem 1.75rem 0.25rem 0.5rem;
-            font-size: 0.8125rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .dashboard-filter .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
-            padding: 0;
-            line-height: 1.5;
-        }
-
         .dashboard-filter #dashboard-month-picker {
             background-color: var(--bs-paper-bg);
         }
 
-        /* Compact dropdown panel — scoped to this select's results list only, so
-           other select2 dropdowns in the app keep their default sizing. */
-        #select2-dashboard-company-results .select2-results__option {
-            padding: 0.3rem 0.6rem;
-            font-size: 0.8125rem;
-            line-height: 1.3;
-        }
-
-        .select2-dropdown:has(#select2-dashboard-company-results) .select2-search__field {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.8125rem;
-        }
-
-        html[data-bs-theme='dark'] .dashboard-filter .select2-selection--single,
         html[data-bs-theme='dark'] #dashboard-month-picker {
             color: var(--bs-body-color);
             background-color: var(--bs-paper-bg) !important;
             border-color: var(--bs-border-color);
         }
 
-        html[data-bs-theme='dark'] .dashboard-filter .select2-selection__rendered {
-            color: var(--bs-body-color);
-        }
-
-        html[data-bs-theme='dark'] .select2-dropdown:has(#select2-dashboard-company-results),
-        html[data-bs-theme='dark'] .select2-dropdown:has(#select2-dashboard-company-results) .select2-search__field,
         html[data-bs-theme='dark'] .datepicker.datepicker-dropdown {
             color: var(--bs-body-color);
             background-color: var(--bs-paper-bg);
             border-color: var(--bs-border-color);
-        }
-
-        html[data-bs-theme='dark'] #select2-dashboard-company-results .select2-results__option--highlighted {
-            color: var(--bs-primary-contrast);
-            background-color: var(--bs-primary);
         }
 
         html[data-bs-theme='dark'] .datepicker-dropdown .datepicker-switch:hover,
@@ -181,9 +141,7 @@
 
 @push('scripts')
     <script src="{{ asset('sneat/assets/vendor/libs/apex-charts/apexcharts.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.10.0/dist/js/bootstrap-datepicker.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.10.0/dist/locales/bootstrap-datepicker.id.min.js"></script>
-    @vite('resources/js/modules/select2.js')
     @vite('resources/js/modules/dashboard.js')
 @endpush

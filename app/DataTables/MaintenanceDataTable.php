@@ -90,9 +90,9 @@ class MaintenanceDataTable extends DataTable
             default => '<span class="badge bg-secondary">'.e($row->status).'</span>',
         };
 
-        if ($row->isServiceRoutine) {
-            $badge .= ' <span class="badge bg-label-info">Servis Rutin</span>';
-        }
+        $badge .= $row->isServiceRoutine
+            ? ' <span class="badge bg-label-info">Servis Rutin</span>'
+            : ' <span class="badge bg-label-warning">Non-Servis Rutin</span>';
 
         return $badge;
     }

@@ -21,24 +21,10 @@
 <body>
     <h3>LAPORAN HARIAN BAHAN BAKAR MINYAK (BBM)</h3>
     @php
-        $allowedPlates = collect();
         $vehiclesByPlate = $vehicles->flatMap(function ($vehicle) {
             return collect(array_filter([$vehicle->plat_new]))
                 ->mapWithKeys(fn ($plate) => [$plate => $vehicle]);
         });
-
-        if ($category === 'UMUM' || $category === 'PRIBADI') {
-            $allowedPlates = $vehicles
-                ->filter(function ($v) use ($category) {
-                    return $category === 'PRIBADI' ? (int) $v->isprivate === 1 : (int) $v->isprivate === 0;
-                })
-                ->flatMap(function ($v) { return array_filter([$v->plat_new]); })
-                ->values();
-        }
-
-        $filteredRecords = $records->filter(function ($row) use ($category, $allowedPlates) {
-            return $category === 'KESELURUHAN' || $allowedPlates->contains($row->no_pol);
-        })->values();
     @endphp
     <table class="report-meta">
         <tr>
@@ -67,7 +53,7 @@
         </thead>
         <tbody>
             @php $rowNumber = 1; @endphp
-            @foreach ($filteredRecords as $row)
+            @foreach ($records as $row)
                 @php
                     $vehicle = $vehiclesByPlate->get($row->no_pol);
                 @endphp
@@ -87,9 +73,9 @@
             @endforeach
             <tr>
                 <td colspan="6" class="text-left"><strong>JUMLAH</strong></td>
-                <td class="text-right"><strong>{{ $filteredRecords->sum(fn ($row) => (float) ($row->totals ?? 0)) }}</strong></td>
-                <td class="text-right"><strong>{{ $filteredRecords->sum(fn ($row) => (float) ($row->bbm ?? 0)) }}</strong></td>
-                <td class="text-right"><strong>{{ number_format($filteredRecords->sum(fn ($row) => (float) ($row->idr ?? 0)), 0, ',', '.') }}</strong></td>
+                <td class="text-right"><strong>{{ $records->sum(fn ($row) => (float) ($row->totals ?? 0)) }}</strong></td>
+                <td class="text-right"><strong>{{ $records->sum(fn ($row) => (float) ($row->bbm ?? 0)) }}</strong></td>
+                <td class="text-right"><strong>{{ number_format($records->sum(fn ($row) => (float) ($row->idr ?? 0)), 0, ',', '.') }}</strong></td>
                 <td></td>
                 <td></td>
             </tr>

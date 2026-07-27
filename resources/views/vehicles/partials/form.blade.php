@@ -8,13 +8,6 @@
         'NO' => 'Tidak',
         'YES' => 'Ya',
     ];
-    // Explicit value/label list: a ['0' => ..., '1' => ...] map collapses to a PHP
-    // list (numeric keys), which <x-form.select> reads as value=label and would
-    // submit "Yes"/"No" instead of 1/0, breaking the boolean validation.
-    $privateOptions = [
-        ['value' => '1', 'label' => 'Ya'],
-        ['value' => '0', 'label' => 'Tidak'],
-    ];
     $companyOptions = ($companies ?? collect())->mapWithKeys(fn ($company) => [
         $company->id => "{$company->name} ({$company->code})",
     ])->all();
@@ -38,7 +31,7 @@
     <h6 class="fw-semibold mb-3"><i class="bx bx-car me-1 text-primary"></i> Informasi Kendaraan</h6>
     <div class="row g-3">
         <div class="col-md-6">
-            <x-form.select name="vehicle_type_id" label="Tipe" :options="$vehicleTypeOptions" :value="$vehicle?->vehicle_type_id" placeholder="Pilih tipe kendaraan..." mode="select2" inputClass="form-select-sm" />
+            <x-form.select name="vehicle_type_id" label="Tipe" :options="$vehicleTypeOptions" :value="$vehicle?->vehicle_type_id" placeholder="Pilih tipe kendaraan..." mode="select2" inputClass="form-select-sm" required />
             <input type="hidden" name="type" value="{{ old('type', $vehicle?->type) }}">
         </div>
 
@@ -47,7 +40,7 @@
         </div>
 
         <div class="col-md-6">
-            <x-form.select name="vehicle_brand_id" label="Merek" :options="$vehicleBrandOptions" :value="$vehicle?->vehicle_brand_id" placeholder="Pilih merek kendaraan..." mode="select2" inputClass="form-select-sm" />
+            <x-form.select name="vehicle_brand_id" label="Merek" :options="$vehicleBrandOptions" :value="$vehicle?->vehicle_brand_id" placeholder="Pilih merek kendaraan..." mode="select2" inputClass="form-select-sm" required />
         </div>
 
         <div class="col-md-6">
@@ -72,16 +65,12 @@
 
     <h6 class="fw-semibold mb-3"><i class="bx bx-toggle-right me-1 text-primary"></i> Status &amp; Operasional</h6>
     <div class="row g-3">
-        <div class="col-md-4">
-            <x-form.select name="status" label="Status" :options="$statusOptions" :value="$vehicle?->status ?? 'ACTIVE'" inputClass="form-select-sm" required />
+        <div class="col-md-6">
+            <x-form.select name="status" label="Status Kendaraan" :options="$statusOptions" :value="$vehicle?->status ?? 'ACTIVE'" inputClass="form-select-sm" required />
         </div>
 
-        <div class="col-md-4">
-            <x-form.select name="mtc" label="Pemeliharaan" :options="$yesNoOptions" :value="$vehicle?->mtc ?? 'NO'" inputClass="form-select-sm" required />
-        </div>
-
-        <div class="col-md-4">
-            <x-form.select name="isprivate" label="Kepemilikan" :options="$privateOptions" option-value="value" option-label="label" :value="(string) (int) ($vehicle?->isprivate ?? false)" inputClass="form-select-sm" required />
+        <div class="col-md-6">
+            <x-form.select name="mtc" label="Apakah Dalam Masa Pemeliharaan" :options="$yesNoOptions" :value="$vehicle?->mtc ?? 'NO'" inputClass="form-select-sm" required />
         </div>
     </div>
 

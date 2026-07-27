@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\View;
 
+use Illuminate\Foundation\Vite;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\MessageBag;
 use Illuminate\Support\ViewErrorBag;
@@ -20,7 +21,7 @@ class FormComponentsTest extends TestCase
 
     protected function renderComponent(string $template, array $data = [], ?ViewErrorBag $errors = null): string
     {
-        app(ViewFactory::class)->share('errors', $errors ?? new ViewErrorBag());
+        app(ViewFactory::class)->share('errors', $errors ?? new ViewErrorBag);
         request()->setLaravelSession(app('session.store'));
 
         return Blade::render($template, $data);
@@ -40,7 +41,7 @@ class FormComponentsTest extends TestCase
 
     public function test_input_shows_invalid_class_and_error_message(): void
     {
-        $errors = new ViewErrorBag();
+        $errors = new ViewErrorBag;
         $errors->put('default', new MessageBag([
             'name' => ['Nama wajib diisi'],
         ]));
@@ -78,6 +79,65 @@ class FormComponentsTest extends TestCase
 
         $this->assertStringContainsString('name="category_id"', $html);
         $this->assertMatchesRegularExpression('/<option value="2" selected[^>]*>/', $html);
+    }
+
+    public function test_select2_mode_renders_attributes_and_loads_assets_once(): void
+    {
+        $html = $this->renderComponent(<<<'BLADE'
+<x-form.select
+    name="company_ids"
+    mode="select2"
+    multiple
+    placeholder="Pilih perusahaan..."
+    :options="[1 => 'A', 2 => 'B']"
+/>
+<x-form.select name="vehicle_id" mode="select2" :options="[1 => 'H 1001 TT']" />
+<x-form.select name="status" :options="['ACTIVE' => 'Aktif']" />
+@stack('styles')
+@stack('scripts')
+BLADE);
+
+        $this->assertSame(2, substr_count($html, 'data-select2-enabled="1"'));
+        $this->assertStringContainsString('data-select2-placeholder="Pilih perusahaan..."', $html);
+        $this->assertStringContainsString('data-select2-allow-clear="1"', $html);
+        $this->assertStringContainsString('name="company_ids[]"', $html);
+        $this->assertStringContainsString('multiple', $html);
+        $this->assertSame(1, substr_count($html, 'select2@4.0.13/dist/css/select2.min.css'));
+        $this->assertSame(1, substr_count($html, 'select2-bootstrap-5-theme@1.3.0'));
+        $this->assertSame(1, substr_count($html, 'select2@4.0.13/dist/js/select2.min.js'));
+        $select2Module = app(Vite::class)->asset('resources/js/modules/select2.js');
+        $this->assertSame(1, substr_count($html, 'src="'.$select2Module.'"'));
+    }
+
+    public function test_native_select_does_not_load_select2_assets(): void
+    {
+        $html = $this->renderComponent(<<<'BLADE'
+<x-form.select name="status" :options="['ACTIVE' => 'Aktif']" />
+@stack('styles')
+@stack('scripts')
+BLADE);
+
+        $this->assertStringNotContainsString('data-select2-enabled', $html);
+        $this->assertStringNotContainsString('select2@4.0.13', $html);
+        $this->assertStringNotContainsString('select2-bootstrap-5-theme', $html);
+    }
+
+    public function test_daterangepicker_renders_theme_aware_assets_once(): void
+    {
+        $html = $this->renderComponent(<<<'BLADE'
+<x-form.date name="start_date" mode="daterangepicker" label="Mulai" />
+<x-form.date name="end_date" mode="daterangepicker" label="Selesai" />
+@stack('styles')
+@stack('scripts')
+BLADE);
+
+        $this->assertSame(2, substr_count($html, 'data-date-mode="daterangepicker"'));
+        $this->assertSame(1, substr_count($html, 'daterangepicker/daterangepicker.css'));
+        $this->assertSame(1, substr_count($html, 'daterangepicker/daterangepicker.min.js'));
+        $this->assertStringContainsString("html[data-bs-theme='dark'] .daterangepicker", $html);
+        $this->assertStringContainsString('var(--bs-paper-bg, var(--bs-body-bg))', $html);
+        $dateRangePickerModule = app(Vite::class)->asset('resources/js/modules/date-range-picker.js');
+        $this->assertSame(1, substr_count($html, 'src="'.$dateRangePickerModule.'"'));
     }
 
     public function test_switch_respects_checked_default_and_old_override(): void

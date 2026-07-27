@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleBrand;
 use App\Models\VehicleType;
+use App\Services\RecordFuelCostCalculator;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\DriverSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -88,6 +89,16 @@ class DatabaseSeederTest extends TestCase
         $this->assertNotNull($record->company);
         $this->assertNotNull($record->fuelType);
         $this->assertTrue($record->snapshots->isNotEmpty());
+
+        $fuelCostCalculator = app(RecordFuelCostCalculator::class);
+
+        Record::where('no_pol', 'like', 'SEED %')->get()->each(function (Record $seededRecord) use ($fuelCostCalculator): void {
+            $this->assertNotNull($seededRecord->fuel_unit_price);
+            $this->assertSame(
+                $fuelCostCalculator->calculate($seededRecord->fuel_unit_price, $seededRecord->bbm),
+                $seededRecord->idr,
+            );
+        });
 
         $user = User::where('username', 'stagingpurpose')->firstOrFail();
 

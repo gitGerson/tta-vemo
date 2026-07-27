@@ -37,7 +37,6 @@ class Vehicle extends Model
         'fuel_type',
         'mtc',
         'desc',
-        'isprivate',
         'machine_number',
         'vin_number',
         'bpkb_image',
@@ -55,7 +54,6 @@ class Vehicle extends Model
     protected function casts(): array
     {
         return [
-            'isprivate' => 'boolean',
             'bpkb_image' => 'array',
             'stnk_image' => 'array',
             'kir_image' => 'array',
@@ -76,8 +74,8 @@ class Vehicle extends Model
 
         return [
             'type' => ['required', 'string', 'max:50'],
-            'vehicle_type_id' => ['nullable', 'integer', Rule::exists(VehicleType::class, 'id')],
-            'vehicle_brand_id' => ['nullable', 'integer', Rule::exists(VehicleBrand::class, 'id')],
+            'vehicle_type_id' => ['required', 'integer', Rule::exists(VehicleType::class, 'id')],
+            'vehicle_brand_id' => ['required', 'integer', Rule::exists(VehicleBrand::class, 'id')],
             'entry_year' => ['required', 'string', 'max:5'],
             'mileage' => ['nullable', 'string', 'max:255'],
             'plat_new' => ['required', 'string', 'max:20', Rule::unique('vehicles', 'plat_new')->ignore($ignoreId)],
@@ -86,7 +84,6 @@ class Vehicle extends Model
             'fuel_type_id' => ['nullable', 'integer', Rule::exists(FuelType::class, 'id')],
             'mtc' => ['required', Rule::in(['YES', 'NO'])],
             'desc' => ['nullable', 'string'],
-            'isprivate' => ['required', 'boolean'],
             'company_id' => ['nullable', 'integer', Rule::exists(Company::class, 'id')],
             'machine_number' => ['nullable', 'string', 'max:100'],
             'vin_number' => ['nullable', 'string', 'max:100'],
@@ -94,12 +91,12 @@ class Vehicle extends Model
             'selling_price' => ['nullable', 'numeric', 'min:0'],
             'purchase_date' => ['nullable', 'date'],
             'sale_date' => ['nullable', 'date'],
-            'bpkb_image' => ['nullable', 'array', 'required_with:bpkb_due_date'],
-            'stnk_image' => ['nullable', 'array', 'required_with:stnk_due_date'],
-            'kir_image' => ['nullable', 'array', 'required_with:kir_due_date'],
-            'bpkb_due_date' => ['nullable', 'date', 'required_with:bpkb_image'],
-            'stnk_due_date' => ['nullable', 'date', 'required_with:stnk_image'],
-            'kir_due_date' => ['nullable', 'date', 'required_with:kir_image'],
+            'bpkb_image' => ['nullable', 'array'],
+            'stnk_image' => ['nullable', 'array'],
+            'kir_image' => ['nullable', 'array'],
+            'bpkb_due_date' => ['nullable', 'date'],
+            'stnk_due_date' => ['nullable', 'date'],
+            'kir_due_date' => ['nullable', 'date'],
         ];
     }
 
@@ -107,12 +104,6 @@ class Vehicle extends Model
     {
         return [
             'plat_new.unique' => 'Plat baru sudah tersedia.',
-            'bpkb_image.required_with' => 'Foto BPKB wajib diunggah jika tenggat waktu BPKB diisi.',
-            'stnk_image.required_with' => 'Foto STNK wajib diunggah jika tenggat waktu STNK diisi.',
-            'kir_image.required_with' => 'Foto KIR wajib diunggah jika tenggat waktu KIR diisi.',
-            'bpkb_due_date.required_with' => 'Tenggat waktu BPKB wajib diisi jika foto BPKB diunggah.',
-            'stnk_due_date.required_with' => 'Tenggat waktu STNK wajib diisi jika foto STNK diunggah.',
-            'kir_due_date.required_with' => 'Tenggat waktu KIR wajib diisi jika foto KIR diunggah.',
         ];
     }
 

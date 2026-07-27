@@ -4,6 +4,7 @@ import './modules/sneat-menu-search';
 import './modules/navbar-user-dropdown';
 import './modules/navbar-notifications';
 import './modules/manual-dropdown';
+import './modules/record-fuel-pricing';
 
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach((toggle) => {

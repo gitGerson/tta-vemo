@@ -14,6 +14,7 @@ use App\Models\Driver;
 use App\Models\FuelType;
 use App\Models\Record;
 use App\Models\Vehicle;
+use App\Services\RecordFuelCostCalculator;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -21,6 +22,8 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class RecordController extends Controller
 {
+    public function __construct(private RecordFuelCostCalculator $fuelCostCalculator) {}
+
     public function index(Request $request)
     {
         [$startDate, $endDate, $companyId] = $this->resolveFilters($request);
@@ -58,7 +61,8 @@ class RecordController extends Controller
             'start_km' => $startKm,
             'finish_km' => $data['finish_km'],
             'bbm' => $data['bbm'],
-            'idr' => FuelType::find($data['fuel_type_id'])?->price ?? 0,
+            'fuel_unit_price' => $data['fuel_unit_price'],
+            'idr' => $this->fuelCostCalculator->calculate((string) $data['fuel_unit_price'], (string) $data['bbm']),
             'totals' => $totals,
             'scale' => $this->computeScale($totals, $data['bbm']),
             'date' => $data['date'],
@@ -100,7 +104,8 @@ class RecordController extends Controller
             'start_km' => $data['start_km'],
             'finish_km' => $data['finish_km'],
             'bbm' => $data['bbm'],
-            'idr' => FuelType::find($data['fuel_type_id'])?->price ?? $record->idr,
+            'fuel_unit_price' => $data['fuel_unit_price'],
+            'idr' => $this->fuelCostCalculator->calculate((string) $data['fuel_unit_price'], (string) $data['bbm']),
             'totals' => $totals,
             'scale' => $this->computeScale($totals, $data['bbm']),
             'date' => $data['date'],
@@ -188,7 +193,7 @@ class RecordController extends Controller
             'vehicles' => Vehicle::where('status', 'ACTIVE')->orderBy('plat_new')->get(['id', 'plat_new', 'mileage']),
             'destinations' => Destination::query()->orderBy('name')->get(['id', 'name']),
             'companies' => Company::query()->orderBy('name')->get(['id', 'name', 'code']),
-            'fuelTypes' => FuelType::query()->orderBy('name')->get(['id', 'name', 'price']),
+            'fuelTypes' => FuelType::query()->orderBy('name')->get(['id', 'name', 'type', 'price', 'merk']),
         ];
     }
 
