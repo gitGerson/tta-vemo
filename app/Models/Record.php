@@ -91,6 +91,34 @@ class Record extends Model
         return static::where('no_pol', $plat)->latest()->first();
     }
 
+    /**
+     * data-* attributes the edit-modal trigger carries, read back by the modal
+     * JS in records/partials/modal.blade.php. Shared by the datatable row
+     * action and the Edit button on the detail page.
+     *
+     * NB: keys must avoid a digit right after a hyphen — `data-driver-1`
+     * maps to dataset['driver-1'], not dataset.driver1, so the JS read fails.
+     *
+     * @return array<string, mixed>
+     */
+    public function editModalData(): array
+    {
+        return [
+            'update-url' => route('records.update', $this),
+            'date' => $this->date?->format('d-m-Y'),
+            'company-id' => $this->company_id,
+            'driver1' => $this->driver1?->id,
+            'driver2' => $this->driver2?->id,
+            'no-pol' => $this->no_pol,
+            'destination' => $this->destination,
+            'start-km' => $this->start_km,
+            'finish-km' => $this->finish_km,
+            'bbm' => $this->bbm,
+            'fuel-type-id' => $this->fuel_type_id,
+            'fuel-unit-price' => $this->fuel_unit_price,
+        ];
+    }
+
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class, 'vehicle_id');

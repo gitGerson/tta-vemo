@@ -64,6 +64,33 @@ class RecordModuleTest extends TestCase
         $this->get(route('records.edit', $record))->assertRedirect(route('records.index'));
     }
 
+    public function test_show_page_renders_the_edit_modal_trigger_for_an_editor(): void
+    {
+        $this->actingAs($this->userWithRecordPermissions());
+
+        $record = Record::factory()->create(['no_pol' => 'B 3 GH']);
+
+        $this->get(route('records.show', $record))
+            ->assertOk()
+            ->assertSee('btn-edit-record')
+            ->assertSee('record-modal')
+            ->assertSee('data-update-url="'.route('records.update', $record).'"', false)
+            ->assertSee('data-no-pol="B 3 GH"', false)
+            ->assertSee('name="origin" value="show"', false);
+    }
+
+    public function test_show_page_hides_the_edit_modal_from_a_view_only_user(): void
+    {
+        $this->actingAs($this->userWithRecordViewOnly());
+
+        $record = Record::factory()->create();
+
+        $this->get(route('records.show', $record))
+            ->assertOk()
+            ->assertDontSee('btn-edit-record')
+            ->assertDontSee('record-modal');
+    }
+
     public function test_index_forbidden_for_unauthorized_user(): void
     {
         $this->actingAs(User::factory()->create());
@@ -293,6 +320,40 @@ class RecordModuleTest extends TestCase
         $this->assertSame('500', $vehicle->fresh()->mileage);
     }
 
+    public function test_update_from_the_detail_page_redirects_back_to_it(): void
+    {
+        $this->actingAs($this->userWithRecordPermissions());
+
+        $this->createProvince();
+        $company = Company::factory()->create();
+        $vehicle = Vehicle::factory()->create(['plat_new' => 'B 8 IJ', 'mileage' => '0']);
+        $driver = Driver::factory()->create(['name' => 'Rina']);
+        $fuelType = FuelType::factory()->create(['price' => 12000]);
+        $destination = Destination::factory()->create(['name' => 'Semarang']);
+
+        $record = Record::factory()->create([
+            'no_pol' => $vehicle->plat_new,
+            'vehicle_id' => $vehicle->id,
+            'company_id' => $company->id,
+        ]);
+
+        $this->put(route('records.update', $record), [
+            'origin' => 'show',
+            'company_id' => $company->id,
+            'fuel_type_id' => $fuelType->id,
+            'date' => '2026-06-03',
+            'driver_1' => $driver->id,
+            'no_pol' => $vehicle->plat_new,
+            'destination' => $destination->name,
+            'start_km' => '200',
+            'finish_km' => '500',
+            'bbm' => '30',
+            'fuel_unit_price' => '12345.67',
+        ])->assertRedirect(route('records.show', $record));
+
+        $this->assertDatabaseHas('records', ['id' => $record->id, 'totals' => '300']);
+    }
+
     public function test_destroy_reverts_vehicle_mileage_and_soft_deletes(): void
     {
         $this->actingAs($this->userWithRecordPermissions());
@@ -341,6 +402,27 @@ class RecordModuleTest extends TestCase
             'operational.records.force_delete',
             'management.tenant.bypass',
         ])->each(function (string $name) use ($role): void {
+            $permission = Permission::create([
+                'name' => $name,
+                'display_name' => $name,
+                'module' => str($name)->before('.')->value(),
+            ]);
+
+            $role->permissions()->attach($permission->id);
+        });
+
+        $user->roles()->attach($role->id, ['assigned_at' => now()]);
+        $user->load('roles.permissions');
+
+        return $user;
+    }
+
+    private function userWithRecordViewOnly(): User
+    {
+        $user = User::factory()->create();
+        $role = Role::create(['name' => 'record-viewer', 'display_name' => 'Record Viewer']);
+
+        collect(['operational.records.view', 'management.tenant.bypass'])->each(function (string $name) use ($role): void {
             $permission = Permission::create([
                 'name' => $name,
                 'display_name' => $name,

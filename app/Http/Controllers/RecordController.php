@@ -76,9 +76,9 @@ class RecordController extends Controller
     public function show(Record $record)
     {
         return view('records.show', [
-            'record' => $record->load(['company', 'fuelType']),
+            'record' => $record->load(['company', 'fuelType', 'driver1', 'driver2']),
             'snapshotTable' => new RecordSnapshotDataTable($record),
-        ]);
+        ] + $this->formData());
     }
 
     public function edit(Record $record)
@@ -113,7 +113,13 @@ class RecordController extends Controller
 
         $this->syncVehicleMileage($vehicle, (int) $data['finish_km']);
 
-        return redirect()->route('records.index')->with('success', 'Catatan perjalanan berhasil diperbarui.');
+        // Edits started from the detail page land back there; row edits on the
+        // index keep going to the index.
+        $redirect = $request->input('origin') === 'show'
+            ? redirect()->route('records.show', $record)
+            : redirect()->route('records.index');
+
+        return $redirect->with('success', 'Catatan perjalanan berhasil diperbarui.');
     }
 
     public function destroy(Record $record)

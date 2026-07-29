@@ -13,6 +13,12 @@
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
 
         {{-- Header breadcrumb --}}
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
@@ -24,9 +30,10 @@
             </nav>
             <div class="d-flex gap-2">
                 @if(auth()->user()->hasPermission('operational.records.edit'))
-                    <a href="{{ route('records.edit', $record) }}" class="btn btn-sm btn-primary">
+                    <button type="button" class="btn btn-sm btn-primary btn-edit-record"
+                        @foreach($record->editModalData() as $dataKey => $dataValue) data-{{ $dataKey }}="{{ $dataValue }}" @endforeach>
                         <i class="bx bx-edit me-1"></i> Edit
-                    </a>
+                    </button>
                 @endif
                 <a href="{{ route('records.index') }}" class="btn btn-sm btn-outline-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali
@@ -60,4 +67,8 @@
 
         <x-table :table="$snapshotTable" engine="tabulator" layout="fitDataStretch" title="Riwayat Perubahan" />
     </div>
+
+    @if(auth()->user()->hasPermission('operational.records.edit'))
+        @include('records.partials.modal', ['origin' => 'show'])
+    @endif
 @endsection
