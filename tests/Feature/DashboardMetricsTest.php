@@ -198,6 +198,10 @@ class DashboardMetricsTest extends TestCase
             'company_id' => $company->id,
             'kir_due_date' => now()->addDays(5)->toDateString(),
         ]);
+        $overdueKirVehicle = Vehicle::factory()->create([
+            'company_id' => $company->id,
+            'kir_due_date' => now()->subDays(24)->toDateString(),
+        ]);
         $outsideWindow = Vehicle::factory()->create([
             'company_id' => $company->id,
             'stnk_due_date' => now()->addDays(31)->toDateString(),
@@ -211,12 +215,14 @@ class DashboardMetricsTest extends TestCase
 
         $this->get(route('home'))
             ->assertOk()
-            ->assertSeeText('STNK Segera Kedaluwarsa')
-            ->assertSeeText('KIR Segera Kedaluwarsa')
+            ->assertSeeText('Pengingat STNK')
+            ->assertSeeText('Pengingat KIR')
             ->assertSee($stnkVehicle->plat_new)
             ->assertSee($kirVehicle->plat_new)
+            ->assertSee($overdueKirVehicle->plat_new)
             ->assertSee('H-10')
             ->assertSee('H-5')
+            ->assertSee('Lewat 24h')
             ->assertDontSee($outsideWindow->plat_new)
             ->assertDontSee($otherCompanyVehicle->plat_new)
             ->assertDontSeeText('Foto Kendaraan')
@@ -236,8 +242,8 @@ class DashboardMetricsTest extends TestCase
 
         $this->get(route('home'))
             ->assertOk()
-            ->assertDontSeeText('STNK Segera Kedaluwarsa')
-            ->assertDontSeeText('KIR Segera Kedaluwarsa');
+            ->assertDontSeeText('Pengingat STNK')
+            ->assertDontSeeText('Pengingat KIR');
     }
 
     /**

@@ -37,7 +37,11 @@
 
         @if(auth()->user()->hasPermission('operational.vehicle_photos.view'))
             <div class="mt-4">
-                <x-table :table="$table" engine="tabulator" layout="fitDataStretch" title="Foto Kendaraan Terunggah" />
+                {{-- fitColumns, not fitDataStretch: content-sized columns can overflow
+                     the container, and the resulting horizontal scrollbar toggles the
+                     page's vertical one, which narrows the viewport and re-triggers the
+                     layout — the scrollbars oscillate in a narrow band of widths. --}}
+                <x-table :table="$table" engine="tabulator" layout="fitColumns" title="Foto Kendaraan Terunggah" />
             </div>
         @endif
     </div>

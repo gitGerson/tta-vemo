@@ -22,7 +22,7 @@ class VehicleDocumentMonitorService
 
     /**
      * Vehicles whose STNK/KIR due date falls within its reminder lead window
-     * (today .. today + threshold). Already-overdue documents are excluded.
+     * (any overdue date .. today + threshold).
      * Company-scoped via the Vehicle CompanyTenantScope (bypassed by
      * management.tenant.bypass). Sorted most-urgent first.
      *
@@ -47,11 +47,12 @@ class VehicleDocumentMonitorService
         return Vehicle::query()
             ->whereNotNull($document['column'])
             ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
-            ->whereDate($document['column'], '>=', $today->toDateString())
             ->whereDate($document['column'], '<=', $today->copy()->addDays($document['threshold'])->toDateString())
             ->get(['id', 'plat_new', $document['column']])
             ->map(function (Vehicle $vehicle) use ($document, $today): array {
                 $dueDate = $vehicle->{$document['column']}->copy()->startOfDay();
+                $daysLeft = (int) $today->diffInDays($dueDate, false);
+                $isOverdue = $daysLeft < 0;
 
                 return [
                     'vehicle_id' => $vehicle->id,
@@ -59,7 +60,9 @@ class VehicleDocumentMonitorService
                     'type' => $document['type'],
                     'plate' => $vehicle->plat_new,
                     'due_date' => $dueDate->format('d M Y'),
-                    'days_left' => (int) $today->diffInDays($dueDate, false),
+                    'days_left' => $daysLeft,
+                    'days_overdue' => $isOverdue ? abs($daysLeft) : 0,
+                    'state' => $isOverdue ? 'overdue' : 'upcoming',
                     // The due date is part of the notification key so a renewal (new date)
                     // re-fires the reminder even after the prior one was dismissed.
                     'threshold_value' => $dueDate->toDateString(),

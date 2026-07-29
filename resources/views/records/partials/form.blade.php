@@ -7,6 +7,16 @@
     $driverOptions = ($drivers ?? collect())->pluck('name', 'id')->all();
     $vehicleOptions = ($vehicles ?? collect())->pluck('plat_new', 'plat_new')->all();
     $destinationOptions = ($destinations ?? collect())->pluck('name', 'name')->all();
+
+    // Legacy records store destinations that predate the city list, so without
+    // this the select would silently fall back to the placeholder and the edit
+    // would blank a value the user never touched. The modal JS does the same for
+    // rows opened from the datatable, where no $record is in scope.
+    $storedDestination = old('destination', $record?->destination);
+
+    if (filled($storedDestination) && ! array_key_exists($storedDestination, $destinationOptions)) {
+        $destinationOptions[$storedDestination] = $storedDestination;
+    }
     $fuelTypeOptions = ($fuelTypes ?? collect())->mapWithKeys(fn($fuelType) => [
         $fuelType->id => "{$fuelType->name} ({$fuelType->merk} - " . ucfirst($fuelType->type) . ')',
     ])->all();
@@ -25,6 +35,10 @@
     @csrf
     <input type="hidden" name="_method" id="record-form-method" value="{{ $method !== 'POST' ? $method : '' }}">
     <input type="hidden" name="_form_action" id="record-form-action" value="{{ $action }}">
+    {{-- Tells RecordController::update to send the user back to the detail page. --}}
+    @if(($origin ?? null) === 'show')
+        <input type="hidden" name="origin" value="show">
+    @endif
 
     <h6 class="fw-semibold mb-3"><i class="bx bx-navigation me-1 text-primary"></i> Informasi Perjalanan</h6>
     <div class="row g-3">
