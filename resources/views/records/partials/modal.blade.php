@@ -99,6 +99,17 @@
         setField('bbm', d.bbm, { silent: true });
         setField('fuel_type_id', d.fuelTypeId, { silent: true });
         setField('fuel_unit_price', d.fuelUnitPrice, { silent: true });
+
+        recalculateTotal();
+    }
+
+    // Total Harga is derived, not submitted: record-fuel-pricing.js owns it and
+    // recomputes on a native 'input' from bbm / fuel_unit_price. The silent
+    // jQuery triggers above emit no such event, so drive it explicitly here
+    // rather than leaving the prefill to that module's shown.bs.modal hook.
+    function recalculateTotal() {
+        getForm().querySelector('[data-fuel-unit-price]')
+            ?.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
     modalEl.addEventListener('shown.bs.modal', function () {
