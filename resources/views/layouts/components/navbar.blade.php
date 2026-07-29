@@ -63,10 +63,10 @@
              </li>
 
              <!-- Notifications -->
-             <li class="nav-item navbar-dropdown dropdown-notifications dropdown me-3">
+             <li class="nav-item me-3">
                  <button type="button"
-                     class="nav-link dropdown-toggle hide-arrow notification-toggle position-relative p-0 border-0"
-                     data-dropdown-toggle aria-expanded="false">
+                     class="nav-link notification-toggle position-relative p-0 border-0"
+                     data-notifications-toggle aria-controls="notifications-offcanvas" aria-expanded="false">
                      <i class="icon-base bx bx-bell icon-md"></i>
                      @if ($navbarNotifications['count'] > 0)
                          <span
@@ -76,55 +76,6 @@
                          </span>
                      @endif
                  </button>
-                 <ul class="dropdown-menu dropdown-menu-end p-0" data-notifications-dropdown
-                     data-notifications-url="{{ route('notifications.index') }}"
-                     data-notifications-read-url="{{ route('notifications.read') }}"
-                     data-notifications-next-offset="{{ $navbarNotifications['next_offset'] ?? count($navbarNotifications['items']) }}"
-                     data-notifications-has-more="{{ ($navbarNotifications['has_more'] ?? false) ? '1' : '0' }}">
-                     <li class="dropdown-menu-header border-bottom">
-                         <div class="dropdown-header d-flex align-items-center py-3">
-                             <h6 class="mb-0 me-auto">Notifikasi</h6>
-                             @if ($navbarNotifications['count'] > 0)
-                                 <span
-                                     class="badge bg-label-primary">{{ $navbarNotifications['count'] }} Baru</span>
-                             @endif
-                         </div>
-                     </li>
-                     <li class="dropdown-notifications-list" style="max-height: 320px; overflow-y: auto;">
-                         <ul class="list-group list-group-flush" data-notifications-list>
-                             @forelse ($navbarNotifications['items'] as $notification)
-                                 <li class="list-group-item list-group-item-action dropdown-notifications-item p-0">
-                                     <a href="{{ $notification['link'] }}"
-                                         class="d-flex align-items-center text-body p-3"
-                                         data-notification-key="{{ $notification['key'] }}">
-                                         <div class="avatar flex-shrink-0 me-3">
-                                             <span class="avatar-initial rounded bg-label-{{ $notification['color'] }}"><i
-                                                     class="icon-base bx {{ $notification['icon'] }}"></i></span>
-                                         </div>
-                                         <div class="flex-grow-1">
-                                             <h6 class="mb-0">{{ $notification['title'] }}</h6>
-                                             <small class="text-body-secondary">{{ $notification['subtitle'] }}</small>
-                                         </div>
-                                     </a>
-                                 </li>
-                             @empty
-                                 <li class="list-group-item text-center text-body-secondary py-4"
-                                     data-notifications-empty>
-                                     <i class="icon-base bx bx-bell-off d-block mb-2" style="font-size: 1.75rem;"></i>
-                                     Tidak ada notifikasi
-                                 </li>
-                             @endforelse
-                         </ul>
-                     </li>
-                     @if ($navbarNotifications['has_more'] ?? false)
-                         <li class="dropdown-menu-footer border-top">
-                             <button type="button" class="btn btn-sm btn-link w-100 py-2 text-decoration-none"
-                                 data-notifications-load-more>
-                                 Lihat lainnya
-                             </button>
-                         </li>
-                     @endif
-                 </ul>
              </li>
              <!--/ Notifications -->
 

@@ -17,9 +17,54 @@ class NotificationService
     private const STALE_DRAFT_DAYS = 7;
 
     /**
-     * Maximum number of items rendered in the navbar dropdown.
+     * Maximum number of items per page in the notifications offcanvas. Sized to
+     * fill the full-height panel on a typical screen rather than the 320px
+     * dropdown it replaced.
      */
-    public const PAGE_SIZE = 7;
+    public const PAGE_SIZE = 20;
+
+    /**
+     * Reminder types collapsed into the tabs shown in the navbar dropdown. Single
+     * source of truth for the type => tab mapping: the Blade builds its tab strip
+     * by iterating this, so a new reminder type only has to be listed here.
+     *
+     * Labels follow the per-type wording already used by the email digest
+     * (resources/views/emails/reminder-digest.blade.php).
+     */
+    public const GROUPS = [
+        'perbaikan' => [
+            'label' => 'Perbaikan',
+            'icon' => 'bx-wrench',
+            'types' => [
+                'maintenance.awaiting-confirmation',
+                'maintenance.stale-draft',
+                'vehicle.service-due',
+            ],
+        ],
+        'dokumen' => [
+            'label' => 'Dokumen',
+            'icon' => 'bx-id-card',
+            'types' => [
+                'vehicle.stnk-due',
+                'vehicle.kir-due',
+            ],
+        ],
+        'asuransi' => [
+            'label' => 'Asuransi',
+            'icon' => 'bx-shield-quarter',
+            'types' => [
+                'vehicle.insurance-expiring',
+                'vehicle.insurance-overdue',
+            ],
+        ],
+        'foto' => [
+            'label' => 'Foto',
+            'icon' => 'bx-camera',
+            'types' => [
+                'vehicle.photo-missing',
+            ],
+        ],
+    ];
 
     public function __construct(
         private readonly ServiceReminderService $serviceReminders,
@@ -43,14 +88,24 @@ class NotificationService
     /**
      * Build a page of live navbar notifications for the given user.
      *
-     * @return array{count: int, items: array<int, array<string, mixed>>, offset: int, limit: int, next_offset: int, has_more: bool}
+     * $group scopes the page to one tab from self::GROUPS so each tab pages
+     * independently; an unknown key is ignored rather than fatal, so a stale
+     * client cannot break the dropdown. `count` and `groups` always describe the
+     * whole unread set — the bell badge and the tab badges must not shrink to the
+     * filtered subset.
+     *
+     * @return array{count: int, items: array<int, array<string, mixed>>, group: string|null, groups: array<string, int>, offset: int, limit: int, next_offset: int, has_more: bool}
      */
-    public function forUserPage(?User $user, int $offset = 0): array
+    public function forUserPage(?User $user, int $offset = 0, ?string $group = null): array
     {
+        $group = array_key_exists((string) $group, self::GROUPS) ? $group : null;
+
         if ($user === null) {
             return [
                 'count' => 0,
                 'items' => [],
+                'group' => $group,
+                'groups' => array_fill_keys(array_keys(self::GROUPS), 0),
                 'offset' => 0,
                 'limit' => self::PAGE_SIZE,
                 'next_offset' => self::PAGE_SIZE,
@@ -60,15 +115,52 @@ class NotificationService
 
         $offset = max(0, $offset);
         $items = $this->unreadItemsForUser($user);
+        $scoped = $group === null ? $items : $this->itemsInGroup($items, $group);
 
         return [
             'count' => count($items),
-            'items' => array_slice($items, $offset, self::PAGE_SIZE),
+            'items' => array_slice($scoped, $offset, self::PAGE_SIZE),
+            'group' => $group,
+            'groups' => $this->countsByGroup($items),
             'offset' => $offset,
             'limit' => self::PAGE_SIZE,
             'next_offset' => $offset + self::PAGE_SIZE,
-            'has_more' => $offset + self::PAGE_SIZE < count($items),
+            'has_more' => $offset + self::PAGE_SIZE < count($scoped),
         ];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function itemsInGroup(array $items, string $group): array
+    {
+        $types = self::GROUPS[$group]['types'];
+
+        return array_values(array_filter(
+            $items,
+            fn (array $item): bool => in_array($item['type'], $types, true),
+        ));
+    }
+
+    /**
+     * Unread count per tab, over the full set rather than the current page.
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<string, int>
+     */
+    private function countsByGroup(array $items): array
+    {
+        $counts = [];
+
+        foreach (self::GROUPS as $key => $group) {
+            $counts[$key] = count(array_filter(
+                $items,
+                fn (array $item): bool => in_array($item['type'], $group['types'], true),
+            ));
+        }
+
+        return $counts;
     }
 
     /**
