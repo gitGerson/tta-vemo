@@ -16,7 +16,11 @@ class RecordUpdateRequest extends RecordStoreRequest
      */
     public function rules(): array
     {
-        $rules = Record::validationRules();
+        $record = $this->route('record');
+
+        // Passing the record keeps its stored destination valid even when that
+        // value predates the indonesia_cities list.
+        $rules = Record::validationRules($record instanceof Record ? $record : null);
         // On edit the start km is always present and explicitly entered.
         $rules['start_km'] = ['required', 'string'];
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToCompanyTenant;
 use App\Models\Concerns\HasDiffrntHashId;
+use Closure;
 use Database\Factories\RecordFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -52,7 +53,11 @@ class Record extends Model
         ];
     }
 
-    public static function validationRules(): array
+    /**
+     * Pass the record being updated so its stored destination stays valid; see
+     * destinationRules().
+     */
+    public static function validationRules(?self $record = null): array
     {
         return [
             'company_id' => ['required', 'integer', Rule::exists('companies', 'id')],
@@ -61,12 +66,39 @@ class Record extends Model
             'driver_1' => ['required', 'integer', Rule::exists('drivers', 'id')],
             'driver_2' => ['nullable', 'integer', Rule::exists('drivers', 'id')],
             'no_pol' => ['required', 'string', Rule::exists('vehicles', 'plat_new')],
-            'destination' => ['required', 'string', Rule::exists('indonesia_cities', 'name')],
+            'destination' => static::destinationRules($record),
             'start_km' => ['nullable', 'string'],
             'finish_km' => ['required', 'string'],
             'bbm' => ['required', 'numeric', 'min:0'],
             'fuel_unit_price' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:'.FuelType::MAX_PRICE],
         ];
+    }
+
+    /**
+     * Nearly every imported record stores a destination that predates the
+     * indonesia_cities list ("UNGARAN", "OT PALEMBANG", …). A plain `exists`
+     * rule makes those rows unsaveable, since the original value isn't even a
+     * selectable option — so an edit would be forced to change the destination.
+     * Let the stored value through untouched; any *new* value must still resolve
+     * to a real city.
+     *
+     * @return array<int, mixed>
+     */
+    protected static function destinationRules(?self $record): array
+    {
+        if ($record?->destination === null) {
+            return ['required', 'string', Rule::exists('indonesia_cities', 'name')];
+        }
+
+        $stored = $record->destination;
+
+        return ['required', 'string', function (string $attribute, mixed $value, Closure $fail) use ($stored): void {
+            if ($value === $stored || Destination::where('name', $value)->exists()) {
+                return;
+            }
+
+            $fail(static::validationMessages()['destination.exists']);
+        }];
     }
 
     public static function validationMessages(): array
@@ -116,6 +148,9 @@ class Record extends Model
             'bbm' => $this->bbm,
             'fuel-type-id' => $this->fuel_type_id,
             'fuel-unit-price' => $this->fuel_unit_price,
+            // Legacy rows carry no unit price but do carry a stored idr, which the
+            // modal falls back to so Total Harga isn't blank. Not submitted.
+            'idr' => $this->idr,
         ];
     }
 

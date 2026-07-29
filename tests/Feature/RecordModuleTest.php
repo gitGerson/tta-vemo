@@ -79,6 +79,22 @@ class RecordModuleTest extends TestCase
             ->assertSee('name="origin" value="show"', false);
     }
 
+    public function test_edit_modal_trigger_carries_stored_idr_for_a_legacy_record(): void
+    {
+        $this->actingAs($this->userWithRecordPermissions());
+
+        // Records predating the unit-price field: no Rp/L, but idr is populated.
+        $record = Record::factory()->create([
+            'fuel_unit_price' => null,
+            'idr' => '1360000',
+        ]);
+
+        $this->get(route('records.show', $record))
+            ->assertOk()
+            ->assertSee('data-fuel-unit-price=""', false)
+            ->assertSee('data-idr="1360000"', false);
+    }
+
     public function test_show_page_hides_the_edit_modal_from_a_view_only_user(): void
     {
         $this->actingAs($this->userWithRecordViewOnly());
@@ -352,6 +368,110 @@ class RecordModuleTest extends TestCase
         ])->assertRedirect(route('records.show', $record));
 
         $this->assertDatabaseHas('records', ['id' => $record->id, 'totals' => '300']);
+    }
+
+    public function test_update_accepts_a_legacy_destination_that_is_not_a_known_city(): void
+    {
+        $this->actingAs($this->userWithRecordPermissions());
+
+        $this->createProvince();
+        $company = Company::factory()->create();
+        $vehicle = Vehicle::factory()->create(['plat_new' => 'B 2 KL', 'mileage' => '0']);
+        $driver = Driver::factory()->create(['name' => 'Joko']);
+        $fuelType = FuelType::factory()->create(['price' => 12000]);
+
+        // Imported value with no matching row in indonesia_cities.
+        $record = Record::factory()->create([
+            'no_pol' => $vehicle->plat_new,
+            'vehicle_id' => $vehicle->id,
+            'company_id' => $company->id,
+            'destination' => 'UNGARAN',
+        ]);
+
+        $this->assertFalse(Destination::where('name', 'UNGARAN')->exists());
+
+        $this->put(route('records.update', $record), [
+            'company_id' => $company->id,
+            'fuel_type_id' => $fuelType->id,
+            'date' => '2026-06-03',
+            'driver_1' => $driver->id,
+            'no_pol' => $vehicle->plat_new,
+            'destination' => 'UNGARAN',
+            'start_km' => '200',
+            'finish_km' => '500',
+            'bbm' => '30',
+            'fuel_unit_price' => '12345.67',
+        ])->assertRedirect(route('records.index'))->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('records', ['id' => $record->id, 'destination' => 'UNGARAN']);
+    }
+
+    public function test_update_still_rejects_an_unknown_destination_that_is_not_the_stored_one(): void
+    {
+        $this->actingAs($this->userWithRecordPermissions());
+
+        $this->createProvince();
+        $company = Company::factory()->create();
+        $vehicle = Vehicle::factory()->create(['plat_new' => 'B 4 MN', 'mileage' => '0']);
+        $driver = Driver::factory()->create(['name' => 'Sari']);
+        $fuelType = FuelType::factory()->create(['price' => 12000]);
+
+        $record = Record::factory()->create([
+            'no_pol' => $vehicle->plat_new,
+            'vehicle_id' => $vehicle->id,
+            'company_id' => $company->id,
+            'destination' => 'UNGARAN',
+        ]);
+
+        $this->put(route('records.update', $record), [
+            'company_id' => $company->id,
+            'fuel_type_id' => $fuelType->id,
+            'date' => '2026-06-03',
+            'driver_1' => $driver->id,
+            'no_pol' => $vehicle->plat_new,
+            'destination' => 'KOTA YANG TIDAK ADA',
+            'start_km' => '200',
+            'finish_km' => '500',
+            'bbm' => '30',
+            'fuel_unit_price' => '12345.67',
+        ])->assertSessionHasErrors('destination');
+
+        $this->assertDatabaseHas('records', ['id' => $record->id, 'destination' => 'UNGARAN']);
+    }
+
+    public function test_store_still_requires_a_known_destination(): void
+    {
+        $this->actingAs($this->userWithRecordPermissions());
+
+        $this->createProvince();
+        $company = Company::factory()->create();
+        $vehicle = Vehicle::factory()->create(['plat_new' => 'B 6 OP', 'mileage' => '0']);
+        $driver = Driver::factory()->create(['name' => 'Tono']);
+        $fuelType = FuelType::factory()->create(['price' => 12000]);
+
+        $this->post(route('records.store'), [
+            'company_id' => $company->id,
+            'fuel_type_id' => $fuelType->id,
+            'date' => '01-06-2026',
+            'driver_1' => $driver->id,
+            'no_pol' => $vehicle->plat_new,
+            'destination' => 'UNGARAN',
+            'start_km' => '100',
+            'finish_km' => '250',
+            'bbm' => '30',
+            'fuel_unit_price' => '12345.67',
+        ])->assertSessionHasErrors('destination');
+    }
+
+    public function test_show_page_keeps_a_legacy_destination_selectable(): void
+    {
+        $this->actingAs($this->userWithRecordPermissions());
+
+        $record = Record::factory()->create(['destination' => 'UNGARAN']);
+
+        $this->get(route('records.show', $record))
+            ->assertOk()
+            ->assertSee('<option value="UNGARAN" selected>', false);
     }
 
     public function test_destroy_reverts_vehicle_mileage_and_soft_deletes(): void

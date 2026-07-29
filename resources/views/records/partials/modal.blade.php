@@ -64,6 +64,19 @@
         }
     }
 
+    // Setting a <select> to a value it has no <option> for silently yields '',
+    // so a legacy destination that predates the city list would come back blank
+    // and the user would be forced to change it. Add the stored value as an
+    // option; the backend accepts it unchanged (Record::destinationRules).
+    function ensureOption(name, value) {
+        const el = getForm().querySelector(`[name="${name}"]`);
+        if (!el || !value) return;
+
+        if (!Array.from(el.options).some((option) => option.value === value)) {
+            el.append(new Option(value, value));
+        }
+    }
+
     function setMode(action, method, title, submitLabel) {
         const form = getForm();
 
@@ -93,6 +106,7 @@
         setField('driver_1', d.driver1, { silent: true });
         setField('driver_2', d.driver2, { silent: true });
         setField('no_pol', d.noPol, { silent: true });
+        ensureOption('destination', d.destination);
         setField('destination', d.destination, { silent: true });
         setField('start_km', d.startKm, { silent: true });
         setField('finish_km', d.finishKm, { silent: true });
@@ -101,6 +115,12 @@
         setField('fuel_unit_price', d.fuelUnitPrice, { silent: true });
 
         recalculateTotal();
+
+        // Deferred to a macrotask on purpose. record-fuel-pricing.js also handles
+        // shown.bs.modal, and queues a microtask that re-runs its own prefill and
+        // blanks the total again. Microtasks drain before timeouts, so this lands
+        // after that pass instead of being clobbered by it.
+        setTimeout(() => showStoredTotal(d.idr), 0);
     }
 
     // Total Harga is derived, not submitted: record-fuel-pricing.js owns it and
@@ -110,6 +130,23 @@
     function recalculateTotal() {
         getForm().querySelector('[data-fuel-unit-price]')
             ?.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    // Records predating the unit-price field have no Rp/L, so the derived total
+    // above resolves to blank. Fall back to the stored idr — the historical
+    // figure the reports already use — so the modal isn't showing an empty
+    // total for a record that has one. Must run after recalculateTotal(), which
+    // would otherwise clear it. Typing a price recomputes and replaces this,
+    // which is correct: that computed value is what update() will save.
+    function showStoredTotal(idr) {
+        const form = getForm();
+        const total = form.querySelector('[data-fuel-total-price]');
+        const unitPrice = form.querySelector('[data-fuel-unit-price]');
+
+        if (!total || unitPrice?.value !== '' || !idr) return;
+
+        total.value = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 })
+            .format(Number(idr));
     }
 
     modalEl.addEventListener('shown.bs.modal', function () {
@@ -140,6 +177,7 @@
             bbm: btn.dataset.bbm,
             fuelTypeId: btn.dataset.fuelTypeId,
             fuelUnitPrice: btn.dataset.fuelUnitPrice,
+            idr: btn.dataset.idr,
         };
 
         bootstrap.Modal.getOrCreateInstance(modalEl).show();
