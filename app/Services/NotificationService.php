@@ -303,13 +303,17 @@ class NotificationService
         // company-scoped via the Vehicle CompanyTenantScope (bypassed by management.tenant.bypass).
         if ($canDocumentRemind) {
             foreach ($this->documentMonitor->dueDocuments() as $document) {
+                $isOverdue = $document['state'] === 'overdue';
+
                 $items[] = [
                     'key' => $this->documentDueKey($document),
                     'type' => $document['type'],
                     'icon' => $document['type'] === 'vehicle.stnk-due' ? 'bx-id-card' : 'bx-receipt',
-                    'color' => $document['days_left'] <= 7 ? 'danger' : 'warning',
+                    'color' => $isOverdue || $document['days_left'] <= 7 ? 'danger' : 'warning',
                     'title' => $document['plate'],
-                    'subtitle' => 'Tenggat waktu '.$document['document'].' '.$document['due_date'].' · H-'.$document['days_left'],
+                    'subtitle' => $isOverdue
+                        ? $document['document'].' kedaluwarsa '.$document['due_date'].' · Lewat '.$document['days_overdue'].' hari'
+                        : 'Tenggat waktu '.$document['document'].' '.$document['due_date'].' · '.($document['days_left'] === 0 ? 'Hari ini' : 'H-'.$document['days_left']),
                     'link' => $document['link'],
                 ];
             }
@@ -362,7 +366,9 @@ class NotificationService
         // due date re-fires even after the prior one was dismissed.
         $slug = str($document['type'])->after('vehicle.')->value();
 
-        return 'vehicle:'.$slug.':'.$document['vehicle_id'].':'.$document['threshold_value'];
+        $key = 'vehicle:'.$slug.':'.$document['vehicle_id'].':'.$document['threshold_value'];
+
+        return $document['state'] === 'overdue' ? $key.':overdue' : $key;
     }
 
     /**

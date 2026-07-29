@@ -172,28 +172,31 @@
     @endif
     <!--/ Pengingat Servis -->
 
-    <!-- STNK & KIR segera kedaluwarsa -->
+    <!-- Pengingat STNK & KIR -->
     @foreach ([
-        ['data' => $stnkReminders, 'id' => 'dashStnkReminder', 'title' => 'STNK Segera Kedaluwarsa', 'empty' => 'Tidak ada STNK yang segera kedaluwarsa.'],
-        ['data' => $kirReminders, 'id' => 'dashKirReminder', 'title' => 'KIR Segera Kedaluwarsa', 'empty' => 'Tidak ada KIR yang segera kedaluwarsa.'],
+        ['data' => $stnkReminders, 'id' => 'dashStnkReminder', 'title' => 'Pengingat STNK', 'empty' => 'Tidak ada STNK yang perlu diperhatikan.'],
+        ['data' => $kirReminders, 'id' => 'dashKirReminder', 'title' => 'Pengingat KIR', 'empty' => 'Tidak ada KIR yang perlu diperhatikan.'],
     ] as $documentTable)
         @if ($documentTable['data']['visible'])
             @php
                 $documentRows = collect($documentTable['data']['items'])->map(function (array $i) use ($plateLink): array {
                     $daysLeft = (int) $i['days_left'];
-                    $status = $daysLeft === 0 ? 'Hari ini' : 'H-'.$daysLeft;
-                    $color = $daysLeft <= 3 ? 'danger' : 'warning';
+                    $isOverdue = $i['state'] === 'overdue';
+                    $status = $isOverdue
+                        ? 'Lewat '.$i['days_overdue'].'h'
+                        : ($daysLeft === 0 ? 'Hari ini' : 'H-'.$daysLeft);
+                    $color = $isOverdue || $daysLeft <= 3 ? 'danger' : 'warning';
 
                     return [
                         'plate' => $plateLink($i),
-                        'detail' => 'Berlaku sampai '.$i['due_date'],
+                        'detail' => ($isOverdue ? 'Kedaluwarsa ' : 'Berlaku sampai ').$i['due_date'],
                         'status' => '<span class="badge bg-label-'.$color.'">'.e($status).'</span>',
                     ];
                 })->all();
             @endphp
             <div class="col-md-6 col-lg-6 order-1 mb-6">
                 <x-dashboard.list-table :id="$documentTable['id']" :title="$documentTable['title']"
-                    subtitle="{{ $documentTable['data']['count'] }} Akan kedaluwarsa"
+                    subtitle="{{ $documentTable['data']['count'] }} Perlu perhatian"
                     :columns="$reminderColumns" :rows="$documentRows" :placeholder="$documentTable['empty']">
                     <x-slot:action>
                         <a href="{{ route('vehicles.index') }}" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
@@ -202,7 +205,7 @@
             </div>
         @endif
     @endforeach
-    <!--/ STNK & KIR segera kedaluwarsa -->
+    <!--/ Pengingat STNK & KIR -->
 
     <!-- Pengingat Asuransi -->
     @if ($insuranceReminders['visible'])
