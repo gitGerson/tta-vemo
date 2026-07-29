@@ -56,7 +56,7 @@ class VehicleDocumentReminderTest extends TestCase
         $this->assertContains($stnkB->plat_new, $plates);
     }
 
-    public function test_stnk_fires_within_thirty_days_but_not_a_week_after_or_overdue(): void
+    public function test_stnk_fires_within_thirty_days_and_remains_visible_when_overdue(): void
     {
         $company = Company::factory()->create();
         $within = $this->makeVehicle($company, ['stnk_due_date' => $this->inDays(20)]);
@@ -71,7 +71,15 @@ class VehicleDocumentReminderTest extends TestCase
         $this->assertContains($within->plat_new, $plates);
         $this->assertContains($boundary->plat_new, $plates);
         $this->assertNotContains($beyond->plat_new, $plates);
-        $this->assertNotContains($overdue->plat_new, $plates);
+        $this->assertContains($overdue->plat_new, $plates);
+
+        $overdueDocument = app(VehicleDocumentMonitorService::class)
+            ->dueDocuments()
+            ->firstWhere('plate', $overdue->plat_new);
+
+        $this->assertSame('overdue', $overdueDocument['state']);
+        $this->assertSame(-1, $overdueDocument['days_left']);
+        $this->assertSame(1, $overdueDocument['days_overdue']);
     }
 
     public function test_kir_only_fires_within_seven_days(): void
@@ -79,6 +87,7 @@ class VehicleDocumentReminderTest extends TestCase
         $company = Company::factory()->create();
         $within = $this->makeVehicle($company, ['kir_due_date' => $this->inDays(5)]);
         $beyond = $this->makeVehicle($company, ['kir_due_date' => $this->inDays(20)]);
+        $overdue = $this->makeVehicle($company, ['kir_due_date' => $this->inDays(-24)]);
 
         $this->actingAs($this->userWith(['master.vehicles.reminders', 'management.tenant.bypass'], []));
 
@@ -86,6 +95,14 @@ class VehicleDocumentReminderTest extends TestCase
 
         $this->assertContains($within->plat_new, $plates);
         $this->assertNotContains($beyond->plat_new, $plates);
+        $this->assertContains($overdue->plat_new, $plates);
+
+        $overdueDocument = app(VehicleDocumentMonitorService::class)
+            ->dueDocuments()
+            ->firstWhere('plate', $overdue->plat_new);
+
+        $this->assertSame('overdue', $overdueDocument['state']);
+        $this->assertSame(24, $overdueDocument['days_overdue']);
     }
 
     public function test_due_documents_can_be_filtered_by_dashboard_company(): void
@@ -104,6 +121,35 @@ class VehicleDocumentReminderTest extends TestCase
 
         $this->assertContains($vehicleA->plat_new, $plates);
         $this->assertNotContains($vehicleB->plat_new, $plates);
+    }
+
+    public function test_document_notification_reappears_after_becoming_overdue(): void
+    {
+        $this->travelTo(now()->startOfDay());
+
+        $company = Company::factory()->create();
+        $vehicle = $this->makeVehicle($company, ['stnk_due_date' => $this->inDays(1)]);
+        $this->actingAs($this->userWith(['master.vehicles.reminders'], [$company]));
+
+        $upcoming = collect($this->getJson(route('notifications.index'))->assertOk()->json('items'))
+            ->firstWhere('title', $vehicle->plat_new);
+
+        $this->assertNotNull($upcoming);
+        $this->assertStringContainsString('H-1', $upcoming['subtitle']);
+
+        $this->postJson(route('notifications.read'), ['key' => $upcoming['key']])
+            ->assertOk();
+
+        $this->travel(2)->days();
+
+        $overdue = collect($this->getJson(route('notifications.index'))->assertOk()->json('items'))
+            ->firstWhere('title', $vehicle->plat_new);
+
+        $this->assertNotNull($overdue);
+        $this->assertNotSame($upcoming['key'], $overdue['key']);
+        $this->assertStringEndsWith(':overdue', $overdue['key']);
+        $this->assertStringContainsString('Lewat 1 hari', $overdue['subtitle']);
+        $this->assertStringNotContainsString('H--', $overdue['subtitle']);
     }
 
     private function inDays(int $days): string

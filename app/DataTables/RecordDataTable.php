@@ -77,22 +77,7 @@ class RecordDataTable extends DataTable
                 'type' => 'edit-modal',
                 'permission' => 'operational.records.edit',
                 'class' => 'btn-edit-record',
-                'data' => [
-                    'update-url' => route('records.update', $row),
-                    'date' => $row->date?->format('d-m-Y'),
-                    'company-id' => $row->company_id,
-                    // NB: keys must avoid a digit right after a hyphen — `data-driver-1`
-                    // maps to dataset['driver-1'], not dataset.driver1, so the JS read fails.
-                    'driver1' => $row->driver1?->id,
-                    'driver2' => $row->driver2?->id,
-                    'no-pol' => $row->no_pol,
-                    'destination' => $row->destination,
-                    'start-km' => $row->start_km,
-                    'finish-km' => $row->finish_km,
-                    'bbm' => $row->bbm,
-                    'fuel-type-id' => $row->fuel_type_id,
-                    'fuel-unit-price' => $row->fuel_unit_price,
-                ],
+                'data' => $row->editModalData(),
             ],
             [
                 'type' => 'delete',

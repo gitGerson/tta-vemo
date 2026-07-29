@@ -98,6 +98,8 @@
     </div>
     <!-- / Layout wrapper -->
 
+    @include('layouts.components.notifications-offcanvas')
+
     @php
         $host = request()->getHost();
         $environmentLabel = match (true) {
