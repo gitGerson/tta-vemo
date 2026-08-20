@@ -2,16 +2,63 @@
 
 Dokumen ini mencatat perubahan penting pada **Vemo** (Vehicle Monitoring) dalam format changelog yang lebih formal dan detail. Isi changelog disusun dari git tag rilis dan seluruh commit yang sudah masuk ke repository.
 
-Penomoran versi mengikuti **git tag asli** pada remote `origin`: `v2.0.0`, `v2.0.1`, `v2.0.2`, dan `v2.0.3`. Setiap tag final memiliki pasangan tag staging `-rc.1` dengan konten identik (promosi `staging` → `main`). Seluruh commit yang berada **setelah `v2.0.3`** (build-out Vemo v3, Mei–Juni 2026) belum di-tag dan dikumpulkan pada section `[Unreleased]`. Setiap entri menyertakan hash commit sebagai referensi; commit merge antar-branch tidak dirinci.
+Penomoran versi mengikuti **git tag asli** pada remote `origin`: `v2.0.0`, `v2.0.1`, `v2.0.2`, dan `v2.0.3`. Setiap tag final memiliki pasangan tag staging `-rc.1` dengan konten identik (promosi `staging` → `main`). Seluruh commit yang berada **setelah `v2.0.3`** (build-out Vemo v3, Mei–Juli 2026) dikumpulkan sebagai rilis **`3.0.0`**. Setiap entri menyertakan hash commit sebagai referensi; commit merge antar-branch tidak dirinci.
 
-## [Unreleased]
+## [3.0.0] - 2026-07-29
 
-Seluruh pekerjaan yang belum di-tag. Mayoritas adalah build-out **Vemo v3** (master data, operasional, dashboard, integrasi Telegram, foto kendaraan) sejak akhir Mei 2026. Bagian akhir section ini memuat fondasi starter kit Sneat 2025 yang berasal dari git root terpisah dan tidak pernah masuk ke lineage tag `v2.0.x`.
+Rilis mayor **Vemo v3**: build-out modul master data, operasional, dashboard, notifikasi (email dan Telegram), foto kendaraan, QR scan, dan laporan analisis. Bagian akhir section ini memuat fondasi starter kit Sneat 2025 yang berasal dari git root terpisah dan tidak pernah masuk ke lineage tag `v2.0.x`.
 
-Range: setelah `v2.0.3` (`c890f97..HEAD`), ditambah root legacy Sneat.
+Range: setelah `v2.0.3` (`c890f97..origin/staging`, 174 commit non-merge), ditambah root legacy Sneat.
+
+### Ringkasan Perubahan Utama
+
+Vemo v3 mengubah aplikasi dari modul maintenance dan laporan BBM menjadi sistem monitoring kendaraan yang lengkap. Sepuluh perubahan besar:
+
+1. **Modul master data baru** - Company, Vehicle, Vehicle Brand, Vehicle Type, Fuel Type, Driver, Destination, dan Type Maintenance, masing-masing dengan CRUD, validasi, permission, seeder, dan fungsi trash (restore dan force delete).
+2. **Modul operasional Record** - Record dan Record Snapshot dengan CRUD berbasis modal, normalisasi tanggal, harga satuan bahan bakar, filter default awal tahun, dan shared edit modal antara view index dan show.
+3. **Vehicle Insurance** - Modul asuransi kendaraan lengkap: konstanta tipe asuransi, attachment, permission per-field, serta reminder dan notifikasi masa berlaku.
+4. **Dokumen kendaraan (STNK dan KIR)** - Field gambar dan due date, reminder due-date beserta permission-nya, tabel masa berlaku pada dashboard, status overdue pada notifikasi, dan validasi gambar/due date yang independen.
+5. **Sistem notifikasi** - Notifikasi in-app dengan dropdown dan read receipt, notifikasi ter-grup dengan UI offcanvas beserta pagination dan filter, reminder via email dengan logging, serta integrasi Telegram (account linking, long-polling).
+6. **Dashboard baru** - KPI card, quick action, chart kondisi kendaraan, service reminder, widget financial/utilization/composition, filter company dan bulan, serta pemuatan data via AJAX.
+7. **Foto kendaraan dan QR scan** - Manajemen foto kendaraan dengan tracking kelengkapan, komentar dengan validasi dan sanitasi, penyimpanan S3 lewat signed URL sementara, label kendaraan, dan QR scan untuk lookup kendaraan beserta quick action.
+8. **Laporan analisis** - Laporan maintenance harian, bulanan, dan tahunan, serta laporan analisis bahan bakar dan maintenance bulanan dengan export PDF dan Excel, dilengkapi pemilihan company dan validasi cetak.
+9. **Fondasi UI dan tabel** - Migrasi DataTables ke engine Tabulator dengan komponen Blade reusable, toggle visibilitas kolom yang persisten, export, komponen form generik (FilePond, Select2, daterangepicker, rich editor, money/rupiah input), breadcrumbs, sidebar dan navbar search dari config menu, serta terjemahan UI ke bahasa Indonesia.
+10. **Fondasi arsitektur dan akses** - Tenant scoping pada model beserta permission bypass, katalog permission berbasis config dengan command `permission:update` yang sync/prune aman, hashid route binding, auto-generation kode unik, audit trail generik pada level model, global record search dengan keyboard shortcut, middleware `PreventSearchIndexing`, dan import SQL dump VEMO legacy.
+
+**Breaking change:** field `plat_old` dan atribut `isprivate` pada vehicle dihapus, label maintenance `IN_PROGRESS` menjadi `DRAFT`, input kode manual dihapus (kode dibuat otomatis), permission dipindah ke config sehingga perlu di-sync ulang, dan modul starter kit catalog, mobile, dan employee dihapus.
 
 ### Added
 
+- `77f512f` - Menambahkan status overdue pada document reminder STNK dan KIR beserta penyesuaian UI dan logikanya.
+- `c2c71bd` - Menambahkan notifikasi ter-grup dengan UI offcanvas, pagination, dan filter per grup.
+- `7971d40` - Menambahkan logika badge status maintenance untuk label rutin dan non-rutin beserta test-nya.
+- `24a730e` - Menambahkan field due date STNK dan KIR pada data QR scan kendaraan beserta test terkait.
+- `aeb8176` - Mengganti reminder foto kendaraan pada dashboard dengan tabel masa berlaku STNK dan KIR.
+- `ead7512` - Menambahkan handling harga satuan bahan bakar pada record.
+- `0c0db43` - Menambahkan kolom tipe kendaraan pada `RecordDataTable` beserta test label-nya.
+- `2bb7674` - Menambahkan hidden input untuk sinkronisasi raw value pada input rupiah.
+- `e5ea01c` - Mengganti input number dengan komponen money pada coverage value dan premi asuransi.
+- `93805ed` - Menambahkan formatting input rupiah dan komponen money pada form kendaraan.
+- `bf4ee3e` - Menambahkan badge terkomputasi pada kolom type dan merk fuel type.
+- `9a729f8` - Menambahkan dukungan AJAX dan komponen UI baru pada dashboard.
+- `80464e1` - Menambahkan import SQL dump VEMO legacy dengan preservasi primary key dan seeding data.
+- `d6420f1` - Menambahkan laporan analisis maintenance bulanan dengan export PDF dan Excel.
+- `5b53e88` - Menambahkan laporan analisis bahan bakar bulanan dengan export PDF dan Excel.
+- `89697c6` - Menambahkan `VehicleSeeder`, `MaintenanceSeeder`, dan `RecordSeeder`.
+- `173cc07` - Memindahkan pembuatan user dari `DatabaseSeeder` dan menambahkan test `DriverSeeder`.
+- `14ad9ac` - Menambahkan permission per-field pada form vehicle insurance beserta aturan validasinya.
+- `cda5b3e` - Menambahkan filter company dan bulan pada dashboard beserta tampilan metrik yang diperbarui.
+- `37c2f3c` - Menambahkan handling attachment pada vehicle insurance dengan validasi dan tampilan.
+- `d6fbd93` - Menambahkan document due-date reminder STNK dan KIR beserta permission dan notifikasinya.
+- `00fd269` - Menambahkan field gambar dan due date KIR pada model vehicle dan snapshot.
+- `b3c0ae1` - Menambahkan konstanta tipe asuransi dan memperbarui aturan validasi.
+- `99c2217` - Menambahkan auto-generation kode unik pada model dan menghapus input kode manual dari form.
+- `5082bfa` - Menambahkan notifikasi reminder via email beserta logging-nya.
+- `3a7f6cf` - Menambahkan concern `HasDiffrntHashId` pada beberapa model.
+- `836fa04` - Menambahkan utility `S3Url` untuk signed URL sementara dan pencocokan reference.
+- `61d9881` - Menambahkan fungsi trash (restore dan force delete) untuk company, fuel type, vehicle brand, dan vehicle type.
+- `ac7d7e8` - Menambahkan integrasi FilePond pada handling gambar company beserta aturan validasinya.
+- `dff87a9` - Mengganti pemilihan company pada edit user dengan komponen select kustom dan memperbaiki error handling.
 - `0b81d34` - Menambahkan global record search dengan keyboard shortcut dan tampilan hasil pencarian lintas record.
 - `0b2cc58` - Menambahkan widget dashboard untuk financial, utilization, dan composition.
 - `cbaf4e2` - Menambahkan KPI cards dan quick actions, serta merapikan layout home.
@@ -75,6 +122,15 @@ Range: setelah `v2.0.3` (`c890f97..HEAD`), ditambah root legacy Sneat.
 
 ### Changed
 
+- `d5ea4ab` - Mengaktifkan shared edit modal untuk manajemen record pada view index dan show.
+- `bfd99c3` - Menghapus atribut `isprivate` dari model vehicle dan model terkait.
+- `0d3eb46` - Membuat gambar dokumen dan due date menjadi optional secara independen.
+- `c03ccf3` - Membatalkan (revert) penonaktifan dark mode beserta test-nya.
+- `e36a7a7` - Merapikan route vehicle photo dan test-nya dengan penggunaan hashid.
+- `29c4747` - Menggunakan atribut model secara langsung untuk handling title dan description pada search.
+- `b61af9e` - Menerjemahkan berbagai elemen UI dan label dari bahasa Inggris ke bahasa Indonesia.
+- `ab0ce11` - Mengubah label VIN menjadi 'Nomor Rangka'.
+- `0140220` - Menambahkan catatan `next_update` pada dokumentasi.
 - `49c2ed5` - Menyederhanakan konfigurasi deployment CI dan memperbarui path script deploy.
 - `7907ae9` - Memperbarui aset branding Vemo.
 - `6f8d8c0` - Mengubah penerimaan update bot Telegram dari webhook menjadi long-polling.
@@ -115,6 +171,25 @@ Range: setelah `v2.0.3` (`c890f97..HEAD`), ditambah root legacy Sneat.
 
 ### Fixed
 
+- `6a361e2` - Memperbaiki aturan validasi record agar mendukung destination legacy dan nilai tersimpan tetap terpilih pada modal edit.
+- `e8fd97d` - Memperbaiki `applyEdit` agar total harga dihitung ulang saat edit dan input event harga satuan ter-trigger.
+- `bf8a3b3` - Merapikan styling dan fungsionalitas view QR scan dan report.
+- `8724806` - Memperbaiki path script deployment staging.
+- `5bdf6d6` - Mengubah layout tabel foto kendaraan dan history menjadi `fitData`.
+- `4cc1ef3` - Memastikan kendaraan tersedia sebelum redirect pada vehicle photo.
+- `04358f4` - Menggunakan route key pada `data-id` tombol pembatalan maintenance.
+- `d0fcd7f` - Menghapus atribut `mode` yang tidak diperlukan pada select tipe asuransi.
+- `e05c01f` - Mengubah default start date filter record menjadi awal tahun.
+- `9cb340e` - Memfilter maintenance completed dan confirmed pada query laporan.
+- `d60930e` - Memperbaiki pemilihan company dan month picker pada dashboard.
+- `bb06a0e` - Memperbaiki specificity input pencarian tabel agar layout tidak rusak.
+- `2f412c9` - Menambahkan styling global grid Tabulator dengan dukungan dark mode.
+- `7ad3abd` - Menonaktifkan dark mode dan menambahkan test bahwa navbar tidak menampilkan toggle dark mode.
+- `9220306` - Memperbaiki permission akses section Dashboard beserta permission terkait.
+- `388af78` - Memperbaiki generation laporan dengan pemilihan company dan validasi cetak.
+- `563535e` - Memperbaiki teks assertion pada test index type maintenance.
+- `c947f83` - Menukar urutan tampilan kode dan nama company pada dropdown select.
+- `af51f56` - Memperbaiki atribut data agar tidak bermasalah dengan hyphen pada binding JS.
 - `acb42d9` - Menyederhanakan logic redirect setelah simpan foto kendaraan, serta memperbarui assertion test modul destination.
 - `7640615` - Memperbaiki dropdown menu user pada navbar.
 - `dc04026` - Menambahkan field `guard_name` pada tabel roles dan memperbarui atribut fillable model.
@@ -138,6 +213,17 @@ Commit fondasi starter kit Sneat dari git root terpisah (Agustus–November 2025
 - `bd8d33c` - Memperbarui style dark theme untuk state menu aktif.
 - `ff200b5` / `9f818d3` / `5035e0b` / `93ec7ed` - Penyesuaian kebutuhan starter (thumbnail, CDN, dashboard role).
 - `22a831f` - Initial Commit (root starter kit).
+
+## [2.0.4] - 2026-07-01 (branch `hotfix/v2.0.3`, belum di-tag)
+
+Hotfix yang dikerjakan langsung di atas `v2.0.3` dan belum di-merge ke `staging`/`development`.
+
+### Fixed
+
+- `f575c58` - Menampilkan tombol cancel untuk seluruh maintenance berstatus draft dan completed.
+- `43535cb` - Menambahkan route update status maintenance yang belum terdaftar.
+- `8874055` - Menetapkan status maintenance `DRAFT` atau `COMPLETED` sesuai opsi simpan yang dipilih.
+- `cd75e7d` - Memfilter maintenance completed dan confirmed pada laporan maintenance tahunan.
 
 ## [v2.0.3] - 2026-04-20
 
