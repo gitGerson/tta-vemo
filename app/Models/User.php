@@ -2,11 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
+use App\Models\Concerns\HasDiffrntHashId;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use LdapRecord\Laravel\Auth\AuthenticatesWithLdap;
 use LdapRecord\Laravel\Auth\HasLdapUser;
@@ -14,11 +19,11 @@ use LdapRecord\Laravel\Auth\LdapAuthenticatable;
 
 class User extends Authenticatable implements LdapAuthenticatable
 {
+    /** @use HasFactory<UserFactory> */
+    use Auditable, HasDiffrntHashId, HasFactory, Notifiable, SoftDeletes;
+
     use AuthenticatesWithLdap, HasLdapUser;
     use HasApiTokens;
-
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -32,6 +37,9 @@ class User extends Authenticatable implements LdapAuthenticatable
         'password',
         'guid',
         'domain',
+        'telegram_chat_id',
+        'telegram_link_token',
+        'telegram_linked_at',
         'created_by',
         'updated_by',
     ];
@@ -55,8 +63,36 @@ class User extends Authenticatable implements LdapAuthenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'telegram_linked_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Destination the Telegram notification channel sends to. Null until the user
+     * links their account via the deep-link flow.
+     */
+    public function routeNotificationForTelegram(): ?string
+    {
+        return $this->telegram_chat_id;
+    }
+
+    public function isTelegramLinked(): bool
+    {
+        return $this->telegram_chat_id !== null;
+    }
+
+    /**
+     * Return the existing link token, generating and persisting one if absent. The
+     * token is what the bot receives as `/start <token>` to identify this account.
+     */
+    public function generateTelegramLinkToken(): string
+    {
+        if ($this->telegram_link_token === null) {
+            $this->forceFill(['telegram_link_token' => Str::random(40)])->save();
+        }
+
+        return $this->telegram_link_token;
     }
 
     public function getLdapDomainColumn(): string
@@ -102,8 +138,13 @@ class User extends Authenticatable implements LdapAuthenticatable
     public function roles()
     {
         return $this->belongsToMany(Role::class, 'user_role')
-                    ->withPivot(['assigned_by', 'assigned_at'])
-                    ->withTimestamps();
+            ->withPivot(['assigned_by', 'assigned_at'])
+            ->withTimestamps();
+    }
+
+    public function companies(): BelongsToMany
+    {
+        return $this->belongsToMany(Company::class, 'company_user')->withTimestamps();
     }
 
     public function hasRole($role)
@@ -138,8 +179,8 @@ class User extends Authenticatable implements LdapAuthenticatable
 
         if ($role) {
             $exists = $this->roles()->where('roles.id', $role->id)->exists();
-            
-            if (!$exists) {
+
+            if (! $exists) {
                 $this->roles()->attach($role->id, [
                     'assigned_by' => auth()->id(),
                     'assigned_at' => now(),
@@ -163,30 +204,5 @@ class User extends Authenticatable implements LdapAuthenticatable
         }
 
         return $this;
-    }
-
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (auth()->check()) {
-                $model->created_by = auth()->id();
-            }
-        });
-
-        static::updating(function ($model) {
-            if (auth()->check()) {
-                $model->updated_by = auth()->id();
-            }
-        });
-
-        static::deleting(function ($model) {
-            if (auth()->check()) {
-                $model->deleted_by = auth()->id();
-                $model->save();
-            }
-        });
     }
 }

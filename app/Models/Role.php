@@ -2,14 +2,19 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
+use App\Models\Concerns\HasDiffrntHashId;
 use Illuminate\Database\Eloquent\Model;
 
 class Role extends Model
 {
+    use Auditable, HasDiffrntHashId;
+
     protected $fillable = [
         'name',
         'display_name',
         'description',
+        'guard_name',
         'is_active',
         'created_by',
         'updated_by',
@@ -91,22 +96,5 @@ class Role extends Model
         }
 
         return $this;
-    }
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (auth()->check()) {
-                $model->created_by = auth()->id();
-            }
-        });
-
-        static::updating(function ($model) {
-            if (auth()->check()) {
-                $model->updated_by = auth()->id();
-            }
-        });
     }
 }

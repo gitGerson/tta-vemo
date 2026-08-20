@@ -13,75 +13,31 @@
             </div>
         @endif
 
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">User Activity Logs</h5>
+        <x-datatable.card title="User Activity Logs">
+            <x-slot:actions>
                 <a href="{{ route('users.index') }}" class="btn btn-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali ke Daftar User
                 </a>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive text-nowrap">
+            </x-slot:actions>
 
-                    <table id="logs-table" class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Waktu</th>
-                                <th>User</th>
-                                <th>Aksi</th>
-                                <th>Target User</th>
-                                <th>Deskripsi</th>
-                                <th>IP Address</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-            </div>
-        </div>
+            <x-datatable.table
+                id="logs-table"
+                :columns="['Waktu', 'User', 'Aksi', 'Target User', 'Deskripsi', 'IP Address']"
+            />
+        </x-datatable.card>
     </div>
 @endsection
 
-
-@push('scripts')
-    <script>
-        $(function() {
-            $('#logs-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: '{{ route('users.logs.data') }}',
-                columns: [{
-                        data: 'formatted_date',
-                        name: 'created_at'
-                    },
-                    {
-                        data: 'user_name',
-                        name: 'user_name'
-                    },
-                    {
-                        data: 'action_badge',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'target_user_name',
-                        name: 'target_user_name'
-                    },
-                    {
-                        data: 'description',
-                        name: 'description'
-                    },
-                    {
-                        data: 'ip_address',
-                        name: 'ip_address'
-                    }
-                ],
-                order: [[0, 'desc']],
-                dom: 'lBfrtip',
-                buttons: [
-                    'copy', 'csv', 'excel', 'pdf', 'print', 'colvis'
-                ],
-            });
-        });
-    </script>
-@endpush
+<x-datatable.scripts
+    table-id="logs-table"
+    ajax="{{ route('users.logs.data') }}"
+    :order="[[0, 'desc']]"
+    :export-exclude-last-column="false"
+>
+    { data: 'formatted_date', name: 'created_at' },
+    { data: 'user_name', name: 'user_name' },
+    { data: 'action_badge', name: 'action', orderable: false, searchable: false },
+    { data: 'target_user_name', name: 'target_user_name' },
+    { data: 'description', name: 'description' },
+    { data: 'ip_address', name: 'ip_address' }
+</x-datatable.scripts>

@@ -2,74 +2,65 @@
 
 namespace App\Exports;
 
-use App\Models\Record;
 use App\Models\Company;
+use App\Models\Record;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\BeforeSheet;
 
-class RecordExport implements FromCollection, WithEvents, ShouldAutoSize
+class RecordExport implements FromCollection, ShouldAutoSize, WithEvents
 {
-    protected $startDate, $endDate, $companyId;
-
-    public function __construct($startDate, $endDate, $companyId)
-    {
-        $this->startDate = $startDate;
-        $this->endDate = $endDate;
-        $this->companyId = $companyId;
-    }
+    public function __construct(
+        protected string $startDate,
+        protected string $endDate,
+        protected ?int $companyId = null,
+    ) {}
 
     public function collection()
     {
         return Record::with('company')
-            ->when($this->companyId, function ($query) {
-                $query->where('company_id', $this->companyId);
-            })
+            ->when($this->companyId, fn ($query) => $query->where('company_id', $this->companyId))
             ->whereBetween('date', [$this->startDate, $this->endDate])
             ->get()
-            ->map(function ($item) {
-                return [
-                    $item->date,
-                    $item->driver_1,
-                    $item->driver_2,
-                    $item->no_pol,
-                    $item->destination,
-                    $item->start_km,
-                    $item->finish_km,
-                    $item->totals,
-                    $item->bbm,
-                    $item->idr,
-                    $item->scale,
-                    $item->company->name ?? '-',
-                ];
-            });
+            ->map(fn (Record $item): array => [
+                $item->date?->format('Y-m-d'),
+                $item->driver_1,
+                $item->driver_2,
+                $item->no_pol,
+                $item->destination,
+                $item->start_km,
+                $item->finish_km,
+                $item->totals,
+                $item->bbm,
+                $item->fuel_unit_price,
+                $item->idr,
+                $item->scale,
+                $item->company->name ?? '-',
+            ]);
     }
 
-    protected function getCompanyName() {
-        $company = Company::find($this->companyId);
-        if (!$this->companyId) {
+    protected function getCompanyName(): string
+    {
+        if (! $this->companyId) {
             return 'Semua Perusahaan';
         }
 
-        $company = \App\Models\Company::find($this->companyId);
-        return $company ? $company->name : 'Tidak ditemukan';
+        return Company::find($this->companyId)?->name ?? 'Tidak ditemukan';
     }
 
     public function registerEvents(): array
     {
         return [
-            BeforeSheet::class => function (BeforeSheet $event) {
+            BeforeSheet::class => function (BeforeSheet $event): void {
                 $sheet = $event->sheet->getDelegate();
 
-                // Title
-                $sheet->mergeCells('A1:L1');
+                $sheet->mergeCells('A1:M1');
                 $sheet->setCellValue('A1', 'Laporan Perjalanan Kendaraan Operasional');
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
                 $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
 
-                // Info tanggal & perusahaan
                 $sheet->setCellValue('A2', 'Tanggal Mulai:');
                 $sheet->setCellValue('B2', Carbon::parse($this->startDate)->format('d-m-Y'));
 
@@ -79,9 +70,6 @@ class RecordExport implements FromCollection, WithEvents, ShouldAutoSize
                 $sheet->setCellValue('A4', 'Perusahaan:');
                 $sheet->setCellValue('B4', $this->getCompanyName());
 
-                // Baris kosong di bawah perusahaan (baris 5 dibiarkan kosong)
-
-                // Header kolom mulai baris 6
                 $sheet->fromArray([
                     [
                         'Tanggal',
@@ -92,11 +80,12 @@ class RecordExport implements FromCollection, WithEvents, ShouldAutoSize
                         'Start KM',
                         'Finish KM',
                         'Total KM',
-                        'BBM',
-                        'IDR',
+                        'Jumlah BBM (Liter)',
+                        'Harga per Liter',
+                        'Total Harga',
                         'Skala (KM/L)',
                         'Perusahaan',
-                    ]
+                    ],
                 ], null, 'A6');
             },
         ];

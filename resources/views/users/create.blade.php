@@ -30,6 +30,38 @@
                                 <div class="form-text">Username akan digunakan untuk mengambil data dari LDAP</div>
                             </div>
 
+                            <div class="mb-3">
+                                <label for="role_id" class="form-label">Role</label>
+                                <select name="role_id" id="role_id" class="form-select @error('role_id') is-invalid @enderror" required>
+                                    <option value="">Pilih role...</option>
+                                    @foreach($roles as $role)
+                                        <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
+                                            {{ $role->display_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('role_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="company_ids" class="form-label">Perusahaan</label>
+                                <select name="company_ids[]" id="company_ids" class="form-select @error('company_ids') is-invalid @enderror @error('company_ids.*') is-invalid @enderror" multiple>
+                                    @foreach($companies as $company)
+                                        <option value="{{ $company->id }}" @selected(in_array($company->id, old('company_ids', [])))>
+                                            {{ $company->name }} ({{ $company->code }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('company_ids')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                @error('company_ids.*')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+
                             <button type="submit" class="btn btn-primary">
                                 <i class="bx bx-save me-1"></i> Simpan
                             </button>
