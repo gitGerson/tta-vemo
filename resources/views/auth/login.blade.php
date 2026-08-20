@@ -115,7 +115,7 @@
 
                 <div class="text-center mb-4">
                     <h4 class="mb-2 text-dark">Welcome Back! 👋</h4>
-                    <p class="mb-0 text-muted">Please sign-in with your LDAP account</p>
+                    <p class="mb-0 text-muted">Please sign-in with your HOME account</p>
                 </div>
 
                 <form method="POST" action="{{ route('login') }}">
