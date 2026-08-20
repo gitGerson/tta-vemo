@@ -35,10 +35,12 @@
                         <div class="feature-item" style="--delay: 0s">
                             <div class="feature-icon">📦</div>
                             <div class="feature-content">
-                                <h5>Version 1.0.0 - Initial Release</h5>
-                                <p>✅ LDAP Authentication Integration<br>
-                                    ✅ User Management System<br>
-                                    ✅ DataTables with Server-side Processing</p>
+                                <h5>Versi 3.0.0 - Vemo v3</h5>
+                                <p>✅ Modul master data lengkap (company, kendaraan, driver, tujuan)<br>
+                                    ✅ Operasional record BBM & maintenance dengan form modal<br>
+                                    ✅ Dashboard baru: KPI, grafik kondisi kendaraan, reminder servis<br>
+                                    ✅ Notifikasi in-app, email, dan Telegram<br>
+                                    ✅ Reminder masa berlaku STNK, KIR, dan asuransi kendaraan</p>
                             </div>
                         </div>
 
@@ -56,11 +58,12 @@
                                     </button>
                                 </h5>
                                 <div class="collapse" id="updatesCollapse">
-                                    <p class="collapse-content">• Sneat Admin Template Integration<br>
-                                        • Enhanced Login UI with Tea Theme<br>
-                                        • Responsive Design Implementation<br>
-                                        • Audit Trail Implementation<br>
-                                        • Soft Delete Functionality</p>
+                                    <p class="collapse-content">• Foto kendaraan dengan tracking kelengkapan dan komentar<br>
+                                        • QR scan untuk lookup kendaraan beserta aksi cepat<br>
+                                        • Laporan analisis BBM dan maintenance bulanan (PDF & Excel)<br>
+                                        • Asuransi kendaraan dengan lampiran dan permission per-field<br>
+                                        • Tabel Tabulator: export, atur kolom, dan pencarian global<br>
+                                        • Komponen form baru: upload berkas, input rupiah, dan pilih tanggal</p>
                                 </div>
                             </div>
                         </div>
@@ -79,11 +82,12 @@
                                     </button>
                                 </h5>
                                 <div class="collapse" id="fixCollapse">
-                                    <p class="collapse-content">• Advanced User Roles & Permissions<br>
-                                        • Export Functionality Enhancement<br>
-                                        • Notifikasi Real-time<br>
-                                        • Mobile Responsive Improvements<br>
-                                        • Performance Optimizations</p>
+                                    <p class="collapse-content">• Permission dan role dirapikan, akses dashboard diperbaiki<br>
+                                        • Kode master data dibuat otomatis, input manual dihapus<br>
+                                        • Status maintenance mengikuti opsi simpan (DRAFT / COMPLETED)<br>
+                                        • Laporan hanya menghitung maintenance completed dan confirmed<br>
+                                        • Terjemahan label UI ke bahasa Indonesia<br>
+                                        • Perbaikan tampilan tabel, modal edit record, dan filter tanggal</p>
                                 </div>
                             </div>
                         </div>
@@ -111,7 +115,7 @@
 
                 <div class="text-center mb-4">
                     <h4 class="mb-2 text-dark">Welcome Back! 👋</h4>
-                    <p class="mb-0 text-muted">Please sign-in with your LDAP account</p>
+                    <p class="mb-0 text-muted">Please sign-in with your HOME account</p>
                 </div>
 
                 <form method="POST" action="{{ route('login') }}">

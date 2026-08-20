@@ -80,13 +80,72 @@ class LegacySqlDumpReader
     }
 
     /**
+     * Scans out every `INSERT INTO ... VALUES ...;` statement.
+     *
+     * Deliberately hand-rolled instead of a `.*?;` regex: a single dump-wide
+     * preg_match_all blows PCRE's backtrack limit on large INSERTs (the legacy
+     * `records` statement alone exceeds 1 MB) and then silently returns only
+     * the statements matched before the failure.
+     *
      * @return list<string>
      */
     private function insertStatements(string $contents): array
     {
-        preg_match_all('/INSERT\s+INTO\s+`[^`]+`\s+VALUES\s+.*?;/is', $contents, $matches);
+        $statements = [];
+        $length = strlen($contents);
+        $offset = 0;
 
-        return $matches[0];
+        while (($start = stripos($contents, 'INSERT INTO ', $offset)) !== false) {
+            $index = $start;
+            $inString = false;
+            $escaping = false;
+            $end = null;
+
+            for (; $index < $length; $index++) {
+                $character = $contents[$index];
+
+                if ($inString) {
+                    if ($escaping) {
+                        $escaping = false;
+
+                        continue;
+                    }
+
+                    if ($character === '\\') {
+                        $escaping = true;
+
+                        continue;
+                    }
+
+                    if ($character === "'") {
+                        $inString = false;
+                    }
+
+                    continue;
+                }
+
+                if ($character === "'") {
+                    $inString = true;
+
+                    continue;
+                }
+
+                if ($character === ';') {
+                    $end = $index;
+
+                    break;
+                }
+            }
+
+            if ($end === null) {
+                break;
+            }
+
+            $statements[] = substr($contents, $start, $end - $start + 1);
+            $offset = $end + 1;
+        }
+
+        return $statements;
     }
 
     /**
