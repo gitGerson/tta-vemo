@@ -9,25 +9,24 @@ class DailyPdfTotalCalculator
 {
     /**
      * @param  iterable<int, int|float|string>  $amounts
-     * @return array{subtotal: string, roundingAdjustment: string, roundedTotal: string}
+     * @return array{roundedAmounts: list<string>, roundedTotal: string}
      */
     public function calculate(iterable $amounts): array
     {
-        $subtotal = BigDecimal::zero();
+        $roundedAmounts = [];
+        $roundedTotal = BigDecimal::zero();
 
         foreach ($amounts as $amount) {
-            $subtotal = $subtotal->plus(
-                BigDecimal::of($amount)->toScale(0, RoundingMode::HalfUp),
-            );
+            $roundedAmount = BigDecimal::of($amount)
+                ->dividedBy(100, 0, RoundingMode::Ceiling)
+                ->multipliedBy(100);
+
+            $roundedAmounts[] = $roundedAmount->toString();
+            $roundedTotal = $roundedTotal->plus($roundedAmount);
         }
 
-        $roundedTotal = $subtotal
-            ->dividedBy(100, 0, RoundingMode::Ceiling)
-            ->multipliedBy(100);
-
         return [
-            'subtotal' => $subtotal->toString(),
-            'roundingAdjustment' => $roundedTotal->minus($subtotal)->toString(),
+            'roundedAmounts' => $roundedAmounts,
             'roundedTotal' => $roundedTotal->toString(),
         ];
     }

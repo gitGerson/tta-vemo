@@ -66,28 +66,18 @@
                     <td class="text-right">{{ $row->finish_km ?? 0 }}</td>
                     <td class="text-right">{{ $row->totals ?? 0 }}</td>
                     <td class="text-right">{{ $row->bbm ?? 0 }}</td>
-                    <td class="text-right">{{ number_format((float) ($row->idr ?? 0), 0, ',', '.') }}</td>
+                    <td class="text-right">{{ number_format((int) $idrSummary['roundedAmounts'][$loop->index], 0, ',', '.') }}</td>
                     <td>{{ strtoupper($row->driver_1 ?: 'NONE') }} - {{ strtoupper($row->driver_2 ?: 'NONE') }}</td>
                     <td class="text-center">{{ $row->scale ?? '-' }}</td>
                 </tr>
             @endforeach
             <tr>
-                <td colspan="6" class="text-left"><strong>JUMLAH DATA</strong></td>
+                <td colspan="6" class="text-left"><strong>JUMLAH</strong></td>
                 <td class="text-right"><strong>{{ $records->sum(fn ($row) => (float) ($row->totals ?? 0)) }}</strong></td>
                 <td class="text-right"><strong>{{ $records->sum(fn ($row) => (float) ($row->bbm ?? 0)) }}</strong></td>
-                <td class="text-right"><strong>{{ number_format((int) $idrSummary['subtotal'], 0, ',', '.') }}</strong></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td colspan="8"><strong>PENYESUAIAN PEMBULATAN</strong></td>
-                <td class="text-right"><strong>{{ number_format((int) $idrSummary['roundingAdjustment'], 0, ',', '.') }}</strong></td>
-                <td colspan="2"></td>
-            </tr>
-            <tr>
-                <td colspan="8"><strong>JUMLAH DIBULATKAN</strong></td>
                 <td class="text-right"><strong>{{ number_format((int) $idrSummary['roundedTotal'], 0, ',', '.') }}</strong></td>
-                <td colspan="2"></td>
+                <td></td>
+                <td></td>
             </tr>
             <tr>
                 <td colspan="6" rowspan="2">&nbsp;</td>

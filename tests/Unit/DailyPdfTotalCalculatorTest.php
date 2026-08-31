@@ -7,35 +7,32 @@ use PHPUnit\Framework\TestCase;
 
 class DailyPdfTotalCalculatorTest extends TestCase
 {
-    public function test_it_rounds_the_displayed_subtotal_up_to_the_next_hundred(): void
+    public function test_it_rounds_each_record_up_to_the_next_hundred_before_summing(): void
     {
-        $totals = (new DailyPdfTotalCalculator)->calculate(['6643627']);
+        $totals = (new DailyPdfTotalCalculator)->calculate(['101', '199', '200']);
 
         $this->assertSame([
-            'subtotal' => '6643627',
-            'roundingAdjustment' => '73',
-            'roundedTotal' => '6643700',
+            'roundedAmounts' => ['200', '200', '200'],
+            'roundedTotal' => '600',
         ], $totals);
     }
 
-    public function test_it_sums_the_same_whole_rupiah_values_displayed_for_each_record(): void
+    public function test_it_rounds_decimal_amounts_directly_to_the_next_hundred(): void
     {
-        $totals = (new DailyPdfTotalCalculator)->calculate(['100.49', '100.51']);
+        $totals = (new DailyPdfTotalCalculator)->calculate(['100.01']);
 
         $this->assertSame([
-            'subtotal' => '201',
-            'roundingAdjustment' => '99',
-            'roundedTotal' => '300',
+            'roundedAmounts' => ['200'],
+            'roundedTotal' => '200',
         ], $totals);
     }
 
-    public function test_it_does_not_adjust_an_existing_hundred(): void
+    public function test_it_keeps_exact_hundreds_and_zero_unchanged(): void
     {
-        $totals = (new DailyPdfTotalCalculator)->calculate(['6643700']);
+        $totals = (new DailyPdfTotalCalculator)->calculate(['0', '6643700']);
 
         $this->assertSame([
-            'subtotal' => '6643700',
-            'roundingAdjustment' => '0',
+            'roundedAmounts' => ['0', '6643700'],
             'roundedTotal' => '6643700',
         ], $totals);
     }

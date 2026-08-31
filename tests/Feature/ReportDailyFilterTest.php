@@ -140,28 +140,36 @@ class ReportDailyFilterTest extends TestCase
             ->assertDownload("laporan_harian_{$records['date']}.pdf");
     }
 
-    public function test_daily_pdf_view_shows_the_rounding_adjustment_and_rounded_total(): void
+    public function test_daily_pdf_view_rounds_each_record_before_summing_idr(): void
     {
         $date = '2026-06-23';
         $vehicle = Vehicle::factory()->make(['plat_new' => 'B 1000 TTI']);
-        $record = Record::factory()->make([
-            'no_pol' => $vehicle->plat_new,
-            'date' => $date,
-            'idr' => '6643627',
+        $records = collect([
+            Record::factory()->make([
+                'no_pol' => $vehicle->plat_new,
+                'date' => $date,
+                'idr' => '6643627',
+            ]),
+            Record::factory()->make([
+                'no_pol' => $vehicle->plat_new,
+                'date' => $date,
+                'idr' => '100',
+            ]),
         ]);
-        $idrSummary = app(DailyPdfTotalCalculator::class)->calculate([$record->idr]);
+        $idrSummary = app(DailyPdfTotalCalculator::class)->calculate($records->pluck('idr'));
 
         $html = view('reports.pdf.daily', [
-            'records' => collect([$record]),
+            'records' => $records,
             'date' => $date,
             'vehicles' => collect([$vehicle]),
             'company' => Company::factory()->make(['name' => 'Default Company']),
             'idrSummary' => $idrSummary,
         ])->render();
 
-        $this->assertStringContainsString('PENYESUAIAN PEMBULATAN', $html);
-        $this->assertStringContainsString('<strong>73</strong>', $html);
-        $this->assertStringContainsString('<strong>6.643.700</strong>', $html);
+        $this->assertStringContainsString('<td class="text-right">6.643.700</td>', $html);
+        $this->assertStringContainsString('<td class="text-right">100</td>', $html);
+        $this->assertStringContainsString('<strong>6.643.800</strong>', $html);
+        $this->assertStringNotContainsString('PENYESUAIAN PEMBULATAN', $html);
     }
 
     public function test_maintenance_year_exports_require_a_selected_company(): void
