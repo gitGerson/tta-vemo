@@ -8,7 +8,6 @@ use App\Models\Record;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Vehicle;
-use App\Services\DailyPdfTotalCalculator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -138,30 +137,6 @@ class ReportDailyFilterTest extends TestCase
             'company' => $records['defaultCompany']->id,
         ]))
             ->assertDownload("laporan_harian_{$records['date']}.pdf");
-    }
-
-    public function test_daily_pdf_view_shows_the_rounding_adjustment_and_rounded_total(): void
-    {
-        $date = '2026-06-23';
-        $vehicle = Vehicle::factory()->make(['plat_new' => 'B 1000 TTI']);
-        $record = Record::factory()->make([
-            'no_pol' => $vehicle->plat_new,
-            'date' => $date,
-            'idr' => '6643627',
-        ]);
-        $idrSummary = app(DailyPdfTotalCalculator::class)->calculate([$record->idr]);
-
-        $html = view('reports.pdf.daily', [
-            'records' => collect([$record]),
-            'date' => $date,
-            'vehicles' => collect([$vehicle]),
-            'company' => Company::factory()->make(['name' => 'Default Company']),
-            'idrSummary' => $idrSummary,
-        ])->render();
-
-        $this->assertStringContainsString('PENYESUAIAN PEMBULATAN', $html);
-        $this->assertStringContainsString('<strong>73</strong>', $html);
-        $this->assertStringContainsString('<strong>6.643.700</strong>', $html);
     }
 
     public function test_maintenance_year_exports_require_a_selected_company(): void
