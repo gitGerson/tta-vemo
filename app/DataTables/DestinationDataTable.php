@@ -9,26 +9,19 @@ class DestinationDataTable extends DataTable
 {
     public function query(): Builder
     {
-        return Destination::query()
-            ->with('province:code,name')
-            ->select([
-                'id',
-                'code',
-                'province_code',
-                'name',
-                'meta',
-            ]);
+        return Destination::query()->select([
+            'id',
+            'name',
+            'desc',
+        ]);
     }
 
     public function columns(): array
     {
         return [
             Column::index(),
-            Column::make('code', 'Kode'),
-            Column::make('name', 'Kota/Kabupaten'),
-            Column::computed('province_name', 'Provinsi', fn (Destination $destination): string => $destination->province?->name ?? '-')
-                ->orderable(false)
-                ->searchable(false),
+            Column::make('name', 'Tujuan'),
+            Column::make('desc', 'Keterangan'),
             Column::action(),
         ];
     }
@@ -60,6 +53,22 @@ class DestinationDataTable extends DataTable
                 'type' => 'detail-modal',
                 'url' => route('destinations.show', $row),
                 'permission' => 'master.destinations.view',
+            ],
+            [
+                'type' => 'edit-modal',
+                'permission' => 'master.destinations.edit',
+                'class' => 'btn-edit-destination',
+                'data' => [
+                    'update-url' => route('destinations.update', $row),
+                    'name' => $row->name,
+                    'desc' => $row->desc,
+                ],
+            ],
+            [
+                'type' => 'delete',
+                'url' => route('destinations.destroy', $row),
+                'permission' => 'master.destinations.delete',
+                'confirm' => 'Yakin ingin menghapus tujuan ini?',
             ],
         ];
     }

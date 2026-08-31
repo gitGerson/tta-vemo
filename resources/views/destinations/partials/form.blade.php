@@ -9,7 +9,7 @@
 
     <div class="row g-3">
         <div class="col-12">
-            <x-form.text name="destination" label="Tujuan" :value="$destination?->destination" inputClass="form-control-sm" required maxlength="50" />
+            <x-form.text name="name" label="Tujuan" :value="$destination?->name" inputClass="form-control-sm" required maxlength="50" />
         </div>
 
         <div class="col-12">

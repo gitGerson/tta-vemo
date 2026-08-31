@@ -18,24 +18,28 @@ class DestinationController extends Controller
 
     public function store(DestinationStoreRequest $request)
     {
-        return redirect()->route('destinations.index')->with('success', 'Tujuan memakai data kota Laravolt Indonesia untuk preview.');
+        Destination::create($request->validated());
+
+        return redirect()->route('destinations.index')->with('success', 'Tujuan berhasil ditambahkan.');
     }
 
     public function show(Destination $destination)
     {
-        $destination->loadMissing('province');
-
         return view('destinations.partials.show', compact('destination'));
     }
 
     public function update(Destination $destination, DestinationUpdateRequest $request)
     {
-        return redirect()->route('destinations.index')->with('success', 'Tujuan memakai data kota Laravolt Indonesia untuk preview.');
+        $destination->update($request->validated());
+
+        return redirect()->route('destinations.index')->with('success', 'Tujuan berhasil diperbarui.');
     }
 
     public function destroy(Destination $destination)
     {
-        return redirect()->route('destinations.index')->with('success', 'Data kota Laravolt Indonesia tidak dihapus dari modul tujuan preview.');
+        $destination->delete();
+
+        return redirect()->route('destinations.index')->with('success', 'Tujuan berhasil dihapus.');
     }
 
     public function trash()
@@ -45,12 +49,16 @@ class DestinationController extends Controller
 
     public function restore(Destination $destination)
     {
-        return redirect()->route('destinations.index')->with('success', 'Tujuan memakai data kota Laravolt Indonesia untuk preview.');
+        $destination->restore();
+
+        return redirect()->route('destinations.trash')->with('success', 'Tujuan berhasil dipulihkan.');
     }
 
     public function forceDelete(Destination $destination)
     {
-        return redirect()->route('destinations.index')->with('success', 'Data kota Laravolt Indonesia tidak dihapus dari modul tujuan preview.');
+        $destination->forceDelete();
+
+        return redirect()->route('destinations.trash')->with('success', 'Tujuan berhasil dihapus permanen.');
     }
 
     public function getData(Request $request)

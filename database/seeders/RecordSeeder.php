@@ -9,7 +9,6 @@ use App\Models\Vehicle;
 use App\Services\RecordFuelCostCalculator;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 class RecordSeeder extends Seeder
 {
@@ -83,33 +82,8 @@ class RecordSeeder extends Seeder
             return $destinations;
         }
 
-        DB::table('indonesia_provinces')->updateOrInsert(
-            ['code' => '31'],
-            [
-                'name' => 'DKI JAKARTA',
-                'meta' => 'Seeded province fallback.',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        );
+        $this->callOnce(DestinationSeeder::class);
 
-        $rows = [
-            ['code' => '9101', 'name' => 'SEED DESTINATION 1'],
-            ['code' => '9102', 'name' => 'SEED DESTINATION 2'],
-            ['code' => '9103', 'name' => 'SEED DESTINATION 3'],
-        ];
-
-        foreach ($rows as $row) {
-            Destination::query()->updateOrCreate(
-                ['code' => $row['code']],
-                [
-                    'province_code' => '31',
-                    'name' => $row['name'],
-                    'meta' => 'Seeded destination fallback.',
-                ],
-            );
-        }
-
-        return Destination::query()->whereIn('code', array_column($rows, 'code'))->orderBy('code')->get();
+        return Destination::query()->orderBy('name')->limit(10)->get();
     }
 }

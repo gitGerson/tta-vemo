@@ -380,7 +380,7 @@ class RecordModuleTest extends TestCase
         $driver = Driver::factory()->create(['name' => 'Joko']);
         $fuelType = FuelType::factory()->create(['price' => 12000]);
 
-        // Imported value with no matching row in indonesia_cities.
+        // Imported value with no matching row in the destinations master.
         $record = Record::factory()->create([
             'no_pol' => $vehicle->plat_new,
             'vehicle_id' => $vehicle->id,

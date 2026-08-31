@@ -26,13 +26,16 @@ class DestinationStoreRequest extends FormRequest
         return Destination::validationRules();
     }
 
+    public function messages(): array
+    {
+        return Destination::validationMessages();
+    }
+
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'code' => is_string($this->input('code')) ? trim($this->input('code')) : $this->input('code'),
-            'province_code' => is_string($this->input('province_code')) ? trim($this->input('province_code')) : $this->input('province_code'),
             'name' => is_string($this->input('name')) ? trim($this->input('name')) : $this->input('name'),
-            'meta' => is_string($this->input('meta')) ? trim($this->input('meta')) : $this->input('meta'),
+            'desc' => is_string($this->input('desc')) ? trim($this->input('desc')) : $this->input('desc'),
         ]);
     }
 }

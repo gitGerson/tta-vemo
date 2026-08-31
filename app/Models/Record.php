@@ -76,24 +76,24 @@ class Record extends Model
 
     /**
      * Nearly every imported record stores a destination that predates the
-     * indonesia_cities list ("UNGARAN", "OT PALEMBANG", …). A plain `exists`
+     * destinations master ("UNGARAN", "OT PALEMBANG", …). A plain `exists`
      * rule makes those rows unsaveable, since the original value isn't even a
      * selectable option — so an edit would be forced to change the destination.
      * Let the stored value through untouched; any *new* value must still resolve
-     * to a real city.
+     * to a destination on record.
      *
      * @return array<int, mixed>
      */
     protected static function destinationRules(?self $record): array
     {
         if ($record?->destination === null) {
-            return ['required', 'string', Rule::exists('indonesia_cities', 'name')];
+            return ['required', 'string', Rule::exists(Destination::class, 'name')->withoutTrashed()];
         }
 
         $stored = $record->destination;
 
         return ['required', 'string', function (string $attribute, mixed $value, Closure $fail) use ($stored): void {
-            if ($value === $stored || Destination::where('name', $value)->exists()) {
+            if ($value === $stored || Destination::query()->where('name', $value)->exists()) {
                 return;
             }
 

@@ -1,0 +1,448 @@
+{
+    "source": "sql_vemo_tongtji_com_2026-08-20_09-15-15_mysql_data_zEBw4.sql",
+    "table": "destinations",
+    "exported_at": "2026-08-20 09:15:15",
+    "count": 55,
+    "rows": [
+        {
+            "id": 3,
+            "name": "BANDUNG",
+            "desc": "BANDUNG",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 4,
+            "name": "BOGOR",
+            "desc": "BOGOR",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 5,
+            "name": "BOGOR",
+            "desc": "SURABAYA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 6,
+            "name": "CIHERANG",
+            "desc": "BOGOR",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 7,
+            "name": "CIREBON",
+            "desc": "CIREBON",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 8,
+            "name": "GENSET",
+            "desc": "TEGALAN",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 9,
+            "name": "JAKARTA",
+            "desc": "JAKARTA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 10,
+            "name": "JAKARTA BOGOR",
+            "desc": "JAKARTA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 11,
+            "name": "JAKARTA LAMPUNG",
+            "desc": "JAKARTA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 12,
+            "name": "KEDIRI",
+            "desc": "KEDIRI",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 13,
+            "name": "KUDUS",
+            "desc": "KUDUS",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 14,
+            "name": "LAMPUNG",
+            "desc": "LAMPUNG",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 15,
+            "name": "MAKASSAR",
+            "desc": "MAKASSAR",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 16,
+            "name": "MANADO",
+            "desc": "MANADO",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 17,
+            "name": "MAYORA",
+            "desc": "BANDUNG",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 18,
+            "name": "MAYORA CIAWI",
+            "desc": "JAKARTA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 19,
+            "name": "MAYORA PASURUAN",
+            "desc": "SURABAYA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 20,
+            "name": "MAYORA PASURUAN + ANDRE",
+            "desc": "SURABAYA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 21,
+            "name": "MAYORA PASURUAN + ANTON",
+            "desc": "SURABAYA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 22,
+            "name": "MEDAN",
+            "desc": "MEDAN",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 23,
+            "name": "OT PALEMBANG",
+            "desc": "JAKARTA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 24,
+            "name": "OT PANDAAN",
+            "desc": "SURABAYA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 25,
+            "name": "OT PANDAAN + ANDRE",
+            "desc": "SURABAYA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 26,
+            "name": "OT PANDAAN + ANTON",
+            "desc": "SURABAYA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 27,
+            "name": "OT SUKABUMI",
+            "desc": "BOGOR",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 28,
+            "name": "OT SURABAYA",
+            "desc": "SURABAYA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 29,
+            "name": "PALEMBANG",
+            "desc": "PALEMBANG",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 30,
+            "name": "PEKALONGAN",
+            "desc": "PEKALONGAN",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 31,
+            "name": "PEPSI CIIKAMPEK",
+            "desc": "JAKARTA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 32,
+            "name": "PEPSI UNGARAN",
+            "desc": "UNGARAN",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 33,
+            "name": "PURWOKERTO",
+            "desc": "PURWOKERTO",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 34,
+            "name": "SEMARANG",
+            "desc": "SEMARANG",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 35,
+            "name": "SKU UNGARAN",
+            "desc": "UNGARAN",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 36,
+            "name": "SOLO",
+            "desc": "SOLO",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 37,
+            "name": "SOLO KEDIRI",
+            "desc": "KEDIRI",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 38,
+            "name": "SURABAYA",
+            "desc": "SURABAYA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 39,
+            "name": "SURABAYA ANDRE",
+            "desc": "SURABAYA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 40,
+            "name": "SURABAYA ANTON",
+            "desc": "SURABAYA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 41,
+            "name": "SURABAYA MAKASAR",
+            "desc": "SURABAYA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 42,
+            "name": "TANGERANG",
+            "desc": "TANGERANG",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 43,
+            "name": "TAS",
+            "desc": "JAKARTA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 44,
+            "name": "TAS CIBITUNG",
+            "desc": "CIBITUNG",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 45,
+            "name": "TEGAL",
+            "desc": "TEGAL",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 46,
+            "name": "UNGARAN",
+            "desc": "UNGARAN",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 47,
+            "name": "UNGARAN SOLO",
+            "desc": "SOLO",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 48,
+            "name": "YOGYAKARTA",
+            "desc": "YOGYAKARTA",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 49,
+            "name": "bekasi",
+            "desc": "bekasi sekitarny",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 50,
+            "name": "cilacap",
+            "desc": "jawa tengah",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 51,
+            "name": "surabaya andre + anton",
+            "desc": "surabaya",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 52,
+            "name": "surabaya ot + andre",
+            "desc": "surabaya ot + andre",
+            "created_at": null,
+            "updated_at": null,
+            "deleted_at": null
+        },
+        {
+            "id": 53,
+            "name": "SOLO JOGJA",
+            "desc": "SOLO JOGJA",
+            "created_at": "2024-09-18 02:49:15",
+            "updated_at": "2024-09-18 02:49:15",
+            "deleted_at": null
+        },
+        {
+            "id": 54,
+            "name": "BLORA",
+            "desc": "BLORA",
+            "created_at": "2024-10-01 04:17:25",
+            "updated_at": "2024-10-01 04:17:25",
+            "deleted_at": null
+        },
+        {
+            "id": 55,
+            "name": "Magelang",
+            "desc": null,
+            "created_at": "2026-04-13 18:57:30",
+            "updated_at": "2026-04-13 18:57:30",
+            "deleted_at": null
+        },
+        {
+            "id": 56,
+            "name": "Kudus",
+            "desc": null,
+            "created_at": "2026-04-13 18:57:53",
+            "updated_at": "2026-04-13 18:58:18",
+            "deleted_at": "2026-04-13 18:58:18"
+        },
+        {
+            "id": 57,
+            "name": "KETAPANG",
+            "desc": "BANYUWANGI",
+            "created_at": "2026-06-23 02:34:07",
+            "updated_at": "2026-06-23 02:42:08",
+            "deleted_at": "2026-06-23 02:42:08"
+        }
+    ]
+}

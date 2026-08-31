@@ -69,7 +69,7 @@ class ImportLegacyVemoDump extends Command
             $this->comment('  php artisan db:seed --class=RolePermissionSeeder   # roles & permissions from config/permission.php');
             $this->comment('  php artisan db:seed --class=CompanySeeder          # remaining companies from the ITAM employee API (skips dump\'s TTI/CTR)');
             $this->comment('  php artisan db:seed --class=TypeMaintenanceSeeder  # maintenance types from public/master_type_maintenance.csv');
-            $this->comment('  php artisan laravolt:indonesia:seed                # destinations master (indonesia_cities)');
+            $this->comment('  php artisan destinations:import --commit           # destinations master from database/data/destinations.json');
         }
 
         return self::SUCCESS;

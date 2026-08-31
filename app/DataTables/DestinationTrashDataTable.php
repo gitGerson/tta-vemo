@@ -9,12 +9,11 @@ class DestinationTrashDataTable extends DataTable
 {
     public function query(): Builder
     {
-        return Destination::query()->whereRaw('1 = 0')->select([
+        return Destination::onlyTrashed()->select([
             'id',
-            'code',
-            'province_code',
             'name',
-            'meta',
+            'desc',
+            'deleted_at',
         ]);
     }
 
@@ -22,9 +21,10 @@ class DestinationTrashDataTable extends DataTable
     {
         return [
             Column::index(),
-            Column::make('code', 'Kode'),
-            Column::make('name', 'Kota/Kabupaten'),
-            Column::make('province_code', 'Kode Provinsi'),
+            Column::make('name', 'Tujuan'),
+            Column::make('desc', 'Keterangan'),
+            Column::make('deleted_at', 'Dihapus Pada'),
+            Column::action(),
         ];
     }
 
@@ -40,6 +40,20 @@ class DestinationTrashDataTable extends DataTable
 
     public function actions(mixed $row): array
     {
-        return [];
+        return [
+            [
+                'type' => 'restore',
+                'url' => route('destinations.restore', $row),
+                'permission' => 'master.destinations.restore',
+                'label' => 'Restore',
+            ],
+            [
+                'type' => 'force-delete',
+                'url' => route('destinations.force-delete', $row),
+                'permission' => 'master.destinations.force_delete',
+                'label' => 'Hapus Permanen',
+                'confirm' => 'Yakin ingin menghapus permanen tujuan ini?',
+            ],
+        ];
     }
 }
