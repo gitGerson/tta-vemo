@@ -15,6 +15,7 @@ use App\Models\Maintenance;
 use App\Models\MaintenanceDetail;
 use App\Models\Record;
 use App\Models\Vehicle;
+use App\Services\DailyPdfTotalCalculator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -26,6 +27,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
 {
+    public function __construct(private DailyPdfTotalCalculator $dailyPdfTotalCalculator) {}
+
     public function daily(Request $request)
     {
         $date = Carbon::parse($request->query('date', Carbon::now()->toDateString()))->toDateString();
@@ -284,6 +287,7 @@ class ReportController extends Controller
             'date' => $date,
             'vehicles' => $vehicles,
             'company' => Company::find($companyId),
+            'idrSummary' => $this->dailyPdfTotalCalculator->calculate($records->pluck('idr')),
         ])->setPaper('A4', 'portrait');
 
         return $pdf->download("laporan_harian_{$date}.pdf");

@@ -72,12 +72,22 @@
                 </tr>
             @endforeach
             <tr>
-                <td colspan="6" class="text-left"><strong>JUMLAH</strong></td>
+                <td colspan="6" class="text-left"><strong>JUMLAH DATA</strong></td>
                 <td class="text-right"><strong>{{ $records->sum(fn ($row) => (float) ($row->totals ?? 0)) }}</strong></td>
                 <td class="text-right"><strong>{{ $records->sum(fn ($row) => (float) ($row->bbm ?? 0)) }}</strong></td>
-                <td class="text-right"><strong>{{ number_format($records->sum(fn ($row) => (float) ($row->idr ?? 0)), 0, ',', '.') }}</strong></td>
+                <td class="text-right"><strong>{{ number_format((int) $idrSummary['subtotal'], 0, ',', '.') }}</strong></td>
                 <td></td>
                 <td></td>
+            </tr>
+            <tr>
+                <td colspan="8"><strong>PENYESUAIAN PEMBULATAN</strong></td>
+                <td class="text-right"><strong>{{ number_format((int) $idrSummary['roundingAdjustment'], 0, ',', '.') }}</strong></td>
+                <td colspan="2"></td>
+            </tr>
+            <tr>
+                <td colspan="8"><strong>JUMLAH DIBULATKAN</strong></td>
+                <td class="text-right"><strong>{{ number_format((int) $idrSummary['roundedTotal'], 0, ',', '.') }}</strong></td>
+                <td colspan="2"></td>
             </tr>
             <tr>
                 <td colspan="6" rowspan="2">&nbsp;</td>
