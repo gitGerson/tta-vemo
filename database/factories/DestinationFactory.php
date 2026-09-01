@@ -18,10 +18,8 @@ class DestinationFactory extends Factory
     public function definition(): array
     {
         return [
-            'code' => fake()->unique()->numerify('####'),
-            'province_code' => '31',
-            'name' => fake()->city(),
-            'meta' => fake()->optional()->sentence(),
+            'name' => fake()->unique()->city(),
+            'desc' => fake()->optional()->sentence(),
         ];
     }
 }

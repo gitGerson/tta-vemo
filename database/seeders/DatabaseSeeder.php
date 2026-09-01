@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             TypeMaintenanceSeeder::class,
             MaintenanceSeeder::class,
             DriverSeeder::class,
+            DestinationSeeder::class,
             RecordSeeder::class,
         ]);
     }

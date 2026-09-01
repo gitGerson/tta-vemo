@@ -2,48 +2,47 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\HasDiffrntHashId;
+use Database\Factories\DestinationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Validation\Rule;
-use Laravolt\Indonesia\Models\Province;
 
 class Destination extends Model
 {
-    use HasDiffrntHashId, HasFactory;
+    /** @use HasFactory<DestinationFactory> */
+    use Auditable, HasDiffrntHashId, HasFactory, SoftDeletes;
 
-    protected $table = 'indonesia_cities';
+    protected $table = 'destinations';
 
     protected $fillable = [
-        'code',
-        'province_code',
         'name',
-        'meta',
+        'desc',
     ];
 
-    public function getDestinationAttribute(): string
-    {
-        return $this->name;
-    }
-
-    public function getDescAttribute(): ?string
-    {
-        return $this->meta;
-    }
-
-    public function province(): BelongsTo
-    {
-        return $this->belongsTo(Province::class, 'province_code', 'code');
-    }
-
-    public static function validationRules(): array
+    protected function casts(): array
     {
         return [
-            'code' => ['required', 'string', 'size:4', Rule::unique('indonesia_cities', 'code')],
-            'province_code' => ['required', 'string', 'size:2', Rule::exists('indonesia_provinces', 'code')],
-            'name' => ['required', 'string', 'max:255'],
-            'meta' => ['nullable', 'string'],
+            'deleted_at' => 'datetime',
+        ];
+    }
+
+    public static function validationRules(?self $destination = null): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:50', Rule::unique(self::class, 'name')->ignore($destination)->withoutTrashed()],
+            'desc' => ['nullable', 'string'],
+        ];
+    }
+
+    public static function validationMessages(): array
+    {
+        return [
+            'name.required' => 'Tujuan wajib diisi.',
+            'name.unique' => 'Tujuan sudah tersedia.',
+            'name.max' => 'Tujuan maksimal 50 karakter.',
         ];
     }
 }
