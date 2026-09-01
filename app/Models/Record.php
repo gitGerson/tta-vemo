@@ -18,6 +18,8 @@ class Record extends Model
     /** @use HasFactory<RecordFactory> */
     use BelongsToCompanyTenant, HasDiffrntHashId, HasFactory, SoftDeletes;
 
+    public const MAX_TOTAL_PRICE = '999999999999999.99';
+
     protected $table = 'records';
 
     protected static function booted(): void
@@ -71,6 +73,7 @@ class Record extends Model
             'finish_km' => ['required', 'string'],
             'bbm' => ['required', 'numeric', 'min:0'],
             'fuel_unit_price' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:'.FuelType::MAX_PRICE],
+            'idr' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:'.self::MAX_TOTAL_PRICE],
         ];
     }
 
@@ -115,6 +118,11 @@ class Record extends Model
             'fuel_unit_price.decimal' => 'Harga per Liter maksimal memiliki 2 angka desimal.',
             'fuel_unit_price.min' => 'Harga per Liter tidak boleh negatif.',
             'fuel_unit_price.max' => 'Harga per Liter melebihi batas yang diizinkan.',
+            'idr.required' => 'Total Harga wajib diisi.',
+            'idr.numeric' => 'Total Harga harus berupa angka.',
+            'idr.decimal' => 'Total Harga maksimal memiliki 2 angka desimal.',
+            'idr.min' => 'Total Harga tidak boleh negatif.',
+            'idr.max' => 'Total Harga melebihi batas yang diizinkan.',
         ];
     }
 

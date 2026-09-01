@@ -1,8 +1,3 @@
-const rupiahFormatter = new Intl.NumberFormat('id-ID', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-});
-
 function enhanceRecordFuelPricing(form) {
     if (form.dataset.recordFuelPricingEnhanced === '1') {
         return;
@@ -15,18 +10,24 @@ function enhanceRecordFuelPricing(form) {
     const unitPrice = form.querySelector('[data-fuel-unit-price]');
     const totalPrice = form.querySelector('[data-fuel-total-price]');
     const prices = JSON.parse(form.dataset.fuelTypePrices || '{}');
+    let totalWasManuallyAdjusted = totalPrice?.value !== '';
 
-    function recalculateTotal() {
+    function prefillTotal() {
+        if (!totalPrice || totalWasManuallyAdjusted) {
+            return;
+        }
+
         const unitPriceValue = unitPrice?.value ?? '';
         const litersValue = liters?.value ?? '';
         const numericPrice = Number(unitPriceValue);
         const numericLiters = Number(litersValue);
+        const calculatedTotal = Math.round((numericPrice * numericLiters + Number.EPSILON) * 100) / 100;
 
         totalPrice.value = unitPriceValue !== ''
             && litersValue !== ''
             && Number.isFinite(numericPrice)
             && Number.isFinite(numericLiters)
-            ? rupiahFormatter.format(numericPrice * numericLiters)
+            ? calculatedTotal.toFixed(2)
             : '';
     }
 
@@ -39,7 +40,7 @@ function enhanceRecordFuelPricing(form) {
             unitPrice.value = hasSelectedPrice ? selectedPrice : '';
         }
 
-        recalculateTotal();
+        prefillTotal();
     }
 
     function handleFuelTypeChange() {
@@ -51,8 +52,19 @@ function enhanceRecordFuelPricing(form) {
     } else {
         fuelType?.addEventListener('change', handleFuelTypeChange);
     }
-    liters?.addEventListener('input', recalculateTotal);
-    unitPrice?.addEventListener('input', recalculateTotal);
+    liters?.addEventListener('input', prefillTotal);
+    unitPrice?.addEventListener('input', prefillTotal);
+    totalPrice?.addEventListener('input', () => {
+        totalWasManuallyAdjusted = totalPrice.value !== '';
+
+        if (!totalWasManuallyAdjusted) {
+            prefillTotal();
+        }
+    });
+    form.addEventListener('record-fuel-pricing:reset', () => {
+        totalWasManuallyAdjusted = false;
+        prefillTotal();
+    });
     form.closest('.modal')?.addEventListener('shown.bs.modal', () => queueMicrotask(() => prefillUnitPrice()));
     prefillUnitPrice();
 }

@@ -38,6 +38,7 @@ class RecordStoreRequest extends FormRequest
             'fuel_unit_price' => is_string($this->input('fuel_unit_price'))
                 ? trim($this->input('fuel_unit_price'))
                 : $this->input('fuel_unit_price'),
+            'idr' => is_string($this->input('idr')) ? trim($this->input('idr')) : $this->input('idr'),
         ]);
     }
 

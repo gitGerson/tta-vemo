@@ -89,6 +89,7 @@
 
     function resetToCreate() {
         getForm().reset();
+        getForm().dispatchEvent(new Event('record-fuel-pricing:reset'));
         setMode(createUrl, 'POST', 'Tambah Catatan Perjalanan', createLabel);
 
         if (window.jQuery) {
@@ -114,39 +115,24 @@
         setField('fuel_type_id', d.fuelTypeId, { silent: true });
         setField('fuel_unit_price', d.fuelUnitPrice, { silent: true });
 
-        recalculateTotal();
+        resetTotalSuggestion();
 
-        // Deferred to a macrotask on purpose. record-fuel-pricing.js also handles
-        // shown.bs.modal, and queues a microtask that re-runs its own prefill and
-        // blanks the total again. Microtasks drain before timeouts, so this lands
-        // after that pass instead of being clobbered by it.
-        setTimeout(() => showStoredTotal(d.idr), 0);
+        // Apply the persisted final amount after the queued frontend suggestion.
+        setTimeout(() => setStoredTotal(d.idr), 0);
     }
 
-    // Total Harga is derived, not submitted: record-fuel-pricing.js owns it and
-    // recomputes on a native 'input' from bbm / fuel_unit_price. The silent
-    // jQuery triggers above emit no such event, so drive it explicitly here
-    // rather than leaving the prefill to that module's shown.bs.modal hook.
-    function recalculateTotal() {
-        getForm().querySelector('[data-fuel-unit-price]')
-            ?.dispatchEvent(new Event('input', { bubbles: true }));
+    // Let dependency changes suggest a total until the user edits it manually.
+    function resetTotalSuggestion() {
+        getForm().dispatchEvent(new Event('record-fuel-pricing:reset'));
     }
 
-    // Records predating the unit-price field have no Rp/L, so the derived total
-    // above resolves to blank. Fall back to the stored idr — the historical
-    // figure the reports already use — so the modal isn't showing an empty
-    // total for a record that has one. Must run after recalculateTotal(), which
-    // would otherwise clear it. Typing a price recomputes and replaces this,
-    // which is correct: that computed value is what update() will save.
-    function showStoredTotal(idr) {
-        const form = getForm();
-        const total = form.querySelector('[data-fuel-total-price]');
-        const unitPrice = form.querySelector('[data-fuel-unit-price]');
+    // Preserve the record's stored final amount when an edit opens.
+    function setStoredTotal(idr) {
+        const total = getForm().querySelector('[data-fuel-total-price]');
 
-        if (!total || unitPrice?.value !== '' || !idr) return;
+        if (!total) return;
 
-        total.value = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 })
-            .format(Number(idr));
+        total.value = idr ?? '';
     }
 
     modalEl.addEventListener('shown.bs.modal', function () {

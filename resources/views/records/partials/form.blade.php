@@ -105,12 +105,17 @@
             <x-form.error name="fuel_unit_price" />
         </div>
         <div class="col-md-4">
-            <label for="fuel_total_price" class="form-label">Total Harga</label>
+            <label for="fuel_total_price" class="form-label">
+                Total Harga <span class="text-danger">*</span>
+            </label>
             <div class="input-group input-group-sm">
                 <span class="input-group-text">Rp</span>
-                <input type="text" id="fuel_total_price" class="form-control" placeholder="0" readonly
-                    data-fuel-total-price>
+                <input type="number" id="fuel_total_price" name="idr"
+                    value="{{ old('idr', $record?->idr) }}" min="0" max="{{ \App\Models\Record::MAX_TOTAL_PRICE }}"
+                    step="0.01" placeholder="0" required data-fuel-total-price
+                    @class(['form-control', 'is-invalid' => $errors->has('idr')])>
             </div>
+            <x-form.error name="idr" />
         </div>
     </div>
 
