@@ -49,6 +49,7 @@ class RecordModuleTest extends TestCase
             ->assertSee('RON 95 (BP - Bensin)')
             ->assertSee('15000.25')
             ->assertSee('name="fuel_unit_price"', false)
+            ->assertSee('name="idr"', false)
             ->assertSee('step="0.01"', false)
             ->assertSee('max="'.FuelType::MAX_PRICE.'"', false)
             ->assertSee('data-record-fuel-pricing-form', false);
@@ -114,7 +115,7 @@ class RecordModuleTest extends TestCase
         $this->get(route('records.index'))->assertRedirect();
     }
 
-    public function test_store_uses_submitted_unit_price_and_ignores_submitted_total(): void
+    public function test_store_persists_the_manually_adjusted_total(): void
     {
         $this->actingAs($this->userWithRecordPermissions());
 
@@ -137,7 +138,7 @@ class RecordModuleTest extends TestCase
             'finish_km' => '250',
             'bbm' => '30.5',
             'fuel_unit_price' => '14750.55',
-            'idr' => '1',
+            'idr' => '450000.25',
         ];
 
         $this->post(route('records.store'), $payload)
@@ -154,7 +155,7 @@ class RecordModuleTest extends TestCase
             'totals' => '150',
             'scale' => '5',
             'fuel_unit_price' => '14750.55',
-            'idr' => '449891.78',
+            'idr' => '450000.25',
         ]);
 
         $this->assertSame('250', $vehicle->fresh()->mileage);
@@ -183,6 +184,7 @@ class RecordModuleTest extends TestCase
             'finish_km' => '250',
             'bbm' => '10',
             'fuel_unit_price' => '10000',
+            'idr' => '100000',
         ];
 
         $this->post(route('records.store'), [
@@ -218,6 +220,13 @@ class RecordModuleTest extends TestCase
             ...$payload,
             'fuel_unit_price' => '10000000000000',
         ])->assertSessionHasErrors(['fuel_unit_price']);
+
+        foreach ([null, '-1', 'not-a-number', '100000.001', '1000000000000000'] as $invalidTotal) {
+            $this->post(route('records.store'), [
+                ...$payload,
+                'idr' => $invalidTotal,
+            ])->assertSessionHasErrors(['idr']);
+        }
 
         $this->assertDatabaseEmpty('records');
     }
@@ -284,6 +293,7 @@ class RecordModuleTest extends TestCase
             'finish_km' => '650',
             'bbm' => '15',
             'fuel_unit_price' => '9750.50',
+            'idr' => '150000',
         ])->assertRedirect(route('records.index'));
 
         // start_km falls back to the previous record's finish_km (500); totals 150.
@@ -295,7 +305,7 @@ class RecordModuleTest extends TestCase
         ]);
     }
 
-    public function test_update_preserves_custom_unit_price_and_recomputes_total(): void
+    public function test_update_persists_the_manually_adjusted_total(): void
     {
         $this->actingAs($this->userWithRecordPermissions());
 
@@ -323,7 +333,7 @@ class RecordModuleTest extends TestCase
             'finish_km' => '500',
             'bbm' => '30',
             'fuel_unit_price' => '12345.67',
-            'idr' => '1',
+            'idr' => '375000.50',
         ])->assertRedirect(route('records.index'));
 
         $this->assertDatabaseHas('records', [
@@ -331,7 +341,7 @@ class RecordModuleTest extends TestCase
             'totals' => '300',
             'scale' => '10',
             'fuel_unit_price' => '12345.67',
-            'idr' => '370370.10',
+            'idr' => '375000.50',
         ]);
         $this->assertSame('500', $vehicle->fresh()->mileage);
     }
@@ -365,6 +375,7 @@ class RecordModuleTest extends TestCase
             'finish_km' => '500',
             'bbm' => '30',
             'fuel_unit_price' => '12345.67',
+            'idr' => '370370.10',
         ])->assertRedirect(route('records.show', $record));
 
         $this->assertDatabaseHas('records', ['id' => $record->id, 'totals' => '300']);
@@ -401,6 +412,7 @@ class RecordModuleTest extends TestCase
             'finish_km' => '500',
             'bbm' => '30',
             'fuel_unit_price' => '12345.67',
+            'idr' => '370370.10',
         ])->assertRedirect(route('records.index'))->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('records', ['id' => $record->id, 'destination' => 'UNGARAN']);
@@ -434,6 +446,7 @@ class RecordModuleTest extends TestCase
             'finish_km' => '500',
             'bbm' => '30',
             'fuel_unit_price' => '12345.67',
+            'idr' => '370370.10',
         ])->assertSessionHasErrors('destination');
 
         $this->assertDatabaseHas('records', ['id' => $record->id, 'destination' => 'UNGARAN']);
@@ -460,6 +473,7 @@ class RecordModuleTest extends TestCase
             'finish_km' => '250',
             'bbm' => '30',
             'fuel_unit_price' => '12345.67',
+            'idr' => '370370.10',
         ])->assertSessionHasErrors('destination');
     }
 
