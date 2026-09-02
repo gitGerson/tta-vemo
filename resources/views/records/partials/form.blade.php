@@ -137,6 +137,7 @@
             const $company = $('#company_id');
             const $noPol = $('#no_pol');
             const $startKm = $('#start_km');
+            const $finishKm = $('#finish_km');
             const $driver1 = $('#driver_1');
             const $driver2 = $('#driver_2');
             let syncingDrivers = false;
@@ -162,10 +163,32 @@
                 $gated.filter('select').trigger('change.select2');
             }
 
+            function syncMileageValidation() {
+                const startValue = $startKm.val();
+                const finishValue = $finishKm.val();
+                const startKm = Number(startValue);
+                const finishKm = Number(finishValue);
+                const hasValidStart = startValue !== '' && Number.isFinite(startKm);
+                const hasValidFinish = finishValue !== '' && Number.isFinite(finishKm);
+
+                $finishKm.attr('min', hasValidStart ? Math.max(startKm, 0) : 0);
+                $finishKm[0].setCustomValidity(
+                    hasValidStart && hasValidFinish && finishKm < startKm
+                        ? 'KM Akhir tidak boleh lebih kecil dari KM Awal.'
+                        : ''
+                );
+            }
+
             // KM Awal mirrors the selected vehicle's current mileage.
             $noPol.on('change', function () {
                 const mileage = vehicleMileage[this.value];
                 $startKm.val(mileage !== undefined && mileage !== null ? mileage : '');
+                syncMileageValidation();
+            });
+
+            $startKm.add($finishKm).on('input change', syncMileageValidation);
+            $('#record-modal').on('shown.bs.modal', function () {
+                setTimeout(syncMileageValidation, 0);
             });
 
             function rebuildDriverSelect($select, options, excludedValue, selectedValue) {
@@ -227,6 +250,7 @@
             // Initial state: create starts locked, edit has a company pre-filled.
             toggleGate();
             syncDrivers('driver_1');
+            syncMileageValidation();
         })();
     </script>
 @endpush

@@ -305,6 +305,98 @@ class RecordModuleTest extends TestCase
         ]);
     }
 
+    public function test_store_rejects_finish_km_less_than_the_effective_start_km(): void
+    {
+        $this->actingAs($this->userWithRecordPermissions());
+
+        $this->createProvince();
+        $company = Company::factory()->create();
+        $vehicle = Vehicle::factory()->create(['plat_new' => 'B 10 AA', 'mileage' => '500']);
+        $driver = Driver::factory()->create(['name' => 'Joko']);
+        $fuelType = FuelType::factory()->create(['price' => 10000]);
+        $destination = Destination::factory()->create(['name' => 'Malang']);
+
+        Record::factory()->create([
+            'no_pol' => $vehicle->plat_new,
+            'vehicle_id' => $vehicle->id,
+            'company_id' => $company->id,
+            'finish_km' => '500',
+        ]);
+
+        $payload = [
+            'company_id' => $company->id,
+            'fuel_type_id' => $fuelType->id,
+            'date' => '2026-06-02',
+            'driver_1' => $driver->id,
+            'no_pol' => $vehicle->plat_new,
+            'destination' => $destination->name,
+            'finish_km' => '499',
+            'bbm' => '15',
+            'fuel_unit_price' => '9750.50',
+            'idr' => '150000',
+        ];
+
+        $this->post(route('records.store'), [
+            ...$payload,
+            'start_km' => '500',
+        ])->assertSessionHasErrors(['finish_km']);
+
+        $this->post(route('records.store'), $payload)
+            ->assertSessionHasErrors(['finish_km']);
+
+        $this->assertDatabaseCount('records', 1);
+    }
+
+    public function test_update_rejects_finish_km_less_than_start_km_and_accepts_equality(): void
+    {
+        $this->actingAs($this->userWithRecordPermissions());
+
+        $this->createProvince();
+        $company = Company::factory()->create();
+        $vehicle = Vehicle::factory()->create(['plat_new' => 'B 11 AA', 'mileage' => '500']);
+        $driver = Driver::factory()->create(['name' => 'Joko']);
+        $fuelType = FuelType::factory()->create(['price' => 10000]);
+        $destination = Destination::factory()->create(['name' => 'Malang']);
+        $record = Record::factory()->create([
+            'no_pol' => $vehicle->plat_new,
+            'vehicle_id' => $vehicle->id,
+            'company_id' => $company->id,
+            'start_km' => '400',
+            'finish_km' => '500',
+        ]);
+
+        $payload = [
+            'company_id' => $company->id,
+            'fuel_type_id' => $fuelType->id,
+            'date' => '2026-06-02',
+            'driver_1' => $driver->id,
+            'no_pol' => $vehicle->plat_new,
+            'destination' => $destination->name,
+            'start_km' => '500',
+            'finish_km' => '499',
+            'bbm' => '15',
+            'fuel_unit_price' => '9750.50',
+            'idr' => '150000',
+        ];
+
+        $this->put(route('records.update', $record), $payload)
+            ->assertSessionHasErrors(['finish_km']);
+
+        $this->assertSame('500', $record->fresh()->finish_km);
+
+        $this->put(route('records.update', $record), [
+            ...$payload,
+            'finish_km' => '500',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('records', [
+            'id' => $record->id,
+            'start_km' => '500',
+            'finish_km' => '500',
+            'totals' => '0',
+        ]);
+    }
+
     public function test_update_persists_the_manually_adjusted_total(): void
     {
         $this->actingAs($this->userWithRecordPermissions());
