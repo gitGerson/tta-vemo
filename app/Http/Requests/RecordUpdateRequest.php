@@ -22,7 +22,7 @@ class RecordUpdateRequest extends RecordStoreRequest
         // value predates the destinations master.
         $rules = Record::validationRules($record instanceof Record ? $record : null);
         // On edit the start km is always present and explicitly entered.
-        $rules['start_km'] = ['required', 'string'];
+        $rules['start_km'] = ['required', 'numeric', 'min:0'];
 
         return $rules;
     }
