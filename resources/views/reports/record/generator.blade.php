@@ -3,7 +3,7 @@
 <x-form.select2-assets />
 
 @section('title')
-    Report Generator BBM
+    Custom Report BBM
 @endsection
 
 @section('content')
@@ -23,7 +23,7 @@
                 ];
             @endphp
 
-            <h6 class="text-primary fw-semibold mb-3">Report Generator BBM</h6>
+            <h6 class="text-primary fw-semibold mb-3">Custom Report BBM</h6>
 
             <form action="{{ route('report.generator') }}" id="FormReportGenerator" class="row g-2 align-items-start">
                 <div class="col-12 col-xl filter-company">
@@ -88,7 +88,7 @@
         </div>
     </div>
 
-    <x-table engine="tabulator" :table="$table" layout="fitColumns" placeholder="Tidak ada data." title="Report Generator BBM" />
+    <x-table engine="tabulator" :table="$table" layout="fitColumns" placeholder="Tidak ada data." title="Custom Report BBM" />
 </div>
 
 @endsection

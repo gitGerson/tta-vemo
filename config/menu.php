@@ -382,8 +382,8 @@ return [
         ],
         [
             'key' => 'report-generator',
-            'label' => 'Report Generator BBM',
-            'sidebar_label' => 'Report Generator',
+            'label' => 'Custom Report BBM',
+            'sidebar_label' => 'Custom Report',
             'icon' => 'bx-slider-alt',
             'route' => 'report.generator',
             'route_params' => [],
@@ -395,7 +395,7 @@ return [
             'contexts' => ['desktop', 'search'],
             'search' => [
                 'description' => 'Laporan BBM dengan filter fleksibel (multi perusahaan, rentang tanggal/bulan)',
-                'keywords' => ['laporan', 'generator', 'report', 'bbm', 'rentang', 'range', 'periode', 'rekap'],
+                'keywords' => ['laporan', 'custom', 'kustom', 'generator', 'report', 'bbm', 'rentang', 'range', 'periode', 'rekap'],
             ],
             'enabled' => true,
         ],

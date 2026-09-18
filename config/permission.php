@@ -958,7 +958,7 @@ return [
                 ],
                 [
                     'name' => 'reports.generator.view',
-                    'display_name' => 'Report Generator BBM - View',
+                    'display_name' => 'Custom Report BBM - View',
                     'description' => 'Can view fuel (BBM) reports with flexible filters (multi-company, day/month range, vehicle)',
                     'module' => 'reports',
                     'parent' => 'reports.access',
@@ -966,7 +966,7 @@ return [
                 ],
                 [
                     'name' => 'reports.generator.export',
-                    'display_name' => 'Report Generator BBM - Export',
+                    'display_name' => 'Custom Report BBM - Export',
                     'description' => 'Can export flexible fuel (BBM) reports to Excel',
                     'module' => 'reports',
                     'parent' => 'reports.access',
