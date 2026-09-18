@@ -12,6 +12,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\QrScanController;
 use App\Http\Controllers\RecordController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportGeneratorController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TelegramLinkController;
@@ -376,6 +377,12 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::middleware(['permission:reports.monthly.export'])->group(function () {
         Route::get('/report/monthly/pdf', [ReportController::class, 'monthlyPdf'])->name('report.monthly.pdf');
+    });
+    Route::middleware(['permission:reports.generator.view'])->group(function () {
+        Route::get('/report/generator', [ReportGeneratorController::class, 'index'])->name('report.generator');
+    });
+    Route::middleware(['permission:reports.generator.export'])->group(function () {
+        Route::get('/report/generator/excel', [ReportGeneratorController::class, 'excel'])->name('report.generator.excel');
     });
     Route::middleware(['permission:reports.analysis_monthly.view'])->group(function () {
         Route::get('/report/analysis/monthly', [ReportController::class, 'analysisMonthly'])->name('report.analysis.monthly');
