@@ -13,6 +13,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RolePermissionSeeder::class,
+            VemoRoleSeeder::class,
+            VemoDummyUserSeeder::class,
             CompanySeeder::class,
             VehicleBrandSeeder::class,
             VehicleTypeSeeder::class,
