@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\{Company, Destination, Driver, FuelType, Maintenance, MaintenanceDetail, Record, Role, TypeMaintenances, User, Vehicle, VehicleBrand, VehicleType};
+use App\Models\{Company, Destination, Driver, FuelType, Maintenance, MaintenanceDetail, Record, TypeMaintenances, User, Vehicle, VehicleBrand, VehicleType};
 use App\Services\RecordFuelCostCalculator;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -44,7 +44,7 @@ class FocusedVemoDemoDataSeeder extends Seeder
 
             $fuels = [];
             foreach (['DEMO DIESEL' => ['solar', 12000], 'DEMO GASOLINE' => ['bensin', 14000]] as $name => [$type, $price]) {
-                $fuels[$name] = FuelType::withTrashed()->updateOrCreate(['name' => $name, 'merk' => 'DEMO'], [
+                $fuels[$name] = FuelType::withTrashed()->updateOrCreate(['name' => $name, 'merk' => 'Pertamina'], [
                     'type' => $type, 'price' => $price,
                 ]);
             }
