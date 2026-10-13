@@ -1,0 +1,131 @@
+{
+  "_jspdf.es.min-Dq4ZhWgp.js": {
+    "file": "assets/jspdf.es.min-Dq4ZhWgp.js",
+    "name": "jspdf.es.min",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/modules/tabulator.js"
+    ],
+    "dynamicImports": [
+      "node_modules/html2canvas/dist/html2canvas.esm.js",
+      "node_modules/dompurify/dist/purify.es.mjs",
+      "node_modules/canvg/lib/index.es.js"
+    ]
+  },
+  "node_modules/canvg/lib/index.es.js": {
+    "file": "assets/index.es-Cj8ANAar.js",
+    "name": "index.es",
+    "src": "node_modules/canvg/lib/index.es.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_jspdf.es.min-Dq4ZhWgp.js",
+      "resources/js/modules/tabulator.js",
+      "resources/js/modules/select2.js"
+    ]
+  },
+  "node_modules/dompurify/dist/purify.es.mjs": {
+    "file": "assets/purify.es-BSKMTLSQ.js",
+    "name": "purify.es",
+    "src": "node_modules/dompurify/dist/purify.es.mjs",
+    "isDynamicEntry": true
+  },
+  "node_modules/html2canvas/dist/html2canvas.esm.js": {
+    "file": "assets/html2canvas.esm-B0tyYwQk.js",
+    "name": "html2canvas.esm",
+    "src": "node_modules/html2canvas/dist/html2canvas.esm.js",
+    "isDynamicEntry": true
+  },
+  "node_modules/jspdf-autotable/dist/jspdf.plugin.autotable.mjs": {
+    "file": "assets/jspdf.plugin.autotable-Ch5I5Eqz.js",
+    "name": "jspdf.plugin.autotable",
+    "src": "node_modules/jspdf-autotable/dist/jspdf.plugin.autotable.mjs",
+    "isDynamicEntry": true
+  },
+  "node_modules/xlsx/xlsx.mjs": {
+    "file": "assets/xlsx-DGuHH-KN.js",
+    "name": "xlsx",
+    "src": "node_modules/xlsx/xlsx.mjs",
+    "isDynamicEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-BOyhbr0B.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/modules/dashboard.js": {
+    "file": "assets/dashboard-B8b9WgLC.js",
+    "name": "dashboard",
+    "src": "resources/js/modules/dashboard.js",
+    "isEntry": true
+  },
+  "resources/js/modules/date-range-picker.js": {
+    "file": "assets/date-range-picker-CW7guel3.js",
+    "name": "date-range-picker",
+    "src": "resources/js/modules/date-range-picker.js",
+    "isEntry": true
+  },
+  "resources/js/modules/filepond.js": {
+    "file": "assets/filepond-BIl_ywgw.js",
+    "name": "filepond",
+    "src": "resources/js/modules/filepond.js",
+    "isEntry": true
+  },
+  "resources/js/modules/rich-editor.js": {
+    "file": "assets/rich-editor-CKIR666g.js",
+    "name": "rich-editor",
+    "src": "resources/js/modules/rich-editor.js",
+    "isEntry": true
+  },
+  "resources/js/modules/rupiah-input.js": {
+    "file": "assets/rupiah-input-Bp-cqLE8.js",
+    "name": "rupiah-input",
+    "src": "resources/js/modules/rupiah-input.js",
+    "isEntry": true
+  },
+  "resources/js/modules/select2.js": {
+    "file": "assets/select2-ChhLDUq0.js",
+    "name": "select2",
+    "src": "resources/js/modules/select2.js",
+    "isEntry": true
+  },
+  "resources/js/modules/sneat-theme.js": {
+    "file": "assets/sneat-theme-CM9WRgcl.js",
+    "name": "sneat-theme",
+    "src": "resources/js/modules/sneat-theme.js",
+    "isEntry": true
+  },
+  "resources/js/modules/tabulator.js": {
+    "file": "assets/tabulator-BbCLj-rl.js",
+    "name": "tabulator",
+    "src": "resources/js/modules/tabulator.js",
+    "isEntry": true,
+    "imports": [
+      "resources/js/modules/select2.js"
+    ],
+    "dynamicImports": [
+      "node_modules/xlsx/xlsx.mjs",
+      "_jspdf.es.min-Dq4ZhWgp.js",
+      "node_modules/jspdf-autotable/dist/jspdf.plugin.autotable.mjs"
+    ],
+    "css": [
+      "assets/tabulator-A3wnfo6c.css"
+    ]
+  },
+  "resources/sass/app.scss": {
+    "file": "assets/app-Deb855bj.css",
+    "src": "resources/sass/app.scss",
+    "isEntry": true,
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/sass/sneat.scss": {
+    "file": "assets/sneat-Coxtv9Nb.css",
+    "src": "resources/sass/sneat.scss",
+    "isEntry": true,
+    "names": [
+      "sneat.css"
+    ]
+  }
+}

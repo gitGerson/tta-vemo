@@ -1,0 +1,1 @@
+const t=document.documentElement;try{const e=localStorage.getItem("sneat-theme"),a=window.matchMedia?.("(prefers-color-scheme: dark)").matches,r=e||(a?"dark":"light");t.setAttribute("data-bs-theme",r),t.classList.toggle("theme-dark",r==="dark")}catch{t.setAttribute("data-bs-theme","light")}
